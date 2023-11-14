@@ -1,5 +1,18 @@
+<!-- index.html -->
+
 <!DOCTYPE html>
 <html>
+
+<style>
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+  </style>  
 
 <body>
 
@@ -7,10 +20,11 @@
 
 <h2>Lyrical</h2>
 
-<p>Enter the first line to the hit classic "Twinkle Twinkle Little Star":</p>
+<p>Enter the lines to the hit classic "Twinkle Twinkle Little Star":</p>
 
-<input type="text" id="myInput">
-<button onclick="myFunction()">Submit</button>
+<div id="inputContainer"></div>
+<button style="margin-top: 20px;" onclick="myFunction()">Submit</button>
+
 
 <p id="demo"></p>
 
