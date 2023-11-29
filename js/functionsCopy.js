@@ -1,4 +1,3 @@
-// this is the secret string that the user will have to guess using the input text boxes
 var secretString = `Twinkle, twinkle, little star,
 How I wonder what you are!
 Up above the world so high,
@@ -6,7 +5,7 @@ Like a diamond in the sky.
 Twinkle, twinkle, little star,
 How I wonder what you are!`;
 
-window.onload = function() { // this is the function that is executed once the page is loaded
+window.onload = function() {
   var lines = secretString.split('\n'); // Split by new lines
   var container = document.getElementById('inputContainer');
   var words = secretString.split(/\s+/); // Split the secretString into words
@@ -19,7 +18,13 @@ window.onload = function() { // this is the function that is executed once the p
       input.type = 'text';
       input.id = 'myInput' + wordIndex;
       input.style.width = '200px'; // Set the width of the input field
-      input.oninput = updateColor();
+      input.oninput = function() {
+        if (this.value === words[wordIndex]) {
+          this.style.backgroundColor = 'green';
+        } else {
+          this.style.backgroundColor = '';
+        }
+      };
       container.appendChild(input);
       wordIndex++;
     });
@@ -30,13 +35,6 @@ window.onload = function() { // this is the function that is executed once the p
     if (event.key === "Enter") {
       myFunction();
     }
-  });
-}
-
-function updateColor() {
-  // Update color of input field according to whether the input is correct
-  var inputs = Array.from(document.getElementById('inputContainer').children).filter(function(child) {
-    return child.tagName === 'INPUT'; // Filter out the 'br' elements
   });
 }
 
