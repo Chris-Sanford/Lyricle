@@ -48,7 +48,7 @@ function updateColor() {
   if (formattedInput === comparisonWord) {
     input.style.backgroundColor = 'green'; // Set background color to green if input matches the corresponding word in the secret string
   } else {
-    input.style.backgroundColor = 'red'; // Set background color to red if input does not match the corresponding word in the secret string
+    input.style.backgroundColor = 'yellow'; // Set background color to red if input does not match the corresponding word in the secret string
   }
 }
 
