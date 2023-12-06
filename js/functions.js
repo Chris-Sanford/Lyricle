@@ -6,41 +6,53 @@ Like a diamond in the sky.
 Twinkle, twinkle, little star,
 How I wonder what you are!`;
 
-window.onload = function() { // this is the function that is executed once the page is loaded
-  var lines = secretString.split('\n'); // Split by new lines
+var secretString = `one, one
+one, four`;
+
+window.onload = function() {
+  var lines = secretString.split('\n');
   var container = document.getElementById('inputContainer');
-  var words = secretString.split(/\s+/); // Split the secretString into words
+  var words = secretString.split(/\s+/);
 
   var wordIndex = 0;
+  var maxWidth = 100; // Define a maximum width for the input boxes
   lines.forEach(function(line) {
-    var lineWords = line.split(/\s+/); // Split each line into words
-    lineWords.forEach(function() {
+    var lineWords = line.split(/\s+/);
+    lineWords.forEach(function(word) {
       var input = document.createElement('input');
       input.type = 'text';
       input.id = 'myInput' + wordIndex;
-      input.style.width = '200px'; // Set the width of the input field
-      input.oninput = updateColor();
+      var width = Math.min(10 * word.length, maxWidth); // Use the minimum of the word length and the maximum width
+      input.style.width = width + 'px';
+      input.style.textAlign = 'center';
+      input.addEventListener("input", updateColor);
       container.appendChild(input);
       wordIndex++;
     });
-    container.appendChild(document.createElement('br')); // Add a line break after each line
+    container.appendChild(document.createElement('br'));
   });
 
   container.addEventListener("keyup", function(event) {
     if (event.key === "Enter") {
-      myFunction();
+      submit();
     }
   });
 }
 
 function updateColor() {
-  // Update color of input field according to whether the input is correct
-  var inputs = Array.from(document.getElementById('inputContainer').children).filter(function(child) {
-    return child.tagName === 'INPUT'; // Filter out the 'br' elements
-  });
+  var input = event.target;
+  var inputIndex = parseInt(input.id.replace('myInput', ''));
+  var formattedInput = input.value.replace(/[^a-zA-Z ]/g, "").toLowerCase(); // remove all punctuation and make all lowercase
+  var comparisonWord = secretString.split(/\s+/)[inputIndex].replace(/[^a-zA-Z ]/g, "").toLowerCase();
+
+  if (formattedInput === comparisonWord) {
+    input.style.backgroundColor = 'green'; // Set background color to green if input matches the corresponding word in the secret string
+  } else {
+    input.style.backgroundColor = 'red'; // Set background color to red if input does not match the corresponding word in the secret string
+  }
 }
 
-function myFunction() {
+function submit() {
     var inputs = Array.from(document.getElementById('inputContainer').children).filter(function(child) {
       return child.tagName === 'INPUT'; // Filter out the 'br' elements
     });
