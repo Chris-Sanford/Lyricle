@@ -50,7 +50,6 @@ function updateColor() {
     .split(/\s+/)
     [inputIndex].replace(/[^a-zA-Z ]/g, "")
     .toLowerCase();
-
   if (formattedInput === comparisonWord) {
     input.style.backgroundColor = "green"; // Set background color to green if input matches the corresponding word in the secret string
   } else {
