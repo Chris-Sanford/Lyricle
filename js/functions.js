@@ -1,3 +1,5 @@
+// functions.js
+
 // this is the secret string that the user will have to guess using the input text boxes
 var secretString = `Twinkle, twinkle, little star,
 How I wonder what you are!
@@ -6,8 +8,26 @@ Like a diamond in the sky.
 Twinkle, twinkle, little star,
 How I wonder what you are!`;
 
-var secretString = `one, one
-one, four`;
+var secretString = `one, two
+three, four`;
+
+function getSong() {
+  var container = document.getElementById("getSong"); // Get the container div
+
+  var paragraph = document.createElement("p");
+  paragraph.innerHTML = "Enter the song you'd like to play:"; // Create a paragraph stating "enter the song you'd like to play"
+  container.appendChild(paragraph);
+
+  var input = document.createElement("input");
+  input.type = "text";
+  input.id = "songInput"; // Provide a text input box
+  container.appendChild(input);
+
+  var button = document.createElement("button");
+  button.innerHTML = "Select Song"; // Create a button titled "Select Song"
+  button.addEventListener("click", generateSong); // Add event listener to the button
+  container.appendChild(button);
+}
 
 function generateSong() {
   document.getElementById("songLyrics").innerHTML = ""; // Clear the songLyrics div
@@ -78,7 +98,7 @@ function submit() {
   var allFilled = formattedInputs.every(function (input) {
     return input !== ""; // Check if all text boxes are filled
   });
-  scoresong(formattedInputs, comparisonWords);
+  scoreSong(formattedInputs, comparisonWords);
   if (allFilled) {
     if (isCorrect) {
       document.getElementById("resultsMessage").innerHTML =
@@ -100,7 +120,7 @@ function submit() {
   }
 }
 
-function scoresong(formattedInputs, comparisonWords) {
+function scoreSong(formattedInputs, comparisonWords) {
   var currentscore = 0;
   formattedInputs.forEach(function (input, index) {
     if (input === comparisonWords[index]) {
@@ -111,4 +131,9 @@ function scoresong(formattedInputs, comparisonWords) {
   });
 }
 
-window.onload = generateSong;
+function init () {
+  getSong();
+  generateSong();
+}
+
+window.onload = init;
