@@ -1,15 +1,8 @@
 // functions.js
 
 // this is the secret string that the user will have to guess using the input text boxes
-var secretString = `Twinkle, twinkle, little star,
-How I wonder what you are!
-Up above the world so high,
-Like a diamond in the sky.
-Twinkle, twinkle, little star,
-How I wonder what you are!`;
-
-var secretString = `one, two
-three, four`;
+var secretString = `One, two, three, four
+Can I have a little more?`;
 
 function getSong() {
   var container = document.getElementById("getSong"); // Get the container div
@@ -48,7 +41,11 @@ function generateSong() {
       var width = Math.min(10 * word.length, maxWidth); // Use the minimum of the word length and the maximum width
       input.style.width = width + "px";
       input.style.textAlign = "center";
-      input.addEventListener("input", updateColor);
+      input.addEventListener("input", (function(input, wordIndex) {
+        return function() {
+          wordboxInputListener(input, wordIndex);
+        }
+      })(input, wordIndex));
       container.appendChild(input);
       wordIndex++;
     });
@@ -60,6 +57,16 @@ function generateSong() {
       submit();
     }
   });
+}
+
+function wordboxInputListener(input, wordIndex) {
+  updateColor();
+  if (input.style.backgroundColor === "green") {
+    var nextInput = document.getElementById("myInput" + (wordIndex + 1));
+    if (nextInput) {
+      nextInput.focus();
+    }
+  }
 }
 
 function updateColor() {
