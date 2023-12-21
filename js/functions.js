@@ -2,27 +2,32 @@
 
 // this is the secret string that the user will have to guess using the input text boxes
 var secretString = `One, two, three, four
-Can I have a little more?`;
+Can I have a little more?
+Five, six, seven, eight, nine, ten, I love you`;
 
-function getSong() {
-  var container = document.getElementById("getSong"); // Get the container div
+// this is a temp secret string to speed up debugging and testing
+var secretString = `One, two, three, four`;
 
-  var paragraph = document.createElement("p");
-  paragraph.innerHTML = "Enter the song you'd like to play:"; // Create a paragraph stating "enter the song you'd like to play"
-  container.appendChild(paragraph);
+function getSong() { // Ask the user to choose a song of their choice
+  // get the div element getSong from the HTML document and set it to the variable named container so we can manipulate it
+  var container = document.getElementById("getSong");
 
-  var input = document.createElement("input");
-  input.type = "text";
-  input.id = "songInput"; // Provide a text input box
-  container.appendChild(input);
+  var paragraph = document.createElement("p"); // create a paragraph element within the document
+  paragraph.innerHTML = "Enter the song you'd like to play:"; // populate the paragraph
+  container.appendChild(paragraph); // append the paragraph to the div container (this is where it actually populates?)
 
-  var button = document.createElement("button");
-  button.innerHTML = "Select Song"; // Create a button titled "Select Song"
-  button.addEventListener("click", generateSong); // Add event listener to the button
-  container.appendChild(button);
+  var input = document.createElement("input"); // Create an input element
+  input.type = "text"; // set it as text input
+  input.id = "songInput"; // give it an id name
+  container.appendChild(input); // append the input text box element to the container div
+
+  var button = document.createElement("button"); // Create a button element
+  button.innerHTML = "Select Song"; // Define the text within the button to label it
+  button.addEventListener("click", generateSong); // Add event listener to the button so it responds to clicks and calls the generateSong function (so the song can be selected and loaded in the future)
+  container.appendChild(button); // append the button to the div
 }
 
-function generateSong() {
+function generateSong() { // Loads main game with song lyrics to guess
   document.getElementById("songLyrics").innerHTML = ""; // Clear the songLyrics div
   document.getElementById("resultsMessage").innerHTML = ""; // Clear the resultsMessage div
   document.getElementById("score").innerHTML = ""; // Clear the score div
@@ -59,7 +64,7 @@ function generateSong() {
   });
 }
 
-function wordboxInputListener(input, wordIndex) {
+function wordboxInputListener(input, wordIndex) { // Event listener for lyric input boxes
   updateColor();
   if (input.style.backgroundColor === "green") {
     var nextInput = document.getElementById("myInput" + (wordIndex + 1));
@@ -69,7 +74,7 @@ function wordboxInputListener(input, wordIndex) {
   }
 }
 
-function updateColor() {
+function updateColor() { // Update the color of the lyric input boxes based on guess correctness
   var input = event.target;
   var inputIndex = parseInt(input.id.replace("myInput", ""));
   var formattedInput = input.value.replace(/[^a-zA-Z ]/g, "").toLowerCase(); // remove all punctuation and make all lowercase
@@ -84,7 +89,7 @@ function updateColor() {
   }
 }
 
-function submit() {
+function submit() { // submit the guessed lyrics and calculate and return score
   var inputs = Array.from(
     document.getElementById("songLyrics").children
   ).filter(function (child) {
@@ -127,7 +132,7 @@ function submit() {
   }
 }
 
-function scoreSong(formattedInputs, comparisonWords) {
+function scoreSong(formattedInputs, comparisonWords) { // Calculate the number of words guessed correctly
   var currentscore = 0;
   formattedInputs.forEach(function (input, index) {
     if (input === comparisonWords[index]) {
@@ -138,7 +143,7 @@ function scoreSong(formattedInputs, comparisonWords) {
   });
 }
 
-function init () {
+function init () { // Initialize the game
   getSong();
   generateSong();
 }
