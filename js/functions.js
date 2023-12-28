@@ -1,12 +1,13 @@
 // functions.js
 
-// this is the secret string that the user will have to guess using the input text boxes
-var secretString = `One, two, three, four
+// hard code a song to guess until we can get the API working
+var song = {
+  title: "All Together Now",
+  artist: "The Beatles",
+  lyrics: `One, two, three, four
 Can I have a little more?
-Five, six, seven, eight, nine, ten, I love you`;
-
-// this is a temp secret string to speed up debugging and testing
-var secretString = `One, two, three, four`;
+Five, six, seven, eight, nine, ten, I love you`
+}
 
 function getSong() { // Ask the user to choose a song of their choice
   // get the div element getSong from the HTML document and set it to the variable named container so we can manipulate it
@@ -31,8 +32,24 @@ function generateSong() { // Loads main game with song lyrics to guess
   document.getElementById("songLyrics").innerHTML = ""; // Clear the songLyrics div
   document.getElementById("resultsMessage").innerHTML = ""; // Clear the resultsMessage div
   document.getElementById("score").innerHTML = ""; // Clear the score div
-  var lines = secretString.split("\n"); // Split the secret string into lines
+  var lines = song.lyrics.split("\n"); // Split the secret string into lines separated by new lines
+  console.log(lines)
+  var words = lines.split(/\s+/); // Split the secret string into words separated by spaces
+  console.log(words)
+
+
+  // WHERE WE LEFT OFF: create a complete array of all words formatted for later comparison
+  var formattedLyrics = lines.replace(/[^a-zA-Z ]/g, "").toLowerCase(); // Remove all special characters and make all lowercase
+  console.log(formattedLyrics);
   var container = document.getElementById("songLyrics"); // Get the songLyrics div
+  
+
+  // Create a div to hold the song title and artist
+  var titleDiv = document.createElement("div"); // create a div element
+  titleDiv.innerHTML = "<b>" + song.title + "</b> by " + song.artist; // populate the div with the song title and artist
+  container.appendChild(titleDiv); // append the div to the container div
+  // append a line break to the container div to space out the title and artist from the lyrics
+  container.appendChild(document.createElement("br"));
 
   var wordIndex = 0; // Keep track of the word index, sets to 0 to start
   var maxWidth = 100; // Define a maximum width for the input boxes (should 100 be the value? will any realistic word require more pixels than this?)
@@ -64,7 +81,7 @@ function generateSong() { // Loads main game with song lyrics to guess
   });
 }
 
-function wordboxInputListener(input, wordIndex) { // Event listener for lyric input boxes
+function wordboxInputListener(input, wordIndex) { // Event listener function for lyric input boxes
   updateColor(); // call the updateColor function
   if (input.style.backgroundColor === "green") { // if the words matched, the input is correct, and the background color of the wordbox is green
     var nextInput = document.getElementById("myInput" + (wordIndex + 1)); // get next input box element by ID using current index + 1
@@ -78,10 +95,8 @@ function updateColor() { // Update the color of the lyric input boxes based on g
   var input = event.target; // this is working but deprecated but how do we replace this?
   var inputIndex = parseInt(input.id.replace("myInput", "")); // get the index of the input box (there must be a better way to do this)
   var formattedInput = input.value.replace(/[^a-zA-Z ]/g, "").toLowerCase(); // from input, remove all punctuation and make all lowercase
-  var comparisonWord = secretString // set the comparisonWord to a variable (there must be a better way to do this)
-    .split(/\s+/) // Split the secret string into words (haven't we already done this?)
-    [inputIndex].replace(/[^a-zA-Z ]/g, "") // get the proper word to compare by matching the index (couldn't we have done this before? didn't we?)
-    .toLowerCase(); // convert it to lowercase for accurate comparison
+  var comparisonWord = song.formattedLyrics // set the comparisonWord to a variable (there must be a better way to do this)
+    .split(/\s+/); // Split the secret string into words (haven't we already done this?)
   if (formattedInput === comparisonWord) {
     input.style.backgroundColor = "green"; // Set background color to green if input matches the corresponding word in the secret string
   } else {
@@ -99,7 +114,7 @@ function submit() { // submit the guessed lyrics and calculate and return score
     return input.value.replace(/[^a-zA-Z ]/g, "").toLowerCase(); // returns the resultant parsed input value to populate the formattedInputs array (no special characters, all lowercase)
   });
 
-  var comparisonWords = secretString.split(/\s+/).map(function (word) { // we're once against splitting the entire secret string...
+  var comparisonWords = song.formattedLyrics.split(/\s+/).map(function (word) { // we're once against splitting the entire secret string...
     return word.replace(/[^a-zA-Z ]/g, "").toLowerCase(); // once again format the secret string to remove special characters and make it all lowercase
   });
 
@@ -144,7 +159,7 @@ function scoreSong(formattedInputs, comparisonWords) { // Calculate the number o
 }
 
 function init () { // Initialize the game
-  getSong();
+  //getSong();
   generateSong();
 }
 
