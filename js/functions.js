@@ -1,7 +1,6 @@
 // functions.js
 
-// hard code a song to guess until we can get the API working
-var songData = {
+var songData = { // hard code a song to guess until we can get the API working
   title: "All Together Now",
   artist: "The Beatles",
   lyrics: `One, two, three, four
@@ -86,7 +85,7 @@ function constructInputBoxes(song, line, container) { // Construct the input box
     container.appendChild(input); // appends the input element to the container div so it's populated in the HTML document
     wordIndex++; // increments the wordIndex value by 1
   });
-  
+
   container.appendChild(document.createElement("br")); // adds a line break after each line of the song
 }
 
