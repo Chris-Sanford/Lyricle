@@ -61,16 +61,16 @@ function updateColor(input, song, wordIndex) { // Update the color of the lyric 
   }
 }
 
-function constructInputBoxes(song, line, container) { // Construct the input boxes for the song lyrics
+function constructInputBoxes(song, container) { // Construct the input boxes for the song lyrics
+  var wordIndex = 0; // initialize wordIndex to 0
   var maxWidth = 100; // Define a maximum width for the input boxes (should 100 be the value? will any realistic word require more pixels than this?)
 
-  var lineWords = line.split(/\s+/); // Split the line into words
-  console.log(lineWords); // log the lineWords array to the console
-  lineWords.forEach(function (word) { // executes a function against each word from lineWords array
+  // for each line in the song, execute the following function
+  song.formattedLines.forEach(function (line) { // executes a function against each line from the formattedLines array
+    var lineWords = line.split(/\s+/); // Split the line into words separated by spaces
+    lineWords.forEach(function (word) { // executes a function against each word from lineWords array
     var input = document.createElement("input"); // creates an input element
     input.type = "text"; // makes the element a text input
-    // doing indexOf for each word is not efficient but it'll work for now
-    var wordIndex = song.formattedWords.indexOf(word); // defines the wordIndex variable as the index of the word in the secret string
     input.id = "myInput" + wordIndex; // defines the unique id of the input element based on the index of the word in the secret string
     var width = Math.min(10 * word.length, maxWidth); // defines variable width using the Math.min static method to set the value to either the length of the word * 10
     // or the maxWidth value, whichever is smaller. This means a word with more than 10 characters will be restricted to the maxWidth value.
@@ -81,13 +81,14 @@ function constructInputBoxes(song, line, container) { // Construct the input box
       return function() { // calls the function defined below and returns parent function from addEventListener
         wordboxInputListener(input, song, wordIndex); // executes the wordboxInputListener function with relevant parameters/arguments
       }
-    })(input, wordIndex)); // ensures the correct input and wordIndex values are passed to the wordboxInputListener function
+    })(input, wordIndex)); // ensures the correct input and wordIndex values are passed to the wordboxInputListener function ?
 
     container.appendChild(input); // appends the input element to the container div so it's populated in the HTML document
     wordIndex++; // increments the wordIndex value by 1
   });
 
   container.appendChild(document.createElement("br")); // adds a line break after each line of the song
+  });
 }
 
 function startGame() { // Loads main game with song lyrics to guess
@@ -109,7 +110,7 @@ function startGame() { // Loads main game with song lyrics to guess
   container.appendChild(document.createElement("br"));
 
   // construct the input boxes for the song lyrics to start the game
-  song.formattedLines.forEach(function (line) {constructInputBoxes(song, line, container)});
+  constructInputBoxes(song, container);
 
   container.addEventListener("keyup", function (event) { // adds event listener for key input on wordbox
     if (event.key === "Enter") { // if the key pressed is the Enter key
@@ -176,4 +177,4 @@ function init () { // Initialize the game
   startGame();
 }
 
-window.onload = init; // upon loading the page, initialize the game9
+window.onload = init; // upon loading the page, initialize the game
