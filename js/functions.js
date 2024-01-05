@@ -42,7 +42,7 @@ function getSong() { // Ask the user to choose a song
 }
 
 function wordboxInputListener(input, song, wordIndex) { // Event listener function for lyric input boxes
-  updateColor(song, wordIndex); // call the updateColor function
+  updateColor(input, song, wordIndex); // call the updateColor function
   if (input.style.backgroundColor === "green") { // if the words matched, the input is correct, and the background color of the wordbox is green
     var nextInput = document.getElementById("myInput" + (wordIndex + 1)); // get next input box element by ID using current index + 1
     if (nextInput) { // if there is a next input box (i.e. we're not at the end of the song)
@@ -51,10 +51,9 @@ function wordboxInputListener(input, song, wordIndex) { // Event listener functi
   }
 }
 
-function updateColor(song, wordIndex) { // Update the color of the lyric input boxes based on guess correctness
-  var input = event.target; // this is working but deprecated- how do we replace this?
+function updateColor(input, song, wordIndex) { // Update the color of the lyric input boxes based on guess correctness
   var formattedInput = input.value.replace(/[^a-zA-Z ]/g, "").toLowerCase(); // from input, remove all punctuation and make all lowercase
-  var comparisonWord = song.formattedLyrics[wordIndex] // set the comparisonWord to a variable 
+  var comparisonWord = song.formattedWords[wordIndex] // set the comparisonWord to a variable 
   if (formattedInput === comparisonWord) {
     input.style.backgroundColor = "green"; // Set background color to green if input matches the corresponding word in the secret string
   } else {
@@ -63,13 +62,15 @@ function updateColor(song, wordIndex) { // Update the color of the lyric input b
 }
 
 function constructInputBoxes(song, line, container) { // Construct the input boxes for the song lyrics
-  var wordIndex = 0; // Keep track of the word index, sets to 0 to start
   var maxWidth = 100; // Define a maximum width for the input boxes (should 100 be the value? will any realistic word require more pixels than this?)
 
   var lineWords = line.split(/\s+/); // Split the line into words
+  console.log(lineWords); // log the lineWords array to the console
   lineWords.forEach(function (word) { // executes a function against each word from lineWords array
     var input = document.createElement("input"); // creates an input element
     input.type = "text"; // makes the element a text input
+    // doing indexOf for each word is not efficient but it'll work for now
+    var wordIndex = song.formattedWords.indexOf(word); // defines the wordIndex variable as the index of the word in the secret string
     input.id = "myInput" + wordIndex; // defines the unique id of the input element based on the index of the word in the secret string
     var width = Math.min(10 * word.length, maxWidth); // defines variable width using the Math.min static method to set the value to either the length of the word * 10
     // or the maxWidth value, whichever is smaller. This means a word with more than 10 characters will be restricted to the maxWidth value.
@@ -108,7 +109,7 @@ function startGame() { // Loads main game with song lyrics to guess
   container.appendChild(document.createElement("br"));
 
   // construct the input boxes for the song lyrics to start the game
-  song.lines.forEach(function (line) {constructInputBoxes(song, line, container)});
+  song.formattedLines.forEach(function (line) {constructInputBoxes(song, line, container)});
 
   container.addEventListener("keyup", function (event) { // adds event listener for key input on wordbox
     if (event.key === "Enter") { // if the key pressed is the Enter key
