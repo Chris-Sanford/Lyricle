@@ -102,6 +102,8 @@ function startGame() { // Loads main game with song lyrics to guess
 
   var container = document.getElementById("songLyrics"); // Get the songLyrics div
 
+  container.style.textAlign = "center"; // center align the content of the container div
+
   // Create a div to hold the song title and artist
   var titleDiv = document.createElement("div"); // create a div element
   titleDiv.innerHTML = "<b>" + song.title + "</b> by " + song.artist; // populate the div with the song title and artist
@@ -112,9 +114,20 @@ function startGame() { // Loads main game with song lyrics to guess
   // construct the input boxes for the song lyrics to start the game
   constructInputBoxes(song, container);
 
+  // add a line break to the container div to space out the lyrics from the submit button
+  container.appendChild(document.createElement("br"));
+
+  // create a button labeled "Submit" to submit the guessed lyrics
+  var button = document.createElement("button"); // create a button element
+  button.innerHTML = "Submit"; // populate the button with the text "Submit"
+  button.addEventListener("click", function () { // add event listener to the button so it responds to clicks and calls the submit function
+    submit(song); // call the submit function
+  });
+  container.appendChild(button); // append the button to the container div
+
   container.addEventListener("keyup", function (event) { // adds event listener for key input on wordbox
     if (event.key === "Enter") { // if the key pressed is the Enter key
-      submit(); // call the submit function
+      submit(song); // call the submit function
     }
   });
 }
@@ -129,30 +142,30 @@ function scoreSong(formattedInputs, comparisonWords) { // Calculate the number o
   });
 }
 
-function submit() { // submit the guessed lyrics and calculate and return score
+function submit(song) { // submit the guessed lyrics and calculate and return score
   var inputs = Array.from( // set inputs variable to an array of all the input elements to get the full answer
     document.getElementById("songLyrics").children // get the children of the songLyrics div
   ).filter(function (child) {
     return child.tagName === "INPUT"; // Filter out the 'br' elements to only get the input elements
   });
+
   var formattedInputs = inputs.map(function (input) { // map method creates a new array with the results of the nested function for every element in the input array
     return input.value.replace(/[^a-zA-Z ]/g, "").toLowerCase(); // returns the resultant parsed input value to populate the formattedInputs array (no special characters, all lowercase)
   });
 
-  var comparisonWords = song.formattedLyrics.split(/\s+/).map(function (word) { // we're once against splitting the entire secret string...
-    return word.replace(/[^a-zA-Z ]/g, "").toLowerCase(); // once again format the secret string to remove special characters and make it all lowercase
-  });
+  var comparisonWords = song.formattedWords
 
-  var isCorrect = formattedInputs.every(function (input, index) { // every method checks if all elements in array pass a particular test
+  var isAllCorrect = formattedInputs.every(function (input, index) { // 'every' method checks if all elements in array pass a particular test
     return input === comparisonWords[index]; // tests if the formattedInput matches the comparisonWord at the same index
-  }); // isCorrect will be true or false depending on whether all the words match
+  }); // isAllCorrect will be true or false depending on whether all the words match
 
   var allFilled = formattedInputs.every(function (input) {
     return input !== ""; // Check if all text boxes are filled
   });
+
   scoreSong(formattedInputs, comparisonWords); // call the scoreSong function with the formattedInputs and comparisonWords arrays as parameters/arguments
   if (allFilled) {
-    if (isCorrect) {
+    if (isAllCorrect) {
       document.getElementById("resultsMessage").innerHTML = // populate the resultsMessage div with the following text
         "<b style='color:green;'>SUCCESS!</b>";
     } else {
