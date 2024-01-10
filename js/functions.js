@@ -8,7 +8,8 @@ Can I have a little more?
 Five, six, seven, eight, nine, ten, I love you`
 }
 
-var wordsCorrect = 0; // initialize score to 0
+// is this bad practice to make global? should it be a local variable in the startGame function?
+var wordsCorrect = 0; // initialize score to 0, make variable global so it can be accessed by all functions
 
 // construct/declare a class called Song that will contain the original data and the properties/values that we calculate for the game
 class Song {
@@ -102,6 +103,8 @@ function startGame() { // Loads main game with song lyrics to guess
   document.getElementById("songLyrics").innerHTML = ""; // Clear the songLyrics div
   document.getElementById("resultsMessage").innerHTML = ""; // Clear the resultsMessage div
   document.getElementById("score").innerHTML = ""; // Clear the score div
+
+  wordsCorrect = 0;
 
   // construct a new Song object using the songData object
   var song = new Song(songData.title, songData.artist, songData.lyrics);
