@@ -1,5 +1,11 @@
 // functions.js
 
+/*
+Every time an input is marked as correct,
+lock the correct input box and increment wordsCorrect by 1
+have a constant check for if wordsCorrect === song.words.length
+*/
+
 var songData = { // hard code a song to guess until we can get the API working
   title: "All Together Now",
   artist: "The Beatles",
@@ -7,6 +13,8 @@ var songData = { // hard code a song to guess until we can get the API working
 Can I have a little more?
 Five, six, seven, eight, nine, ten, I love you`
 }
+
+var wordsCorrect = 0; // initialize score to 0
 
 // construct/declare a class called Song that will contain the original data and the properties/values that we calculate for the game
 class Song {
@@ -44,6 +52,11 @@ function getSong() { // Ask the user to choose a song
 function wordboxInputListener(input, song, wordIndex) { // Event listener function for lyric input boxes
   updateColor(input, song, wordIndex); // call the updateColor function
   if (input.style.backgroundColor === "green") { // if the words matched, the input is correct, and the background color of the wordbox is green
+    input.disabled = true; // disable the input box so it can't be changed
+    wordsCorrect++; // increment the wordsCorrect score by 1
+    if (wordsCorrect === song.words.length) { // if the wordsCorrect score equals the number of words in the song
+      submit(song); // call the submit function (to end the game
+    }
     var nextInput = document.getElementById("myInput" + (wordIndex + 1)); // get next input box element by ID using current index + 1
     if (nextInput) { // if there is a next input box (i.e. we're not at the end of the song)
       nextInput.focus(); // focus on the next input box
