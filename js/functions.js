@@ -139,17 +139,8 @@ function startGame() { // Loads main game with song lyrics to guess
   });
 }
 
-function scoreSong(formattedInputs, comparisonWords) { // Calculate the number of words guessed correctly
-  var score = 0; // default to 0 for current score
-  formattedInputs.forEach(function (input, index) { // for each formattedInput
-    if (input === comparisonWords[index]) { // if the formattedInput matches the comparisonWord at the same index
-      score++; // add +1 to the current score. Didn't we do these correctness checks already?
-    }
-    document.getElementById("score").innerHTML = score + " Words Correct!"; // populate the score div with the final score
-  });
-}
-
 function submit(song) { // submit the guessed lyrics and calculate and return score
+  // Some of this code is currently redundant but may prove useful in the future
   var inputs = Array.from( // set inputs variable to an array of all the input elements to get the full answer
     document.getElementById("songLyrics").children // get the children of the songLyrics div
   ).filter(function (child) {
@@ -162,24 +153,22 @@ function submit(song) { // submit the guessed lyrics and calculate and return sc
 
   var comparisonWords = song.formattedWords
 
-  var isAllCorrect = formattedInputs.every(function (input, index) { // 'every' method checks if all elements in array pass a particular test
-    return input === comparisonWords[index]; // tests if the formattedInput matches the comparisonWord at the same index
-  }); // isAllCorrect will be true or false depending on whether all the words match
-
+  // Verify that all text boxes are filled
   var allFilled = formattedInputs.every(function (input) {
     return input !== ""; // Check if all text boxes are filled
   });
 
-  scoreSong(formattedInputs, comparisonWords); // call the scoreSong function with the formattedInputs and comparisonWords arrays as parameters/arguments
   if (allFilled) {
-    if (isAllCorrect) {
+    // in the future, allow user to submit partially completed lyrics
+    var allCorrect = wordsCorrect === song.words.length
+    if (allCorrect) {
       document.getElementById("resultsMessage").innerHTML = // populate the resultsMessage div with the following text
         "<b style='color:green;'>SUCCESS!</b>";
     } else {
       document.getElementById("resultsMessage").innerHTML = // populate the resultsMessage div with the following text
         "<b style='color:red;'>Better luck next time!</b>";
     }
-  } else {
+  } else { // if not, update box coloring and tell user to fill out all boxes
     inputs.forEach(function (input, index) { // execute the following function against each input box
       if (input.value === "") {
         input.style.backgroundColor = "red"; // Highlight the input field in red if it's blank
@@ -190,6 +179,9 @@ function submit(song) { // submit the guessed lyrics and calculate and return sc
     document.getElementById("resultsMessage").innerHTML = // populate resultsMessage to urge player to finish the rest of the game
       "Please fill out the blank text boxes.";
   }
+
+  // Display the score
+  document.getElementById("score").innerHTML = wordsCorrect + " Words Correct!"; // populate the score div with the final score
 }
 
 function init () { // Initialize the game
