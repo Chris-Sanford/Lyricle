@@ -1,11 +1,5 @@
 // functions.js
 
-/*
-Every time an input is marked as correct,
-lock the correct input box and increment wordsCorrect by 1
-have a constant check for if wordsCorrect === song.words.length
-*/
-
 var songData = { // hard code a song to guess until we can get the API working
   title: "All Together Now",
   artist: "The Beatles",
