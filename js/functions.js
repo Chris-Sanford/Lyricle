@@ -50,7 +50,7 @@ function wordboxInputListener(input, song, wordIndex) { // Event listener functi
     input.disabled = true; // disable the input box so it can't be changed
     wordsCorrect++; // increment the wordsCorrect score by 1
     if (wordsCorrect === song.words.length) { // if the wordsCorrect score equals the number of words in the song
-      submit(song); // call the submit function (to end the game
+      completeGame(song); // call function that executes game completion code
     }
     var nextInput = document.getElementById("myInput" + (wordIndex + 1)); // get next input box element by ID using current index + 1
     if (nextInput) { // if there is a next input box (i.e. we're not at the end of the song)
@@ -99,6 +99,21 @@ function constructInputBoxes(song, container) { // Construct the input boxes for
   });
 }
 
+function constructSubmit(song) {
+  var submitContainer = document.getElementById("submit"); // Get the submit container/div
+  submitContainer.innerHTML = ""; // Clear the submit container/div
+
+  submitContainer.style.textAlign = "center"; // center align the content of the container div
+
+  // create a button labeled "Submit" to submit the guessed lyrics
+  var button = document.createElement("button"); // create a button element
+  button.innerHTML = "Submit"; // populate the button with the text "Submit"
+  button.addEventListener("click", function () { // add event listener to the button so it responds to clicks and calls the submit function
+    submit(song); // call the submit function
+  });
+  submitContainer.appendChild(button); // append the button to the container div
+}
+
 function startGame() { // Loads main game with song lyrics to guess
   document.getElementById("songLyrics").innerHTML = ""; // Clear the songLyrics div
   document.getElementById("resultsMessage").innerHTML = ""; // Clear the resultsMessage div
@@ -127,13 +142,7 @@ function startGame() { // Loads main game with song lyrics to guess
   // add a line break to the container div to space out the lyrics from the submit button
   container.appendChild(document.createElement("br"));
 
-  // create a button labeled "Submit" to submit the guessed lyrics
-  var button = document.createElement("button"); // create a button element
-  button.innerHTML = "Submit"; // populate the button with the text "Submit"
-  button.addEventListener("click", function () { // add event listener to the button so it responds to clicks and calls the submit function
-    submit(song); // call the submit function
-  });
-  container.appendChild(button); // append the button to the container div
+  constructSubmit(song);
 
   container.addEventListener("keyup", function (event) { // adds event listener for key input on wordbox
     if (event.key === "Enter") { // if the key pressed is the Enter key
@@ -142,49 +151,47 @@ function startGame() { // Loads main game with song lyrics to guess
   });
 }
 
-function submit(song) { // submit the guessed lyrics and calculate and return score
-  // Some of this code is currently redundant but may prove useful in the future
-  var inputs = Array.from( // set inputs variable to an array of all the input elements to get the full answer
-    document.getElementById("songLyrics").children // get the children of the songLyrics div
-  ).filter(function (child) {
-    return child.tagName === "INPUT"; // Filter out the 'br' elements to only get the input elements
-  });
-
-  var formattedInputs = inputs.map(function (input) { // map method creates a new array with the results of the nested function for every element in the input array
-    return input.value.replace(/[^a-zA-Z ]/g, "").toLowerCase(); // returns the resultant parsed input value to populate the formattedInputs array (no special characters, all lowercase)
-  });
-
-  var comparisonWords = song.formattedWords
-
-  // Verify that all text boxes are filled
-  var allFilled = formattedInputs.every(function (input) {
-    return input !== ""; // Check if all text boxes are filled
-  });
-
-  if (allFilled) {
-    // in the future, allow user to submit partially completed lyrics
-    var allCorrect = wordsCorrect === song.words.length
-    if (allCorrect) {
-      document.getElementById("resultsMessage").innerHTML = // populate the resultsMessage div with the following text
-        "<b style='color:green;'>SUCCESS!</b>";
-    } else {
-      document.getElementById("resultsMessage").innerHTML = // populate the resultsMessage div with the following text
-        "<b style='color:red;'>Better luck next time!</b>";
-    }
-  } else { // if not, update box coloring and tell user to fill out all boxes
-    inputs.forEach(function (input, index) { // execute the following function against each input box
-      if (input.value === "") {
-        input.style.backgroundColor = "red"; // Highlight the input field in red if it's blank
-      } else {
-        input.style.backgroundColor = ""; // Reset the background color if it's not blank
-      }
-    });
-    document.getElementById("resultsMessage").innerHTML = // populate resultsMessage to urge player to finish the rest of the game
-      "Please fill out the blank text boxes.";
+function completeGame(song) {
+  submitContainer = document.getElementById("submit"); // Get the submit container/div
+  // add event listener to the button so it responds to clicks and calls the submit function
+  var allCorrect = wordsCorrect === song.words.length
+  if (allCorrect) {
+    document.getElementById("resultsMessage").innerHTML = // populate the resultsMessage div with the following text
+      "<b style='color:green;'>SUCCESS!</b>";
+  } else {
+    document.getElementById("resultsMessage").innerHTML = // populate the resultsMessage div with the following text
+      "<b style='color:red;'>Better luck next time!</b>";
   }
-
   // Display the score
   document.getElementById("score").innerHTML = wordsCorrect + " Words Correct!"; // populate the score div with the final score
+
+  // Clear the submit container/div
+  submitContainer.innerHTML = "";
+
+  // Remove the Restart button (for the future)
+}
+
+function submit(song) { // submit the guessed lyrics and calculate and return score
+  // Replace "Submit" button with the following text:
+  // "Are you sure you want to submit? [Yes] [No]"
+  submitContainer = document.getElementById("submit"); // Get the submit container/div
+  submitContainer.innerHTML = ""; // Clear the submit container/div
+  var paragraph = document.createElement("p"); // create a paragraph element
+  paragraph.innerHTML = "Are you sure you want to submit?"; // populate the paragraph
+  submitContainer.appendChild(paragraph); // append the paragraph to the submit container/div
+  var yesButton = document.createElement("button"); // create a button element
+  yesButton.innerHTML = "Yes"; // populate the button with the text "Yes"
+  yesButton.addEventListener("click", function () {
+    completeGame(song)
+  });
+  submitContainer.appendChild(yesButton); // append the button to the submit container/div
+  var noButton = document.createElement("button"); // create a button element
+  noButton.innerHTML = "No"; // populate the button with the text "No"
+  noButton.addEventListener("click", function () { // add event listener to the button so it responds to clicks and calls the submit function
+    constructSubmit(song); // reset the submit container/div
+  }
+  );
+  submitContainer.appendChild(noButton); // append the button to the submit container/div
 }
 
 function init () { // Initialize the game
