@@ -45,6 +45,8 @@ function getSong() { // Ask the user to choose a song
 }
 
 function wordboxInputListener(input, song, wordIndex) { // Event listener function for lyric input boxes
+  // Add event listener to disallow all characters but normal English letters
+  input.value = input.value.replace(/[^a-zA-Z ]/g, ""); // disallow any input that isn't a standard English letter
   updateColor(input, song, wordIndex); // call the updateColor function
   if (input.style.backgroundColor === "green") { // if the words matched, the input is correct, and the background color of the wordbox is green
     input.disabled = true; // disable the input box so it can't be changed
