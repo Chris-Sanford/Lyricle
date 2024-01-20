@@ -141,7 +141,9 @@ function constructInputBoxes(song, container) {
       // or the maxWidth value, whichever is smaller. This means a word with more than 10 characters will be restricted to the maxWidth value.
       input.style.width = width + "px"; // width needs to be defined in px (pixels) so we add the px string to the end of the width value
       input.style.textAlign = "center"; // center the text within the input box
-
+      input.addEventListener('focus', function() { // adds event listener for focus on wordbox
+        updateColor(input, song, wordIndex); // calls the updateColor function on focus
+    });
       input.addEventListener(
         "input",
         (function (input, wordIndex) {
