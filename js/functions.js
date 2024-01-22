@@ -19,19 +19,16 @@ class Song {
     this.artist = artist;
     this.lyrics = lyrics;
     this.lines = lyrics.split("\n"); // Split the secret string into lines separated by new lines
-    this.words = lyrics
-      .replace(/[^a-zA-Z0-9\n\s]/g, "")
-      .toLowerCase()
-      .split(/\s+/); // Remove all special characters except \n and make all lowercase
-    this.formattedLyrics = this.words.join(" "); // Join the words back into a string with spaces
+    this.formattedWords = lyrics
+    .replace(/[^a-zA-Z0-9\n\s]/g, "")
+    .toLowerCase()
+    .split(/\s+/);
+    this.formattedLyrics = this.formattedWords.join(" "); // Join the words back into a string with spaces
     this.formattedLines = lyrics
       .replace(/[^a-zA-Z0-9\n\s]/g, "")
       .toLowerCase()
       .split("\n");
-    this.formattedWords = lyrics
-      .replace(/[^a-zA-Z0-9\n\s]/g, "")
-      .toLowerCase()
-      .split(/\s+/);
+    this.words = lyrics.split(/\s+/)
   }
 }
 
