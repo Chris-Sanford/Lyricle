@@ -157,6 +157,7 @@ function constructInputBoxes(song, container) {
         input.value = song.words[wordIndex]; // populate the input box with the unformatted secret word at wordIndex
         input.style.backgroundColor = "green"; // set the input box background color to green
         input.disabled = true; // disable the input box
+        wordsCorrect++; // increment the wordsCorrect score by 1
       }
 
       container.appendChild(input); // appends the input element to the container div so it's populated in the HTML document

@@ -4,7 +4,7 @@ Lyricle is a web-based Lyric guessing game. Play the daily challenge for your fa
 
 # Run Lyricle Locally
 
-Lyricle is fully HTML and JavaScript, and therefore doesn't require any special software and doesn't need to be compiled. Install the web server of your choice (Live Server extension for VSCode perhaps?) and play!
+Lyricle is fully HTML and JavaScript, and therefore doesn't require any special software and doesn't need to be compiled. Install the web server of your choice (Live Server extension for VSCode perhaps?), launch in a web browser, and play!
 
 # Host Lyricle
 
