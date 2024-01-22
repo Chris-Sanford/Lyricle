@@ -54,6 +54,7 @@ function getSong() {
   button.addEventListener("click", startGame); // Add event listener to the button so it responds to clicks and calls the startGame function (so the song can be selected and loaded in the future)
   container.appendChild(button); // append the button to the div
 }
+
 function wordboxInputListener(input, song, wordIndex) { // Event listener function for lyric input boxes
   // Add event listener to disallow all characters but normal English letters
   input.value = input.value.replace(/[^a-zA-Z ]/g, ""); // disallow any input that isn't a standard English letter
@@ -154,6 +155,12 @@ function constructInputBoxes(song, container) {
           };
         })(input, wordIndex)
       ); // ensures the correct input and wordIndex values are passed to the wordboxInputListener function ?
+
+      if (lineIndex === 0) {
+        input.value = song.words[wordIndex]; // populate the input box with the unformatted secret word at wordIndex
+        input.style.backgroundColor = "green"; // set the input box background color to green
+        input.disabled = true; // disable the input box
+      }
 
       container.appendChild(input); // appends the input element to the container div so it's populated in the HTML document
       wordIndex++; // increments the wordIndex value by 1
