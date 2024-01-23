@@ -5,8 +5,7 @@ var songData = {
   title: "All Together Now",
   artist: "The Beatles",
   lyrics: `One, two, three, four
-Can I have a little more?
-Five, six, seven, eight, nine, ten, I love you`,
+Compound word here: well-being`,
 };
 
 // is this bad practice to make global? should it be a local variable in the startGame function?
@@ -19,16 +18,17 @@ class Song {
     this.artist = artist;
     this.lyrics = lyrics;
     this.lines = lyrics.split("\n"); // Split the secret string into lines separated by new lines
+    this.words = lyrics.split(/\s+|-/) // Split the secret string into words separated by spaces or hyphens
     this.formattedWords = lyrics
-    .replace(/[^a-zA-Z0-9\n\s]/g, "")
+    .replace(/[^a-zA-Z0-9\n\s-]/g, "")
     .toLowerCase()
-    .split(/\s+/);
+    .split(/\s+|-/);
     this.formattedLyrics = this.formattedWords.join(" "); // Join the words back into a string with spaces
     this.formattedLines = lyrics
-      .replace(/[^a-zA-Z0-9\n\s]/g, "")
+      .replace(/[^a-zA-Z0-9\n\s-]/g, "") // remove all special characters except hyphens
+      .replace(/-/g, " ") // Replace hyphens with spaces
       .toLowerCase()
       .split("\n");
-    this.words = lyrics.split(/\s+/)
   }
 }
 
