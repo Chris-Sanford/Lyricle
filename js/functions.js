@@ -2,10 +2,40 @@
 
 var songData = {
   // hard code a song to guess until we can get the API working
-  title: "All Together Now",
-  artist: "The Beatles",
-  lyrics: `One, two, three, four
-Compound word here: well-being`,
+  title: "Sample Song",
+  artist: "The Rodfords",
+  lyrics: `! EXCLAMATION! point
+  @ At SymBoL
+  #007 Hash or Pound
+  $99 ninety nine dollars
+  12% twelve peRCent
+  ^ carrot
+  & and ampersand
+  * star asterisk multiply
+  ( open paren
+  ) closed paren
+  - dash-hyphen
+  _ under_score
+  + plus add
+  = equals
+  ~ swiggle?
+  \` tick
+  { open curly brace
+  } closed curly brace
+  [ open bracket
+  ] closed bracket
+  | pipe
+  \\ back\\slash
+  : colon
+  ; semicolon
+  " dub quotes
+  ' single quotes
+  < less than
+  > greater than
+  , comma,
+  . period.
+  ? question mark
+  / forward/slash`,
 };
 
 // is this bad practice to make global? should it be a local variable in the startGame function?
