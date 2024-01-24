@@ -5,37 +5,37 @@ var songData = {
   title: "Sample Song",
   artist: "The Rodfords",
   lyrics: `! EXCLAMATION! point
-  @ At SymBoL
-  #007 Hash or Pound
-  $99 ninety nine dollars
-  12% twelve peRCent
-  ^ carrot
-  & and ampersand
-  * star asterisk multiply
-  ( open paren
-  ) closed paren
-  - dash-hyphen
-  _ under_score
-  + plus add
-  = equals
-  ~ swiggle?
-  \` tick
-  { open curly brace
-  } closed curly brace
-  [ open bracket
-  ] closed bracket
-  | pipe
-  \\ back\\slash
-  : colon
-  ; semicolon
-  " dub quotes
-  ' single quotes
-  < less than
-  > greater than
-  , comma,
-  . period.
-  ? question mark
-  / forward/slash`,
+@ At SymBoL
+#007 Hash or Pound
+$99 ninety nine dollars
+12% twelve peRCent
+^ carrot
+& and ampersand
+* star asterisk multiply
+( open paren
+) closed paren
+- dash-hyphen
+_ under_score
++ plus add
+= equals
+~ swiggle?
+\` tick
+{ open curly brace
+} closed curly brace
+[ open bracket
+] closed bracket
+| pipe
+\\ back\\slash
+: colon
+; semicolon
+" dub quotes
+' single quotes
+< less than
+> greater than
+, comma,
+. period.
+? question mark
+/ forward/slash`,
 };
 
 // is this bad practice to make global? should it be a local variable in the startGame function?
@@ -46,19 +46,21 @@ class Song {
   constructor(title, artist, lyrics) {
     this.title = title;
     this.artist = artist;
-    this.lyrics = lyrics;
-    this.lines = lyrics.split("\n"); // Split the secret string into lines separated by new lines
-    this.words = lyrics.split(/\s+|-/) // Split the secret string into words separated by spaces or hyphens
-    this.formattedWords = lyrics
-    .replace(/[^a-zA-Z0-9\n\s-]/g, "")
-    .toLowerCase()
-    .split(/\s+|-/);
-    this.formattedLyrics = this.formattedWords.join(" "); // Join the words back into a string with spaces
-    this.formattedLines = lyrics
-      .replace(/[^a-zA-Z0-9\n\s-]/g, "") // remove all special characters except hyphens
-      .replace(/-/g, " ") // Replace hyphens with spaces
-      .toLowerCase()
-      .split("\n");
+    this.lyrics = lyrics;  // raw, unformatted lyrics straight from API
+    this.lines = this.lyrics.split("\n"); // split raw lyrics by \n into array of lines
+    // lyricsSpaced:
+    // IF there is not already a space before or after a
+    // PREPEND a space BEFORE every special character EXCEPT \n (new lines) OR at the beginning or end of the string
+    // APPEND a space AFTER every special character EXCEPT \n (new lines) OR at the beginning or end of the string
+    this.lyricsSpaced = this.lyrics // do we need to fix this so it doesn't do it at the beginning and end of the string?
+      // 
+      .replace(/[^a-zA-Z0-9 \n]/g, " $& ") // prepend a space before every special character EXCEPT \n (new lines)
+      .replace(/[^a-zA-Z0-9 \n]/g, "$& "); // append a space after every special character EXCEPT \n (new lines)
+    this.linesSpaced = this.lyricsSpaced.split("\n"); // split lyricsSpaced by \n (new lines) into array of lines
+    this.words = this.lyricsSpaced.split(" "); // split linesSpaced into array of "words" by spaces
+    this.lyricsSpacedLower = this.lyricsSpaced.toLowerCase(); // convert all letters to lowercase for comparison
+    this.linesSpacedLower = this.lyricsSpacedLower.split("\n"); // split lyricsSpacedLower by \n (new lines) into array of spaced lowercase lines for comparison
+    this.wordsLower = this.lyricsSpacedLower.split(" "); // convert all words to lowercase for comparison
   }
 }
 
@@ -83,8 +85,8 @@ function getSong() {
 }
 
 function wordboxInputListener(input, song, wordIndex) { // Event listener function for lyric input boxes
-  // Add event listener to disallow all characters but normal English letters
-  input.value = input.value.replace(/[^a-zA-Z ]/g, ""); // disallow any input that isn't a standard English letter
+  // Add event listener to disallow all characters but normal English letters and numbers 0-9
+  input.value = input.value.replace(/[^a-zA-Z0-9 ]/g, ""); // disallow any input that isn't a standard English letter or number
   updateColor(input, song, wordIndex); // call the updateColor function
   if (input.style.backgroundColor === "green") {
     // if the words matched, the input is correct, and the background color of the wordbox is green
@@ -103,7 +105,7 @@ function wordboxInputListener(input, song, wordIndex) { // Event listener functi
 }
 
 function updateColor(input, song, wordIndex) { // Update the color of the lyric input boxes based on guess correctness
-  var formattedInput = input.value.replace(/[^a-zA-Z ]/g, "").toLowerCase(); // from input, remove all punctuation and make all lowercase
+  var formattedInput = input.value.toLowerCase(); // make input lowercase for comparison
   var comparisonWord = song.formattedWords[wordIndex]; // set the comparisonWord to a variable
   var currentLine = parseInt(input.className.match(/Line(\d+)/)[1]); // extract the line number from the class name
   if (formattedInput === comparisonWord) {
@@ -140,6 +142,10 @@ function updateColor(input, song, wordIndex) { // Update the color of the lyric 
   }
   
   lastLine = currentLine; // set the lastLine to the currentLine so it can be used to compare for the next run of the script
+
+  console.log(formattedInput);
+  console.log(comparisonWord);
+  console.log(wordIndex);
 }
 
 function constructInputBoxes(song, container) {
