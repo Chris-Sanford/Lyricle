@@ -1,7 +1,7 @@
 const apiUrl = "https://api.musixmatch.com/ws/1.1/";
 
 // Define API key (if required)
-const apiKey = "eaff3968904283162bfa3a9518519a9e";
+const apiKey = "seeGitHubSecrets";
 
 // Define headers (if required)
 const headers = {
