@@ -6,36 +6,7 @@ var songData = {
   artist: "The Rodfords",
   lyrics: `! EXCLAMATION! point
 @ At SymBoL
-#007 Hash or Pound
-$99 ninety nine dollars
-12% twelve peRCent
-^ carrot
-& and ampersand
-* star asterisk multiply
-( open paren
-) closed paren
-- dash-hyphen
-_ under_score
-+ plus add
-= equals
-~ swiggle?
-\` tick
-{ open curly brace
-} closed curly brace
-[ open bracket
-] closed bracket
-| pipe
-\\ back\\slash
-: colon
-; semicolon
-" dub quotes
-' single quotes
-< less than
-> greater than
-, comma,
-. period.
-? question mark
-/ forward/slash`,
+#007 Hash or Pound`,
 };
 
 // is this bad practice to make global? should it be a local variable in the startGame function?
@@ -48,19 +19,13 @@ class Song {
     this.artist = artist;
     this.lyrics = lyrics;  // raw, unformatted lyrics straight from API
     this.lines = this.lyrics.split("\n"); // split raw lyrics by \n into array of lines
-    // lyricsSpaced:
-    // IF there is not already a space before or after a
-    // PREPEND a space BEFORE every special character EXCEPT \n (new lines) OR at the beginning or end of the string
-    // APPEND a space AFTER every special character EXCEPT \n (new lines) OR at the beginning or end of the string
-    this.lyricsSpaced = this.lyrics // do we need to fix this so it doesn't do it at the beginning and end of the string?
-      // 
-      .replace(/[^a-zA-Z0-9 \n]/g, " $& ") // prepend a space before every special character EXCEPT \n (new lines)
-      .replace(/[^a-zA-Z0-9 \n]/g, "$& "); // append a space after every special character EXCEPT \n (new lines)
-    this.linesSpaced = this.lyricsSpaced.split("\n"); // split lyricsSpaced by \n (new lines) into array of lines
-    this.words = this.lyricsSpaced.split(" "); // split linesSpaced into array of "words" by spaces
-    this.lyricsSpacedLower = this.lyricsSpaced.toLowerCase(); // convert all letters to lowercase for comparison
-    this.linesSpacedLower = this.lyricsSpacedLower.split("\n"); // split lyricsSpacedLower by \n (new lines) into array of spaced lowercase lines for comparison
-    this.wordsLower = this.lyricsSpacedLower.split(" "); // convert all words to lowercase for comparison
+    this.words = this.lyrics
+      .replace(/([^a-zA-Z0-9\s])/g, ' $1 ') // add spaces around symbols
+      .replace(/\s{2,}/g, ' ') // remove extra spaces
+      .split(' '); // split raw lyrics by spaces into array of words, numbers, and symbols
+    this.lyricsLower = this.lyrics.toLowerCase(); // convert all letters to lowercase for comparison
+    this.linesLower = this.lyricsLower.split("\n");
+    this.wordsLower = this.lyricsLower.split(/[^a-zA-Z0-9]+/);
   }
 }
 
