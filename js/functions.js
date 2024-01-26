@@ -25,7 +25,10 @@ class Song {
       .split(' '); // split raw lyrics by spaces into array of words, numbers, and symbols
     this.lyricsLower = this.lyrics.toLowerCase(); // convert all letters to lowercase for comparison
     this.linesLower = this.lyricsLower.split("\n");
-    this.wordsLower = this.lyricsLower.split(/[^a-zA-Z0-9]+/);
+    this.wordsLower = this.lyricsLower
+    .replace(/([^a-zA-Z0-9\s])/g, ' $1 ') // add spaces around symbols
+    .replace(/\s{2,}/g, ' ') // remove extra spaces
+    .split(' '); // split raw lyrics by spaces into array of words, numbers, and symbols
   }
 }
 
