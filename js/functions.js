@@ -4,13 +4,13 @@ var songData = {
   // hard code a song to guess until we can get the API working
   title: "All Together Now",
   artist: "The Beatles",
+  // remember not to indent the string below
   lyrics: `One, two, three, four
-  Can I have a little more?
-  Five, six, seven, eight, nine, ten, I love you
-  A, B, C, D
-  Can I bring my friend to tea?
-  E, F, G, H, I, J, I love you
-  `,
+Càn I have a little more?
+Five, six, seven, eight, nine, ten, I love you
+A, B, C, D
+Can I bring my friend to tea?
+E, F, G, H, I, J, I love you`,
 };
 
 // is this bad practice to make global? should it be a local variable in the startGame function?
@@ -24,15 +24,18 @@ class Song {
     this.lyrics = lyrics;  // raw, unformatted lyrics straight from API
     this.lines = this.lyrics.split("\n"); // split raw lyrics by \n into array of lines
     this.words = this.lyrics
-      .replace(/([^a-zA-Z0-9\s])/g, ' $1 ') // add spaces around symbols
+      .replace(/([^a-zA-Z0-9\s\u00C0-\u017F])/g, ' $1 ') // add spaces around symbols excluding letters with accents
       .replace(/\n/g, ' ') // replace any instance of \n with a space
       .replace(/\s{2,}/g, ' ') // remove extra spaces
       .split(' ') // split raw lyrics by spaces into array of words, numbers, and symbols
       .filter(str => str !== ""); // removes empty strings from array, needed because index 1 seems to always be an empty string
-    this.lyricsLower = this.lyrics.toLowerCase(); // convert all letters to lowercase for comparison
+    this.lyricsLower = this.lyrics // for comparison
+      .toLowerCase() // make all letters lowercase
+      .normalize("NFD") // decompose letters and diatrics
+      .replace(/\p{Diacritic}/gu, ''); // replace them with non-accented characters
     this.linesLower = this.lyricsLower.split("\n");
     this.wordsLower = this.lyricsLower
-      .replace(/([^a-zA-Z0-9\s])/g, ' $1 ') // add spaces around symbols
+    .replace(/([^a-zA-Z0-9\s\u00C0-\u017F])/g, ' $1 ') // add spaces around symbols excluding letters with accents
       .replace(/\n/g, ' ') // replace any instance of \n with a space
       .replace(/\s{2,}/g, ' ') // remove extra spaces
       .split(' ') // split raw lyrics by spaces into array of words, numbers, and symbols
@@ -76,7 +79,7 @@ function selectNextInput(input, wordIndex) {
 
 function wordboxInputListener(input, song, wordIndex) { // Event listener function for lyric input boxes
   // Add event listener to disallow all characters but normal English letters and numbers 0-9
-  input.value = input.value.replace(/[^a-zA-Z0-9 ]/g, ""); // disallow any input that isn't a standard English letter or number
+  input.value = input.value.replace(/([^a-zA-Z0-9\s\u00C0-\u017F])/g, ""); // disallow any input that isn't a standard English letter or number
   updateColor(input, song, wordIndex); // call the updateColor function
   if (input.style.backgroundColor === "green") {
     // if the words matched, the input is correct, and the background color of the wordbox is green
@@ -92,9 +95,13 @@ function wordboxInputListener(input, song, wordIndex) { // Event listener functi
 }
 
 function updateColor(input, song, wordIndex) { // Update the color of the lyric input boxes based on guess correctness
-  var formattedInput = input.value.toLowerCase(); // make input lowercase for comparison
+  var formattedInput = input.value // for comparison
+  .toLowerCase() // make all letters lowercase
+  .normalize("NFD") // decompose letters and diatrics
+  .replace(/\p{Diacritic}/gu, ''); // replace them with non-accented characters
   var comparisonWord = song.wordsLower[wordIndex]; // set the comparisonWord to a variable
   var currentLine = parseInt(input.className.match(/Line(\d+)/)[1]); // extract the line number from the class name
+
   if (formattedInput === comparisonWord) {
     input.style.backgroundColor = "green"; // Set background color to green if input matches the corresponding word in the secret string
   } else {
@@ -137,9 +144,9 @@ function constructInputBoxes(song, container) {
   var lineIndex = 0; // Keep track of the line index
   var maxWidth = 100; // Define a maximum width for the input boxes (should 100 be the value? will any realistic word require more pixels than this?)
   var startOfNextLine = true; // Defines Start of Next Line as true so it can be used to determine if the input box is the start of a new line during the loop
+
   // for each line in the song, execute the following function
   song.linesLower.forEach(function (line) {
-    // executes a function against each line from the formattedLines array
     var lineWords = line // there is probably a more efficient way to do this in the original construction of the object (dictionary/hashmap?)
       .replace(/([^a-zA-Z0-9\s])/g, ' $1 ') // add spaces around symbols
       .replace(/\n/g, ' ') // replace any instance of \n with a space
@@ -165,7 +172,7 @@ function constructInputBoxes(song, container) {
       input.style.textAlign = "center"; // center the text within the input box
       input.addEventListener('focus', function() { // adds event listener for focus on wordbox
         updateColor(input, song, wordIndex); // calls the updateColor function on focus
-    });
+      });
       input.addEventListener(
         "input",
         (function (input, wordIndex) {
@@ -179,7 +186,7 @@ function constructInputBoxes(song, container) {
 
       // if it's the first line (which we give for free to indicate where in the song we are)
       // OR if the current word is a symbol
-      if (lineIndex === 0 || /([^a-zA-Z0-9\s])/.test(song.words[wordIndex])) {
+      if (lineIndex === 0 || /([^a-zA-Z0-9\s])/.test(song.wordsLower[wordIndex])) {
         input.value = song.words[wordIndex]; // populate the input box with the unformatted secret word at wordIndex
         input.style.backgroundColor = "green"; // set the input box background color to green
         input.disabled = true; // disable the input box
