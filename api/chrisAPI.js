@@ -1,9 +1,15 @@
+// run this using node.js
+// install nodejs: winget install nodejs
+// open terminal at root of repo and run: node api\chrisAPI.js
+
 // Define API Key, DO NOT COMMIT TO REPO
 const apiKey = '';
 
 // Import the required modules
 const https = require ('https');
 const querystring = require ('querystring');
+const fs = require('fs');
+const path = require('path');
 
 // Define the parameters for the track search API request
 const trackParams = {
@@ -68,62 +74,50 @@ const trackReq = https.request (trackOptions, (trackRes) => {
         };
 
         // Make the lyrics get HTTPS request
-        const lyricsReq = https.request (lyricsOptions, (lyricsRes) => {
-          // Check the status code
-          if (lyricsRes.statusCode === 200) {
-            // Initialize an empty string to store the lyrics response data
-            let lyricsData = '';
+        const lyricsReq = https.request(lyricsOptions, (lyricsRes) => {
+          let lyricsData = '';
 
-            // Listen for data chunks and append them to the lyrics data string
-            lyricsRes.on ('data', (chunk) => {
-              lyricsData += chunk;
-            });
+          lyricsRes.on('data', (chunk) => {
+            lyricsData += chunk;
+          });
 
-            // Listen for the end of the lyrics response and parse the lyrics data
-            lyricsRes.on ('end', () => {
-              // Parse the JSON lyrics data
-              const lyricsJson = JSON.parse (lyricsData);
+          lyricsRes.on('end', () => {
+            const lyricsJson = JSON.parse(lyricsData);
 
-              // Check the status code of the lyrics API response
-              if (lyricsJson.message.header.status_code === 200) {
-                // Get the lyrics from the lyrics body
-                const lyrics = lyricsJson.message.body.lyrics.lyrics_body;
+            if (lyricsJson.message.header.status_code === 200) {
+              const lyrics = lyricsJson.message.body.lyrics.lyrics_body;
 
-                // Log the lyrics
-                console.log (`Lyrics: ${lyrics}`);
-              } else {
-                // Log the error message from the lyrics API response
-                console.error (`Lyrics API error: ${lyricsJson.message.header.status_code}`);
-              }
-            });
-          } else {
-            // Log the error message from the lyrics HTTPS request
-            console.error (`Lyrics HTTPS error: ${lyricsRes.statusCode}`);
-          }
+              // Create song information object
+              const songInfo = {
+                track_id: track.track_id,
+                title: track.track_name,
+                artist: track.artist_name,
+                lyrics: lyrics
+              };
+
+              // Convert song information object to JSON
+              const songInfoJson = JSON.stringify(songInfo);
+
+              // Write song information to a JSON file in the lyrics directory
+              // Define the path to the lyrics folder
+              let lyricsFolderPath = path.join(__dirname, '..', 'lyrics');
+              // Define the file path
+              let filePath = path.join(lyricsFolderPath, 'daily.json');
+              fs.writeFile(`${filePath}`, songInfoJson, (err) => {
+                if (err) {
+                  console.error('Error writing file:', err);
+                } else {
+                  console.log('File written successfully');
+                }
+              });
+            }
+          });
         });
 
-        // Handle any errors from the lyrics HTTPS request
-        lyricsReq.on ('error', (error) => {
-          console.error (error);
-        });
-
-        // End the lyrics HTTPS request
-        lyricsReq.end ();
-      } else {
-        // Log the error message from the track API response
-        console.error (`Track API error: ${trackJson.message.header.status_code}`);
+        lyricsReq.end();
       }
     });
-  } else {
-    // Log the error message from the track HTTPS request
-    console.error (`Track HTTPS error: ${trackRes.statusCode}`);
   }
 });
 
-// Handle any errors from the track HTTPS request
-trackReq.on ('error', (error) => {
-  console.error (error);
-});
-
-// End the track HTTPS request
-trackReq.end ();
+trackReq.end();
