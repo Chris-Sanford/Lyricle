@@ -15,7 +15,7 @@ To install Node.JS on Windows, run the following command in an administrative sh
 
 To run the JavaScript using Node.JS, open a terminal/shell and change directory to the root of the repository. Then, run the following:
 
-`node api\chrisAPI.js`
+`node api\api.js`
 
 ## Main Game
 Lyricle is fully HTML and JavaScript, and therefore doesn't require any special software and doesn't need to be compiled. Install the web server of your choice (Live Server extension for VSCode perhaps?), launch in a web browser, and play!
