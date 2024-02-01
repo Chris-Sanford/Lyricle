@@ -5,8 +5,8 @@ var songData = {
   title: "All Together Now",
   artist: "The Beatles",
   // remember not to indent the string below
-  lyrics: `One, two, three, four
-Càn I have a little more?
+  lyrics: `It's, shouldn't, three, four
+We've can't have a little more?
 Five, six, seven, eight, nine, ten, I love you
 A, B, C, D
 Can I bring my friend to tea?
@@ -24,7 +24,7 @@ class Song {
     this.lyrics = lyrics;  // raw, unformatted lyrics straight from API
     this.lines = this.lyrics.split("\n"); // split raw lyrics by \n into array of lines
     this.words = this.lyrics
-      .replace(/([^a-zA-Z0-9\s\u00C0-\u017F])/g, ' $1 ') // add spaces around symbols excluding letters with accents
+      .replace(/([^a-zA-Z0-9\s\u00C0-\u017F'])/g, ' $1 ') // add spaces around symbols excluding letters with accents and apostrophes
       .replace(/\n/g, ' ') // replace any instance of \n with a space
       .replace(/\s{2,}/g, ' ') // remove extra spaces
       .split(' ') // split raw lyrics by spaces into array of words, numbers, and symbols
@@ -32,10 +32,11 @@ class Song {
     this.lyricsLower = this.lyrics // for comparison
       .toLowerCase() // make all letters lowercase
       .normalize("NFD") // decompose letters and diatrics
-      .replace(/\p{Diacritic}/gu, ''); // replace them with non-accented characters
+      .replace(/\p{Diacritic}/gu, '') // replace them with non-accented characters
+      .replace(/'/g, ''); // replace apostrophes with nothing
     this.linesLower = this.lyricsLower.split("\n");
     this.wordsLower = this.lyricsLower
-    .replace(/([^a-zA-Z0-9\s\u00C0-\u017F])/g, ' $1 ') // add spaces around symbols excluding letters with accents
+      .replace(/([^a-zA-Z0-9\s\u00C0-\u017F'])/g, ' $1 ') // add spaces around symbols excluding letters with accents and apostrophes
       .replace(/\n/g, ' ') // replace any instance of \n with a space
       .replace(/\s{2,}/g, ' ') // remove extra spaces
       .split(' ') // split raw lyrics by spaces into array of words, numbers, and symbols
@@ -78,8 +79,8 @@ function selectNextInput(input, wordIndex) {
 }
 
 function wordboxInputListener(input, song, wordIndex) { // Event listener function for lyric input boxes
-  // Add event listener to disallow all characters but normal English letters and numbers 0-9
-  input.value = input.value.replace(/([^a-zA-Z0-9\s\u00C0-\u017F])/g, ""); // disallow any input that isn't a standard English letter or number
+  // Add event listener to disallow all characters but normal English letters, numbers 0-9, and apostrophes (')
+  input.value = input.value.replace(/([^a-zA-Z0-9\s\u00C0-\u017F'])/g, ""); // disallow any input that isn't a standard English letter, number, or apostrophe
   updateColor(input, song, wordIndex); // call the updateColor function
   if (input.style.backgroundColor === "green") {
     // if the words matched, the input is correct, and the background color of the wordbox is green
@@ -96,6 +97,7 @@ function wordboxInputListener(input, song, wordIndex) { // Event listener functi
 
 function updateColor(input, song, wordIndex) { // Update the color of the lyric input boxes based on guess correctness
   var formattedInput = input.value // for comparison
+  .replace(/([^a-zA-Z0-9\s\u00C0-\u017F])/g, "") // disallow any input that isn't a standard English letter or number
   .toLowerCase() // make all letters lowercase
   .normalize("NFD") // decompose letters and diatrics
   .replace(/\p{Diacritic}/gu, ''); // replace them with non-accented characters
