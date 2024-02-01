@@ -1,16 +1,18 @@
 // functions.js
 
 var songData = {
-  // hard code a song to guess until we can get the API working
-  title: "All Together Now",
-  artist: "The Beatles",
-  // remember not to indent the string below
-  lyrics: `It's, shouldn't, three, four
-We've can't have a little more?
-Five, six, seven, eight, nine, ten, I love you
-A, B, C, D
-Can I bring my friend to tea?
-E, F, G, H, I, J, I love you`,
+// hard code a song to guess until we can get the API working
+title: "Cyndi Lauper",
+artist: "Time After Time",
+// remember not to indent the string below
+lyrics: `If you're lost, you can look and you will find me
+Time after time
+If you fall, I will catch you, I'll be waiting
+Time after time
+If you're lost, you can look and you will find me
+Time after time
+If you fall, I will catch you, (I'll be waiting) I will be waiting
+Time after time`,
 };
 
 // is this bad practice to make global? should it be a local variable in the startGame function?
