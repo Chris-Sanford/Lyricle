@@ -2,17 +2,17 @@
 
 var songData = {
 // hard code a song to guess until we can get the API working
-title: "Cyndi Lauper",
-artist: "Time After Time",
+title: "Get Lucky (feat. Pharrel Williams)",
+artist: "Daft Punk",
 // remember not to indent the string below
-lyrics: `If you're lost, you can look and you will find me
-Time after time
-If you fall, I will catch you, I'll be waiting
-Time after time
-If you're lost, you can look and you will find me
-Time after time
-If you fall, I will catch you, (I'll be waiting) I will be waiting
-Time after time`,
+lyrics: `She's up all night 'til the sun
+I'm up all night to get some
+She's up all night for good fun
+I'm up all night to get lucky
+We're up all night 'til the sun
+We're up all night to get some
+We're up all night for good fun
+We're up all night to get lucky`,
 };
 
 // is this bad practice to make global? should it be a local variable in the startGame function?
