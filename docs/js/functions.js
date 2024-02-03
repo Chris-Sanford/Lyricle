@@ -82,7 +82,7 @@ function selectNextInput(input, wordIndex) {
 
 function wordboxInputListener(input, song, wordIndex) { // Event listener function for lyric input boxes
   // Add event listener to disallow all characters but normal English letters, numbers 0-9, and apostrophes (')
-  input.value = input.value.replace(/([^a-zA-Z0-9\s\u00C0-\u017F'])/g, ""); // disallow any input that isn't a standard English letter, number, or apostrophe
+  input.value = input.value.replace(/([^a-zA-Z0-9\u00C0-\u017F'])/g, ""); // disallow any input that isn't a standard English letter, number, or apostrophe
   updateColor(input, song, wordIndex); // call the updateColor function
   if (input.style.backgroundColor === "green") {
     // if the words matched, the input is correct, and the background color of the wordbox is green
