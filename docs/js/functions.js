@@ -1,23 +1,9 @@
 // functions.js
 
-var songData = {
-// hard code a song to guess until we can get the API working
-title: "Get Lucky (feat. Pharrel Williams)",
-artist: "Daft Punk",
-// remember not to indent the string below
-lyrics: `She's up all night 'til the sun
-I'm up all night to get some
-She's up all night for good fun
-I'm up all night to get lucky
-We're up all night 'til the sun
-We're up all night to get some
-We're up all night for good fun
-We're up all night to get lucky`,
-};
-
 // is this bad practice to make global? should it be a local variable in the startGame function?
 var wordsCorrect = 0; // initialize score to 0, make variable global so it can be accessed by all functions
 var lastLine = 0; // initialize lastLine to 1, make variable global so it can be accessed by all functions
+
 // construct/declare a class called Song that will contain the original data and the properties/values that we calculate for the game
 class Song {
   constructor(title, artist, lyrics) {
@@ -44,6 +30,11 @@ class Song {
       .split(' ') // split raw lyrics by spaces into array of words, numbers, and symbols
       .filter(str => str !== ""); // removes empty strings from array, needed because index 1 seems to always be an empty string
   }
+}
+
+async function getSongData() {
+  const response = await fetch('https://pub-9d70620f0c724e4595b80ff107d19f59.r2.dev/daily.json');
+  songData = await response.json();
 }
 
 function getSong() {
@@ -86,6 +77,7 @@ function wordboxInputListener(input, song, wordIndex) { // Event listener functi
   updateColor(input, song, wordIndex); // call the updateColor function
   if (input.style.backgroundColor === "green") {
     // if the words matched, the input is correct, and the background color of the wordbox is green
+    input.value = song.words[wordIndex]; // populate the input box with the unformatted secret word at wordIndex
     input.disabled = true; // disable the input box so it can't be changed
     wordsCorrect++; // increment the wordsCorrect score by 1
 
@@ -230,7 +222,7 @@ function startGame() { // Loads main game with song lyrics to guess
   wordsCorrect = 0;
 
   // construct a new Song object using the songData object
-  var song = new Song(songData.title, songData.artist, songData.lyrics);
+  var song = new Song(songData.title, songData.artist, songData.chorus);
   console.log(song); // log the song object to the console
 
   var container = document.getElementById("songLyrics"); // Get the songLyrics div
@@ -307,8 +299,11 @@ function submit(song) { // submit the guessed lyrics and calculate and return sc
 
 function init() {
   // Initialize the game
+  
   //getSong();
-  startGame();
-}
 
+  getSongData().then(() => {
+    startGame();
+});
+}
 window.onload = init; // upon loading the page, initialize the game
