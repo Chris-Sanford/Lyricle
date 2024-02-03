@@ -1,5 +1,45 @@
-import lyricsgenius
-import os
+import lyricsgenius # Module for accessing the Genius API
+import os # Module for interacting with the operating system and filesystem
+import json # Module for working with JSON data
+import re # Module for working with regular expressions
+
+# Functions
+def get_daily_json_path():
+    # Get the root directory of the repository
+    root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+    # Get the lyrics directory path from the root
+    lyrics_dir = os.path.join(root_dir, 'lyrics')
+
+    # Get the daily.json file path
+    daily_song_path = lyrics_dir + '\\daily.json'
+    return daily_song_path
+
+def save_daily_json(song, daily_song_path):
+    # Write the lyrics to a file in api dir (lyricsgenius module doesn't support saving to fully qualified path)
+    song.save_lyrics('daily.json')
+
+    # Remove the daily.json file if it exists
+    if os.path.exists(daily_song_path):
+        os.remove(daily_song_path)
+
+    # Move the lyrics to the lyrics directory
+    os.rename('daily.json', daily_song_path)
+    print("Lyrics saved to lyrics/daily.json")
+
+def add_chorus(chorus, daily_song_path):
+    # Append the "chorus" attribute to the lyrics JSON file
+    with open(daily_song_path, 'r+') as json_file:
+        data = json.load(json_file)
+        # Update the below to reliably calculate and extract the chorus from the lyrics
+        data['chorus'] = chorus
+        json_file.seek(0)
+        json.dump(data, json_file, indent=4)
+        json_file.truncate()
+    print("Chorus added to daily.json")
+
+    # Save the changes to the lyrics JSON file
+    json_file.close()
 
 # Check if the secrets directory exists
 try:
@@ -32,34 +72,63 @@ song = genius.search_song('Get Lucky', 'Daft Punk')
 
 # Print the lyrics if found
 if song is not None:
+    # Clean up lyrics property since the module isn't perfect
+    # Remove any instance of "You might also like" from song.lyrics
+    song.lyrics = song.lyrics.replace('You might also like', '')
+
+    # ensure all [ are preceeded by 2 newlines
+    song.lyrics = song.lyrics.replace('[', '\n\n[')
+
+    # Use a RegEx to ensure there are no more than 2 consecutive newlines
+    song.lyrics = re.sub(r'\n{3,}', '\n\n', song.lyrics)
+
+    # Remove any line that contains the string "ContributorsTranslations"
+    song.lyrics = '\n'.join([line for line in song.lyrics.split('\n') if 'ContributorsTranslations' not in line])
+
+    # If the last line ends in "Embed", remove "Embed" and any preceding numbers
+    if song.lyrics.split('\n')[-1].endswith('Embed'):
+        song.lyrics = '\n'.join(song.lyrics.split('\n')[:-1])
+
     print()
-    print("Title: " + song.title)
+    print("Title: " + song.title_with_featured)
     print("Artist: " + song.artist)
-    print()
     print(song.lyrics)
+    print()
+
+    daily_song_path = get_daily_json_path()
+
+    save_daily_json(song, daily_song_path)
+
+    # Calculate the chorus
+    # Identify the line that indicates the chorus denoted by "[Chorus:"
+    chorusIndicatorLine = ''
+    for line in song.lyrics.split('\n'):
+        if '[Chorus:' in line:
+            chorusIndicatorLine = line
+            break
+
+    print("Chorus Indicator Line: " + chorusIndicatorLine)
     
-    # Write the lyrics to a file in api dir (lyricsgenius module doesn't support saving to fully qualified path)
-    song.save_lyrics('daily.json')
+    # If the chorus indicator line is found, extract the chorus
+    if chorusIndicatorLine != '':
+        chorus = ''
 
-    # Get the root directory of the repository
-    root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        # Use a regex to get all content between the first instance of chorusIndicatorLine and \n\n
+        chorus_content = re.search(rf"{re.escape(chorusIndicatorLine)}(.*?)\n\n", song.lyrics, re.DOTALL)
 
-    # Get the lyrics directory path from the root
-    lyrics_dir = os.path.join(root_dir, 'lyrics')
+        if chorus_content:
+            chorus = chorus_content.group(1)
+        
+        # Remove any instance of \n from the beginning or end of the chorus
+        chorus = chorus.strip('\n')
 
-    # Remove the daily.json file if it exists
-    daily_song_path = lyrics_dir + '\daily.json'
-    if os.path.exists(daily_song_path):
-        os.remove(daily_song_path)
-
-    # Move the lyrics to the lyrics directory
-    os.rename('daily.json', daily_song_path)
-    print("Lyrics saved to lyrics/daily.json")
+        print("\nChorus:")
+        print(chorus)
+        print()
+        add_chorus(chorus, daily_song_path)
+    else:
+        print("Chorus not found.")
+        # Add a placeholder chorus to the lyrics JSON file
+        add_chorus("Chorus not found.", daily_song_path)
 else:
     print("Lyrics not found.")
-
-# Create dailyChorus.json file in lyrics directory
-# This file will only store the chorus of the song for the day so we only have to do this once
-# Therefore the client won't have to do the calculation
-    
-    

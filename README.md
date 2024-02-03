@@ -4,16 +4,16 @@ Lyricle is a web-based lyric guessing game. Play the daily challenge and put you
 
 # Run Lyricle Locally
 
-## Node.JS (Backend)
+## Python (Backend)
 
-To run the JavaScript responsible for obtaining the song data from the source API, you must install Node.JS.
-To install Node.JS on Windows, run the following command in an administrative shell (assuming Windows 11):
+To run the Python script responsible for obtaining the song data from the source API, you must install Python3.
+To install Python3 on Windows, run the following command in an administrative shell (assuming Windows 11):
 
-`winget install nodejs`
+`winget install Python.Python.3.12`
 
-To run the JavaScript using Node.JS, open a terminal/shell and change directory to the root of the repository. Then, run the following:
+To run the Python backend, open a terminal/shell and change directory to the root of the repository. Then, run the following:
 
-`node api\genius.js`
+`py api\genius.py`
 
 ## Main Game (Frontend)
 Lyricle is fully HTML and JavaScript, and therefore doesn't require any special software and doesn't need to be compiled. Install the web server of your choice (Live Server extension for VSCode perhaps?), launch in a web browser, and play!
