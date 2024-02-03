@@ -3,6 +3,13 @@
 <!DOCTYPE html>
 <html>
 
+<!-- FOR DEVELOPMENT ONLY?: Prevents webpage from loading from cache.-->
+<!-- This helps in testing changes made from recent PR merge / Actions deployment.-->
+<!-- How do we balance performance with ensuring the song rotates in time for our users?-->
+<meta http-equiv='cache-control' content='no-cache'> 
+<meta http-equiv='expires' content='0'> 
+<meta http-equiv='pragma' content='no-cache'>
+
 <head>
   <title>Lyricle - Guess the Lyrics</title>
   <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico">
