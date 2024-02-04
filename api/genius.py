@@ -43,11 +43,16 @@ def add_chorus(chorus, daily_song_path):
 
 # Check if the secrets directory exists
 try:
-    with open('secrets/genius_client_access_token.key', 'r') as file:
-        access_token = file.read().strip()
-        if access_token == 'YOUR_ACCESS_TOKEN':
-            print("Genius API Client Access Token not set. Please update the value of api/secrets/genius_client_access_token.key with the genius api client access token.")
-            exit()
+    # try to obtain the access token from the environment variables set in GitHub Actions / YML file
+    access_token = os.getenv("GENIUS_CLIENT_ACCESS_TOKEN") 
+    
+    # if the environment variable wasn't set, assume we're running this locally and try to read the access token from the file
+    if access_token is None:
+        with open('secrets/genius_client_access_token.key', 'r') as file:
+            access_token = file.read().strip()
+            if access_token == 'YOUR_ACCESS_TOKEN':
+                print("Genius API Client Access Token not set. Please update the value of api/secrets/genius_client_access_token.key with the genius api client access token.")
+                exit()
 except FileNotFoundError:
     print("The secrets directory does not exist.")
     # Create the secrets directory
