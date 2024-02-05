@@ -3,16 +3,13 @@ import os # Module for interacting with the operating system and filesystem
 import json # Module for working with JSON data
 import re # Module for working with regular expressions
 
+# We need to implement a read operation timeout or retry handling 
+# because we've seen this randomly fail with a timeout error before
+
 # Functions
 def get_daily_json_path():
-    # Get the root directory of the repository
-    root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-    # Get the lyrics directory path from the root
-    lyrics_dir = os.path.join(root_dir, 'lyrics')
-
     # Get the daily.json file path
-    daily_song_path = lyrics_dir + '\\daily.json'
+    daily_song_path = 'lyrics/daily.json'
     return daily_song_path
 
 def save_daily_json(song, daily_song_path):
@@ -51,7 +48,7 @@ try:
         with open('secrets/genius_client_access_token.key', 'r') as file:
             access_token = file.read().strip()
             if access_token == 'YOUR_ACCESS_TOKEN':
-                print("Genius API Client Access Token not set. Please update the value of api/secrets/genius_client_access_token.key with the genius api client access token.")
+                print("Genius API Client Access Token not set. Please update the value of secrets/genius_client_access_token.key with the genius api client access token.")
                 exit()
 except FileNotFoundError:
     print("The secrets directory does not exist.")
