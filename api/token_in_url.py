@@ -6,8 +6,7 @@ if not access_token:
     print("Access token not found. Please set the GENIUS_CLIENT_ACCESS_TOKEN environment variable.")
     exit()
 
-search_term = 'Paranoid'
-url = f'https://api.genius.com/search?q={search_term}&access_token={access_token}'
+url = f'https://genius.com/api/search/multi?q=Get+Lucky+Daft+Punk&access_token={access_token}'
 
 response = requests.get(url)
 if response.status_code == 200:
