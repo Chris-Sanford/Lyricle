@@ -1,0 +1,79 @@
+{
+ "_type": "song",
+ "annotation_count": 11,
+ "api_path": "/songs/139968",
+ "artist_names": "Daft Punk (Ft. Nile Rodgers & Pharrell Williams)",
+ "full_title": "Get Lucky by\u00a0Daft\u00a0Punk (Ft.\u00a0Nile\u00a0Rodgers & Pharrell\u00a0Williams)",
+ "header_image_thumbnail_url": "https://images.genius.com/440d158f53bf17abbb5a362259942639.300x300x1.jpg",
+ "header_image_url": "https://images.genius.com/440d158f53bf17abbb5a362259942639.1000x1000x1.jpg",
+ "id": 139968,
+ "instrumental": false,
+ "lyrics_owner_id": 211656,
+ "lyrics_state": "complete",
+ "lyrics_updated_at": 1702587520,
+ "path": "/Daft-punk-get-lucky-lyrics",
+ "pyongs_count": 457,
+ "relationships_index_url": "https://genius.com/Daft-punk-get-lucky-sample",
+ "release_date_components": {
+  "year": 2013,
+  "month": 4,
+  "day": 19
+ },
+ "release_date_for_display": "April 19, 2013",
+ "release_date_with_abbreviated_month_for_display": "Apr. 19, 2013",
+ "song_art_image_thumbnail_url": "https://images.genius.com/8d74f74dbb53fcc1d37baaf9c124e345.300x300x1.png",
+ "song_art_image_url": "https://images.genius.com/8d74f74dbb53fcc1d37baaf9c124e345.1000x1000x1.png",
+ "stats": {
+  "unreviewed_annotations": 1,
+  "hot": false,
+  "pageviews": 4092884
+ },
+ "title": "Get Lucky",
+ "title_with_featured": "Get Lucky (Ft.\u00a0Nile\u00a0Rodgers & Pharrell\u00a0Williams)",
+ "updated_by_human_at": 1706219431,
+ "url": "https://genius.com/Daft-punk-get-lucky-lyrics",
+ "featured_artists": [
+  {
+   "_type": "artist",
+   "api_path": "/artists/110",
+   "header_image_url": "https://images.genius.com/6bb3ce5bd62c7acfc3a66798c4bbeb26.640x427x1.jpg",
+   "id": 110,
+   "image_url": "https://images.genius.com/aa964e94a21e7b893801ed3a2bd389b8.1000x1000x1.jpg",
+   "index_character": "p",
+   "is_meme_verified": true,
+   "is_verified": true,
+   "name": "Pharrell Williams",
+   "slug": "Pharrell-williams",
+   "url": "https://genius.com/artists/Pharrell-williams",
+   "iq": 724
+  },
+  {
+   "_type": "artist",
+   "api_path": "/artists/34636",
+   "header_image_url": "https://images.genius.com/1ee0d58bfc81352329eeb76fb3bfff09.399x399x1.jpg",
+   "id": 34636,
+   "image_url": "https://images.genius.com/1ee0d58bfc81352329eeb76fb3bfff09.399x399x1.jpg",
+   "index_character": "n",
+   "is_meme_verified": false,
+   "is_verified": false,
+   "name": "Nile Rodgers",
+   "slug": "Nile-rodgers",
+   "url": "https://genius.com/artists/Nile-rodgers"
+  }
+ ],
+ "primary_artist": {
+  "_type": "artist",
+  "api_path": "/artists/13585",
+  "header_image_url": "https://images.genius.com/50010bc5fcaac6803d781f64e9dd89b4.1000x165x1.jpg",
+  "id": 13585,
+  "image_url": "https://images.genius.com/a508888fd6a96cadcf835ecf95b1c1ae.1000x1000x1.jpg",
+  "index_character": "d",
+  "is_meme_verified": false,
+  "is_verified": false,
+  "name": "Daft Punk",
+  "slug": "Daft-punk",
+  "url": "https://genius.com/artists/Daft-punk"
+ },
+ "artist": "Daft Punk",
+ "lyrics": "\n[Verse 1: Pharrell Williams]\nLike the legend of the phoenix, huh\nAll ends with beginnings\nWhat keeps the planet spinning, uh-huh\nThe force from the beginning\nLook\n\n[Pre-Chorus: Pharrell Williams]\nWe've come too far\nTo give up who we are\nSo let's raise the bar\nAnd our cups to the stars\n\n[Chorus: Pharrell Williams]\nShe's up all night 'til the sun\nI'm up all night to get some\nShe's up all night for good fun\nI'm up all night to get lucky\nWe're up all night 'til the sun\nWe're up all night to get some\nWe're up all night for good fun\nWe're up all night to get lucky\nWe're up all night to get lucky\nWe're up all night to get lucky\nWe're up all night to get lucky\nWe're up all night to get lucky\n\n[Verse 2: Pharrell Williams]\nThe present has no ribbon\nYour gift keeps on giving\nWhat is this I'm feeling?\nIf you wanna leave, I'm with it, uh-huh\n\n[Pre-Chorus: Pharrell Williams]\nWe've come too far\nTo give up who we are\nSo let's raise the bar\nAnd our cups to the stars\n\n[Chorus: Pharrell Williams]\nShe's up all night 'til the sun\nI'm up all night to get some\nShe's up all night for good fun\nI'm up all night to get lucky\nWe're up all night 'til the sun\nWe're up all night to get some\nWe're up all night for good fun\nWe're up all night to get lucky\nWe're up all night to get lucky\nWe're up all night to get lucky\nWe're up all night to get lucky\nWe're up all night to get lucky\n\n[Chorus: Pharrell Williams]\nShe's up all night 'til the sun\nI'm up all night to get some\nShe's up all night for good fun\nI'm up all night to get lucky\nWe're up all night 'til the sun\nWe're up all night to get some\nWe're up all night for good fun\nWe're up all night to get lucky\nWe're up all night to get lucky\nWe're up all night to get lucky\nWe're up all night to get lucky\nWe're up all night to get lucky\n\n[Chorus: Pharrell Williams]\nShe's up all night 'til the sun\nI'm up all night to get some\nShe's up all night for good fun\nI'm up all night to get lucky\nWe're up all night 'til the sun\nWe're up all night to get some\nWe're up all night for good fun\nWe're up all night to get lucky\nWe're up all night to get lucky\nWe're up all night to get lucky\nWe're up all night to get lucky\nWe're up all night to get lucky\n\n[Bridge: Daft Punk]\nWe're up all night to get\nWe're up all night to get\nWe're up all night to get\nWe're up all night to get\nWe're up all night to get\nWe're up all night to get\nWe're up all night to get\nWe're up all night to get\nWe're up all night to get back together\nWe're up all night to get (Let's get funked again)\nWe're up all night to get (Funky)\nWe're up all night to get lucky\nWe're up all night to get lucky\nWe're up all night to get lucky\nWe're up all night to get lucky\nWe're up all night to get lucky\nWe're up all night to get lucky\nWe're up all night to get lucky\nWe're up all night to get lucky\nWe're up all night to get lucky\n\n[Pre-Chorus: Pharrell Williams]\nWe've come too far\nTo give up who we are\nSo let's raise the bar\nAnd our cups to the stars\n\n[Chorus: Pharrell Williams]\nShe's up all night 'til the sun\nI'm up all night to get some\nShe's up all night for good fun\nI'm up all night to get lucky\nWe're up all night 'til the sun\nWe're up all night to get some\nWe're up all night for good fun\nWe're up all night to get lucky\nWe're up all night to get lucky\nWe're up all night to get lucky\nWe're up all night to get lucky\nWe're up all night to get lucky\n\n[Outro: Pharrell Williams]\nWe're up all night to get lucky\nWe're up all night to get lucky\nWe're up all night to get lucky\nWe're up all night to get lucky\nWe're up all night to get lucky\nWe're up all night to get lucky\nWe're up all night to get lucky\nWe're up all night to get lucky\nWe're up all night to get lucky\nWe're up all night to get lucky\nWe're up all night to get lucky"
+}

@@ -27,7 +27,7 @@ jobs:
         pip install -r api/requirements.txt
 
     - name: Run script
-      run: python api/genius.py
+      run: python api/token_in_url.py
 
     - name: Upload to CloudFlare R2 Bucket
       uses: ryand56/r2-upload-action@latest
