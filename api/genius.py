@@ -1,7 +1,7 @@
 """
 THIS SCRIPT DOES NOT WORK IN CLOUD ENVIRONMENTS DUE TO GENIUS API RESTRICTIONS
 
-genius.py takes the list of songs from topSongs.json (generated from spotify.api), obtains the lyrics for each song from the Genius API, then builds a JSON file for each song and its lyrics that satisfy the criteria for a sufficient daily song to be played within Lyricle.
+genius.py takes the list of songs from topSongs.json (generated from topSongs.api), obtains the lyrics for each song from the Genius API, then builds a JSON file for each song and its lyrics that satisfy the criteria for a sufficient daily song to be played within Lyricle.
 
 To run this script, install the required modules contained within requirements.txt:
 pip install -r requirements.txt
