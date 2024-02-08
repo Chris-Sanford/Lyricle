@@ -3,6 +3,7 @@
 // is this bad practice to make global? should it be a local variable in the startGame function?
 var wordsCorrect = 0; // initialize score to 0, make variable global so it can be accessed by all functions
 var lastLine = 0; // initialize lastLine to 1, make variable global so it can be accessed by all functions
+var jsonUrl = 'https://pub-9d70620f0c724e4595b80ff107d19f59.r2.dev/gameData.json'
 
 // construct/declare a class called Song that will contain the original data and the properties/values that we calculate for the game
 class Song {
@@ -33,7 +34,7 @@ class Song {
 }
 
 async function getSongData() {
-  const response = await fetch('https://pub-9d70620f0c724e4595b80ff107d19f59.r2.dev/daily.json');
+  const response = await fetch(jsonUrl);
   songData = await response.json();
 }
 
