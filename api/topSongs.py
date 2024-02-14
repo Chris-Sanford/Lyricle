@@ -10,7 +10,7 @@ from spotipy.oauth2 import SpotifyOAuth
 #region Global Variable Declarations
 service = 'spotify'
 keyFileName = f'secrets/{service}_client_secret.key'
-jsonFileName = f'gameData/topSongs.json'
+jsonFileName = f'topSongs.json'
 #endregion Global Variable Declarations
 
 #region Functions

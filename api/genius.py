@@ -23,8 +23,8 @@ import requests # Module for making HTTP requests
 from time import sleep # Module for adding a delay to the script
 
 #region Variables
-daily_song_path = 'gameData/gameData.json'
-topSongsJson = 'gameData/topSongs.json'
+daily_song_path = 'docs/gameData.json'
+topSongsJson = 'api/topSongs.json'
 service = 'genius'
 keyFileName = f'secrets/{service}_client_access_token.key'
 #endregion
