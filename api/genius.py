@@ -20,8 +20,10 @@ import os # Module for interacting with the operating system and filesystem
 import json # Module for working with JSON data
 import re # Module for working with regular expressions
 import requests # Module for making HTTP requests
+from time import sleep # Module for adding a delay to the script
 
 #region Variables
+daily_song_path = 'gameData/gameData.json'
 topSongsJson = 'gameData/topSongs.json'
 service = 'genius'
 keyFileName = f'secrets/{service}_client_access_token.key'
@@ -43,10 +45,10 @@ def get_client_secret(keyFileName):
     try:
         with open(keyFileName, 'r') as file:
             secret = file.read().strip()
-            return secret
             if secret == 'YOUR_SECRET':
-                print("{service} API Client Access Token not set. Please update the value of {keyFileName} with the {service} api client secret.")
+                print(service," API Client Access Token not set. Please update the value of ",keyFileName," with the ",service," api client secret.")
                 exit()
+            return secret
     except FileNotFoundError:
         if not os.path.exists('secrets'):
             print("The secrets directory does not exist.")
@@ -56,42 +58,22 @@ def get_client_secret(keyFileName):
         # Create the genius_client_secret.key file
         with open(keyFileName, 'w') as file:
             file.write('YOUR_SECRET')
-        print("The {keyFileName} file has been created. Please add your {service} API access token.")
+        print("The ",keyFileName," file has been created. Please add your ",service," API access token.")
         exit()
     except Exception as e:
         print("An error occurred while reading the access token file:", e)
         exit()
 
-def get_daily_json_path():
-    # Get the daily.json file path
-    daily_song_path = 'lyrics/daily.json'
-    return daily_song_path
-
-def save_daily_json(song, daily_song_path):
-    # Write the lyrics to a file in api dir (lyricsgenius module doesn't support saving to fully qualified path)
-    song.save_lyrics('daily.json')
-
-    # Remove the daily.json file if it exists
+def save_daily_json(songData, daily_song_path):
+    # Remove the gameData.json file if it exists
     if os.path.exists(daily_song_path):
         os.remove(daily_song_path)
 
-    # Move the lyrics to the lyrics directory
-    os.rename('daily.json', daily_song_path)
-    print("Lyrics saved to lyrics/daily.json")
+    # Save the songData to a JSON file
+    with open(daily_song_path, 'w') as file:
+        json.dump([song.__dict__ for song in songData], file, indent=4)
 
-def add_chorus(chorus, daily_song_path):
-    # Append the "chorus" attribute to the lyrics JSON file
-    with open(daily_song_path, 'r+') as json_file:
-        data = json.load(json_file)
-        # Update the below to reliably calculate and extract the chorus from the lyrics
-        data['chorus'] = chorus
-        json_file.seek(0)
-        json.dump(data, json_file, indent=4)
-        json_file.truncate()
-    print("Chorus added to daily.json")
-
-    # Save the changes to the lyrics JSON file
-    json_file.close()
+    print("Lyrics saved to " + daily_song_path)
 
 def clean_up_lyrics(lyrics): # Clean up lyrics property since the lyricsgenius module isn't perfect
     # Remove any instance of "You might also like" from song.lyrics
@@ -120,8 +102,6 @@ def get_chorus(geniusData):
         if '[Chorus' in line:
             chorusIndicatorLine = line
             break
-
-    print("Chorus Indicator Line: " + chorusIndicatorLine)
     
     # If the chorus indicator line is found, extract the chorus
     if chorusIndicatorLine != '':
@@ -137,12 +117,22 @@ def get_chorus(geniusData):
         chorus = chorus.strip('\n')
         print("\nChorus:")
         print(chorus)
-        print() 
+        print()
+        return chorus
     else:
-        print("Chorus not found.")
+        print("Chorus not found among the following lyrics/data:")
+        print(geniusData)
+        return None
 
-    return chorus
-
+def search_song_with_retry(song_title, song_artist, max_retries=5, delay=5):
+    for i in range(max_retries):
+        try:
+            return genius.search_song(song_title, song_artist)
+        except requests.exceptions.Timeout:
+            print(f"Timeout occurred for '{song_title}' by '{song_artist}'. Retrying ({i+1}/{max_retries}) after {delay} seconds...")
+            sleep(delay)
+    print(f"Failed to get song '{song_title}' by '{song_artist}' after {max_retries} attempts.")
+    return None
 #endregion Functions
 
 #region Execution
@@ -160,28 +150,34 @@ with open(topSongsJson, 'r') as file:
 # Initialize an array to store the song data (including lyrics)
 songData = []
 
-# Use get the lyrics for each song from the Genius API
+# Get the lyrics for each song from the Genius API
 for song in top_songs:
     # Search for the song on Genius
-    geniusData = genius.search_song(song['title'], song['artist'])
+    geniusData = search_song_with_retry(song['title'], song['artist'])
+    print(geniusData)
 
     if geniusData: # is found
-        print(geniusData.lyrics)
         # Clean up lyrics property since the lyricsgenius module isn't perfect
         geniusData.lyrics = clean_up_lyrics(geniusData.lyrics)
 
         # Calculate the chorus
         chorus = get_chorus(geniusData)
 
+        # If the chorus was not found and chorus is None, then continue to next song
+        if chorus == '':
+            print("Proceeding to next song in array.")
+            continue
+
         # Add the song with the lyrics to the songData array
         songData.append(Song(song['id'], geniusData.title, geniusData.artist, geniusData.lyrics, chorus))
     else:
         print(f"Lyrics for {song['title']} by {song['artist']} not found.")
 
-# Get the daily.json file path
-daily_song_path = get_daily_json_path()
-
 # Save the songData to a JSON file
 save_daily_json(songData, daily_song_path)
 
+
+# Print the total number of songs in top_songs and songData
+print(f"Total Songs Queried: {len(top_songs)}")
+print(f"Total Songs Returned: {len(songData)}")
 #endregion Execution
