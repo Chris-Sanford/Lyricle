@@ -19,26 +19,44 @@ import lyricsgenius # Module for accessing the Genius API
 import os # Module for interacting with the operating system and filesystem
 import json # Module for working with JSON data
 import re # Module for working with regular expressions
+import requests # Module for making HTTP requests
+
+#region Variables
+topSongsJson = 'gameData/topSongs.json'
+service = 'genius'
+keyFileName = f'secrets/{service}_client_access_token.key'
+#endregion
+
+#region Classes
+# Define a class to represent a song (with lyrics)
+class Song:
+    def __init__(self, spotify_id, title, artist, lyrics, chorus):
+        self.spotify_id = spotify_id
+        self.title = title
+        self.artist = artist
+        self.lyrics = lyrics
+        self.chorus = chorus
+#endregion Classes
 
 #region Functions
-def get_client_access_token():
-    # Obtain the Genius API Access Token from the .key file, create it if it doesn't exist
+def get_client_secret(keyFileName):
     try:
-        with open('secrets/genius_client_access_token.key', 'r') as file:
-            access_token = file.read().strip()
-            return access_token
-            if access_token == 'YOUR_ACCESS_TOKEN':
-                print("Genius API Client Access Token not set. Please update the value of secrets/genius_client_access_token.key with the genius api client access token.")
+        with open(keyFileName, 'r') as file:
+            secret = file.read().strip()
+            return secret
+            if secret == 'YOUR_SECRET':
+                print("{service} API Client Access Token not set. Please update the value of {keyFileName} with the {service} api client secret.")
                 exit()
     except FileNotFoundError:
-        print("The secrets directory does not exist.")
-        # Create the secrets directory
-        os.mkdir('secrets')
-        print("The secrets directory has been created.")
-        # Create the genius_client_access_token.key file
-        with open('secrets/genius_client_access_token.key', 'w') as file:
-            file.write('YOUR_ACCESS_TOKEN')
-        print("The genius_client_access_token.key file has been created. Please add your Genius API access token.")
+        if not os.path.exists('secrets'):
+            print("The secrets directory does not exist.")
+            # Create the secrets directory
+            os.mkdir('secrets')
+            print("The secrets directory has been created.")
+        # Create the genius_client_secret.key file
+        with open(keyFileName, 'w') as file:
+            file.write('YOUR_SECRET')
+        print("The {keyFileName} file has been created. Please add your {service} API access token.")
         exit()
     except Exception as e:
         print("An error occurred while reading the access token file:", e)
@@ -77,7 +95,7 @@ def add_chorus(chorus, daily_song_path):
 
 def clean_up_lyrics(lyrics): # Clean up lyrics property since the lyricsgenius module isn't perfect
     # Remove any instance of "You might also like" from song.lyrics
-    lyrics = song.lyrics.replace('You might also like', '')
+    lyrics = lyrics.replace('You might also like', '')
 
     # ensure all [ are preceeded by 2 newlines
     lyrics = lyrics.replace('[', '\n\n[')
@@ -94,12 +112,12 @@ def clean_up_lyrics(lyrics): # Clean up lyrics property since the lyricsgenius m
 
     return lyrics
 
-def get_chorus(song):
+def get_chorus(geniusData):
     # Calculate the chorus
     # Identify the line that indicates the chorus denoted by "[Chorus:"
     chorusIndicatorLine = ''
-    for line in song.lyrics.split('\n'):
-        if '[Chorus:' in line:
+    for line in geniusData.lyrics.split('\n'):
+        if '[Chorus' in line:
             chorusIndicatorLine = line
             break
 
@@ -110,7 +128,7 @@ def get_chorus(song):
         chorus = ''
 
         # Use a regex to get all content between the first instance of chorusIndicatorLine and \n\n
-        chorus_content = re.search(rf"{re.escape(chorusIndicatorLine)}(.*?)\n\n", song.lyrics, re.DOTALL)
+        chorus_content = re.search(rf"{re.escape(chorusIndicatorLine)}(.*?)\n\n", geniusData.lyrics, re.DOTALL)
 
         if chorus_content:
             chorus = chorus_content.group(1)
@@ -122,41 +140,48 @@ def get_chorus(song):
         print() 
     else:
         print("Chorus not found.")
-        # Add a placeholder chorus to the lyrics JSON file
-        add_chorus("Chorus not found.", daily_song_path)
 
     return chorus
 
 #endregion Functions
 
 #region Execution
-access_token = get_client_access_token()
+access_token = get_client_secret(keyFileName)
 
 # Set up the Genius API client
 genius = lyricsgenius.Genius(access_token)
 genius.skip_non_songs = True # Skip non-songs when searching (e.g. track lists)
 genius.excluded_terms = ["(Live)"] # Exclude songs with these words in their title
 
-# Search for the song lyrics
-song = genius.search_song('Get Lucky', 'Daft Punk')
+# Load the top songs from the topSongs.json file
+with open(topSongsJson, 'r') as file:
+    top_songs = json.load(file)
 
-if song is not None: # if the song was found
-    song.lyrics = clean_up_lyrics(song.lyrics)
+# Initialize an array to store the song data (including lyrics)
+songData = []
 
-    print()
-    print("Title: " + song.title_with_featured)
-    print("Artist: " + song.artist)
-    print(song.lyrics)
-    print()
+# Use get the lyrics for each song from the Genius API
+for song in top_songs:
+    # Search for the song on Genius
+    geniusData = genius.search_song(song['title'], song['artist'])
 
-    daily_song_path = get_daily_json_path()
+    if geniusData: # is found
+        print(geniusData.lyrics)
+        # Clean up lyrics property since the lyricsgenius module isn't perfect
+        geniusData.lyrics = clean_up_lyrics(geniusData.lyrics)
 
-    save_daily_json(song, daily_song_path)
+        # Calculate the chorus
+        chorus = get_chorus(geniusData)
 
-    chorus = get_chorus(song)
+        # Add the song with the lyrics to the songData array
+        songData.append(Song(song['id'], geniusData.title, geniusData.artist, geniusData.lyrics, chorus))
+    else:
+        print(f"Lyrics for {song['title']} by {song['artist']} not found.")
 
-    add_chorus(chorus, daily_song_path)
-else:
-    print("Lyrics not found.")
+# Get the daily.json file path
+daily_song_path = get_daily_json_path()
+
+# Save the songData to a JSON file
+save_daily_json(songData, daily_song_path)
 
 #endregion Execution
