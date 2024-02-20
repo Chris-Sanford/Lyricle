@@ -3,7 +3,6 @@
 // is this bad practice to make global? should it be a local variable in the startGame function?
 var wordsCorrect = 0; // initialize score to 0, make variable global so it can be accessed by all functions
 var lastLine = 0; // initialize lastLine to 1, make variable global so it can be accessed by all functions
-var jsonUrl = 'https://pub-9d70620f0c724e4595b80ff107d19f59.r2.dev/gameData.json'
 
 // construct/declare a class called Song that will contain the original data and the properties/values that we calculate for the game
 class Song {
@@ -33,14 +32,51 @@ class Song {
   }
 }
 
-async function getSongData() {
-  const response = await fetch(jsonUrl);
-  songData = await response.json();
+async function getAllSongData() {
+  // Code for Obtaining SongData via Local JSON File
+  try {
+    const response = await fetch('../docs/gameData.json');
+    allSongData = await response.json();
+    console.log(allSongData);
+  } catch (error) {
+    console.error('Error:', error);
+  }
+
+  // Code for Obtaining SongData via HTTP Request
+  //var jsonUrl = 'https://pub-9d70620f0c724e4595b80ff107d19f59.r2.dev/gameData.json'
+  //const response = await fetch(jsonUrl);
+  //songData = await response.json();
 }
 
-function getSong() {
+function constructRandomButton() {
+  // Populate a button in the HTML document labeled "Random" that will call the startGame function with a random song
+  var container = document.getElementById("random"); // get the div element getSong from the HTML document and set it to the variable named container so we can manipulate it
+  var button = document.createElement("button"); // create a button element
+  button.innerHTML = "Random"; // Define the text within the button to label it
+  button.addEventListener("click", getRandomSong); // Add event listener to the button so it responds to clicks and calls the getRandomSong function
+  container.appendChild(button); // append the button to the div
+}
+
+function getRandomSong() {
+  // Select a random song from the song data and start the game
+  var seed = Math.floor(Math.random() * allSongData.length)
+  console.log(seed)
+  var songData = allSongData[seed];
+  startGame(songData);
+}
+
+function getDayInt() { // Get the integer value (1-365) of the day of the year
+  var now = new Date(); // create a new Date object
+  var start = new Date(now.getFullYear(), 0, 0); // create a new Date object for the start of the year
+  var diff = now - start + (start.getTimezoneOffset() - now.getTimezoneOffset()) * 60 * 1000; // calculate the difference between the two dates
+  var oneDay = 1000 * 60 * 60 * 24; // calculate the number of milliseconds in a day
+  var day = Math.floor(diff / oneDay); // calculate the day of the year
+  return day
+}
+
+function selectSong() {
   // Ask the user to choose a song
-  // get the div element getSong from the HTML document and set it to the variable named container so we can manipulate it
+  // get the div element selectSong from the HTML document and set it to the variable named container so we can manipulate it
   var container = document.getElementById("getSong");
 
   var paragraph = document.createElement("p"); // create a paragraph element within the document
@@ -54,7 +90,7 @@ function getSong() {
 
   var button = document.createElement("button"); // Create a button element
   button.innerHTML = "Select Song"; // Define the text within the button to label it
-  button.addEventListener("click", startGame); // Add event listener to the button so it responds to clicks and calls the startGame function (so the song can be selected and loaded in the future)
+  button.addEventListener("click", startGame(songData)); // Add event listener to the button so it responds to clicks and calls the startGame function (so the song can be selected and loaded in the future)
   container.appendChild(button); // append the button to the div
 }
 
@@ -215,7 +251,7 @@ function constructSubmit(song) {
   submitContainer.appendChild(button); // append the button to the container div
 }
 
-function startGame() { // Loads main game with song lyrics to guess
+function startGame(songData) { // Loads main game with song lyrics to guess
   document.getElementById("songLyrics").innerHTML = ""; // Clear the songLyrics div
   document.getElementById("resultsMessage").innerHTML = ""; // Clear the resultsMessage div
   document.getElementById("score").innerHTML = ""; // Clear the score div
@@ -298,13 +334,14 @@ function submit(song) { // submit the guessed lyrics and calculate and return sc
   submitContainer.appendChild(noButton); // append the button to the submit container/div
 }
 
-function init() {
-  // Initialize the game
-  
-  //getSong();
+function init() { // Initialize the game
+  constructRandomButton()
+  day = getDayInt(); // Get the integer value of the day of the year
 
-  getSongData().then(() => {
-    startGame();
+  getAllSongData().then(() => {
+    console.log(day);
+    songData = allSongData[day]; // Get the song data for the day
+    startGame(songData);
 });
 }
 window.onload = init; // upon loading the page, initialize the game

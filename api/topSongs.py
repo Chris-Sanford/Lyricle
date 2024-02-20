@@ -10,7 +10,7 @@ from spotipy.oauth2 import SpotifyOAuth
 #region Global Variable Declarations
 service = 'spotify'
 keyFileName = f'secrets/{service}_client_secret.key'
-jsonFileName = f'gameData/topSongs.json'
+jsonFileName = f'topSongs.json'
 #endregion Global Variable Declarations
 
 #region Functions
@@ -23,10 +23,11 @@ def get_client_secret(keyFileName):
                 print("{service} API Client Access Token not set. Please update the value of {keyFileName} with the {service} api client secret.")
                 exit()
     except FileNotFoundError:
-        print("The secrets directory does not exist.")
-        # Create the secrets directory
-        os.mkdir('secrets')
-        print("The secrets directory has been created.")
+        if not os.path.exists('secrets'):
+            print("The secrets directory does not exist.")
+            # Create the secrets directory
+            os.mkdir('secrets')
+            print("The secrets directory has been created.")
         # Create the genius_client_secret.key file
         with open(keyFileName, 'w') as file:
             file.write('YOUR_SECRET')
@@ -56,9 +57,13 @@ results = sp.playlist(playlist_id)
 # Get track data
 tracks = results['tracks']
 
-# Save track data to JSON file
-with open(jsonFileName, 'w') as f:
-    json.dump(tracks, f)
+# Create an array of objects that contains the song name, artist name, and song ID
+tracks = [{'title': track['track']['name'], 'artist': track['track']['artists'][0]['name'], 'id': track['track']['id']} for track in tracks['items']]
+print(tracks)
 
-print("Playlist tracks saved to '{jsonFileName}'")
+# Save track data to JSON file with indentation
+with open(jsonFileName, 'w') as f:
+    json.dump(tracks, f, indent=4)
+
+print("Playlist tracks saved to {jsonFileName}")
 #endregion Execution
