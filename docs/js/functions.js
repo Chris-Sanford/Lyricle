@@ -33,6 +33,7 @@ class Song {
 }
 
 async function getAllSongData() {
+  /*
   // Code for Obtaining SongData via Local JSON File
   try {
     const response = await fetch('../docs/gameData.json');
@@ -41,11 +42,12 @@ async function getAllSongData() {
   } catch (error) {
     console.error('Error:', error);
   }
+  */
 
   // Code for Obtaining SongData via HTTP Request
-  //var jsonUrl = 'https://pub-9d70620f0c724e4595b80ff107d19f59.r2.dev/gameData.json'
-  //const response = await fetch(jsonUrl);
-  //songData = await response.json();
+  var jsonUrl = 'https://pub-9d70620f0c724e4595b80ff107d19f59.r2.dev/gameData.json'
+  const response = await fetch(jsonUrl);
+  allSongData = await response.json();
 }
 
 function constructRandomButton() {
@@ -339,6 +341,7 @@ function init() { // Initialize the game
   day = getDayInt(); // Get the integer value of the day of the year
 
   getAllSongData().then(() => {
+    console.log(allSongData)
     console.log(day);
     songData = allSongData[day]; // Get the song data for the day
     startGame(songData);
