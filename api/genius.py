@@ -163,8 +163,8 @@ for song in top_songs:
         # Calculate the chorus
         chorus = get_chorus(geniusData)
 
-        # If the chorus was not found and chorus is None, then continue to next song
-        if chorus == '':
+        # If the chorus was not found or is None, then continue to next song
+        if chorus == '' or chorus is None:
             print("Proceeding to next song in array.")
             continue
 
@@ -175,7 +175,6 @@ for song in top_songs:
 
 # Save the songData to a JSON file
 save_daily_json(songData, daily_song_path)
-
 
 # Print the total number of songs in top_songs and songData
 print(f"Total Songs Queried: {len(top_songs)}")
