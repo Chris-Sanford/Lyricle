@@ -33,6 +33,8 @@ class Song {
 }
 
 async function getAllSongData() {
+  /* Sadly, GitHub Pages doesn't support hosting files that are not HTML, CSS, or JS, so we can't use a local JSON file
+  // Either way, you're still going to need to use the await fetch method which is not instantaneous and does not load in parallel to the index page
   // Code for Obtaining SongData via Local JSON File
   try {
     const response = await fetch('../docs/gameData.json');
@@ -41,11 +43,12 @@ async function getAllSongData() {
   } catch (error) {
     console.error('Error:', error);
   }
+  */
 
   // Code for Obtaining SongData via HTTP Request
-  //var jsonUrl = 'https://pub-9d70620f0c724e4595b80ff107d19f59.r2.dev/gameData.json'
-  //const response = await fetch(jsonUrl);
-  //songData = await response.json();
+  var jsonUrl = 'https://pub-9d70620f0c724e4595b80ff107d19f59.r2.dev/gameData.json'
+  const response = await fetch(jsonUrl);
+  allSongData = await response.json();
 }
 
 function constructRandomButton() {
@@ -339,6 +342,7 @@ function init() { // Initialize the game
   day = getDayInt(); // Get the integer value of the day of the year
 
   getAllSongData().then(() => {
+    console.log(allSongData)
     console.log(day);
     songData = allSongData[day]; // Get the song data for the day
     startGame(songData);
