@@ -32,11 +32,10 @@ keyFileName = f'secrets/{service}_client_access_token.key'
 #region Classes
 # Define a class to represent a song (with lyrics)
 class Song:
-    def __init__(self, spotify_id, title, artist, lyrics, chorus):
+    def __init__(self, spotify_id, title, artist, chorus):
         self.spotify_id = spotify_id
         self.title = title
         self.artist = artist
-        self.lyrics = lyrics
         self.chorus = chorus
 #endregion Classes
 
@@ -85,12 +84,21 @@ def clean_up_lyrics(lyrics): # Clean up lyrics property since the lyricsgenius m
     # Use a RegEx to ensure there are no more than 2 consecutive newlines
     lyrics = re.sub(r'\n{3,}', '\n\n', lyrics)
 
-    # Remove any line that contains the string "ContributorsTranslations"
-    lyrics = '\n'.join([line for line in lyrics.split('\n') if 'ContributorsTranslations' not in line])
+    # Remove any line that contains the string "Contributors"
+    lyrics = '\n'.join([line for line in lyrics.split('\n') if 'Contributors' not in line])
 
     # If the last line ends in "Embed", remove "Embed" and any preceding numbers
     if lyrics.split('\n')[-1].endswith('Embed'):
         lyrics = '\n'.join(lyrics.split('\n')[:-1])
+
+    # Remove any line that contains the string "You might also like" using RegEx
+    lyrics = re.sub(r'^.*You might also like.*$', '', lyrics, flags=re.MULTILINE)
+    
+    # Remove any line that contains the string "LiveGet tickets as low as"
+    lyrics = re.sub(r'^.*LiveGet tickets as low as.*$', '', lyrics, flags=re.MULTILINE)
+
+    # Remove any instance of parentheses and their contents
+    lyrics = re.sub(r'\([^)]*\)', '', lyrics)
 
     return lyrics
 
@@ -117,10 +125,9 @@ def get_chorus(geniusData):
         chorus = chorus.strip('\n')
         print("\nChorus:")
         print(chorus)
-        print()
         return chorus
     else:
-        print("Chorus not found among the following lyrics/data:")
+        print("\n\n\n!!! Chorus not found among the following lyrics/data !!! :\n")
         print(geniusData)
         return None
 
@@ -152,9 +159,9 @@ songData = []
 
 # Get the lyrics for each song from the Genius API
 for song in top_songs:
+    print()
     # Search for the song on Genius
     geniusData = search_song_with_retry(song['title'], song['artist'])
-    print(geniusData)
 
     if geniusData: # is found
         # Clean up lyrics property since the lyricsgenius module isn't perfect
@@ -166,10 +173,11 @@ for song in top_songs:
         # If the chorus was not found or is None, then continue to next song
         if chorus == '' or chorus is None:
             print("Proceeding to next song in array.")
+            print("\n\n\n")
             continue
 
         # Add the song with the lyrics to the songData array
-        songData.append(Song(song['id'], geniusData.title, geniusData.artist, geniusData.lyrics, chorus))
+        songData.append(Song(song['id'], geniusData.title, geniusData.artist, chorus))
     else:
         print(f"Lyrics for {song['title']} by {song['artist']} not found.")
 
