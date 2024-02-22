@@ -100,6 +100,11 @@ def clean_up_lyrics(lyrics): # Clean up lyrics property since the lyricsgenius m
     # Remove any instance of parentheses and their contents
     lyrics = re.sub(r'\([^)]*\)', '', lyrics)
 
+    # Replace nonstandard characters with standard characters
+    # This is done on an as-needed basis as we encounter nonstandard characters
+    # Some replacements like this weird e are necessary and others the client handles fine
+    lyrics = lyrics.replace('\u0435', "e")
+
     return lyrics
 
 def get_chorus(geniusData):
