@@ -6,4 +6,4 @@ lyricsgenius==3.0.1
 requests==2.31.0
 soupsieve==2.5
 urllib3==2.2.0
-spotipy==2.26.0
+spotipy==2.23.0
