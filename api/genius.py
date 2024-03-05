@@ -4,15 +4,12 @@ THIS SCRIPT DOES NOT WORK IN CLOUD ENVIRONMENTS DUE TO GENIUS API RESTRICTIONS
 genius.py takes the list of songs from topSongs.json (generated from topSongs.api), obtains the lyrics for each song from the Genius API, then builds a JSON file for each song and its lyrics that satisfy the criteria for a sufficient daily song to be played within Lyricle.
 
 To run this script, install the required modules contained within requirements.txt:
-pip install -r requirements.txt
+pip install -r api/requirements.txt
 
 Then run the script (recommend running from root of repository):
 python api/genius.py
 
 On your first time running the script, you will encounter output stating that the Genius API Access Token has not been set, and that the .key file has been created in the secrets directory. Generate a new Genius API Client Access token here (https://genius.com/api-clients), then update the value of the .key file with the Access Token and re-run the script.
-
-Future Improvements:
-- Implement a read operation timeout or retry handling because we've seen this randomly fail with a timeout error before
 """
 
 import lyricsgenius # Module for accessing the Genius API
@@ -25,8 +22,6 @@ from time import sleep # Module for adding a delay to the script
 #region Variables
 daily_song_path = 'docs/gameData.json'
 topSongsJson = 'api/topSongs.json'
-service = 'genius'
-keyFileName = f'secrets/{service}_client_access_token.key'
 #endregion
 
 #region Classes
@@ -40,7 +35,7 @@ class Song:
 #endregion Classes
 
 #region Functions
-def get_client_secret(keyFileName):
+def get_client_secret(service, keyFileName):
     try:
         with open(keyFileName, 'r') as file:
             secret = file.read().strip()
@@ -145,13 +140,42 @@ def search_song_with_retry(song_title, song_artist, max_retries=5, delay=5):
             sleep(delay)
     print(f"Failed to get song '{song_title}' by '{song_artist}' after {max_retries} attempts.")
     return None
+
+def filter_profanity(chorus, neutrino_access_token):
+    # Not in use. Leaving this here for now in case we implement in the future
+    # Let's consider using the "obscene" option rather than "strict" to avoid filtering words like "kill"
+    # Use the Neutrino API to filter profanity from the chorus
+    url = "https://neutrinoapi.net/bad-word-filter"
+    payload = {
+        "content": chorus,
+        "censor-character": "*"
+    }
+    headers = {
+        "content-type": "application/x-www-form-urlencoded",
+        "key": neutrino_access_token
+    }
+    response = requests.post(url, data=payload, headers=headers)
+
+    if response.json()['censored-content'] is not None:
+        print("\n\nCensored Chorus:")
+        print(response.json()['censored-content'])
+
+        # Return the censored chorus
+        return response.json()['censored-content']
+    else:
+        print("\n\n\n!!!Something went wrong when trying to filter profanity from the chorus!!!\n\n)")
+        return None
+
+    # The values bad-words-list and bad-words-total will likely prove useful
+    # when developing ideal secret lyrics algorithm
 #endregion Functions
 
 #region Execution
-access_token = get_client_secret(keyFileName)
+genius_access_token = get_client_secret("genius", 'secrets/genius_client_access_token.key')
+neutrino_access_token = get_client_secret("neutrino", 'secrets/neutrino_client_access_token.key')
 
 # Set up the Genius API client
-genius = lyricsgenius.Genius(access_token)
+genius = lyricsgenius.Genius(genius_access_token)
 genius.skip_non_songs = True # Skip non-songs when searching (e.g. track lists)
 genius.excluded_terms = ["(Live)"] # Exclude songs with these words in their title
 
@@ -177,7 +201,7 @@ for song in top_songs:
 
         # If the chorus was not found or is None, then continue to next song
         if chorus == '' or chorus is None:
-            print("Proceeding to next song in array.")
+            print("Chorus not found. Proceeding to next song in array.")
             print("\n\n\n")
             continue
 
