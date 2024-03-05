@@ -12,7 +12,7 @@ class Song {
     this.lyrics = lyrics;  // raw, unformatted lyrics straight from API
     this.lines = this.lyrics.split("\n"); // split raw lyrics by \n into array of lines
     this.words = this.lyrics
-      .replace(/([^a-zA-Z0-9\s\u00C0-\u017F'])/g, ' $1 ') // add spaces around symbols excluding letters with accents and apostrophes
+      .replace(/([^a-zA-Z0-9\s\u00C0-\u017F'*])/g, ' $1 ') // add spaces around symbols excluding letters with accents, apostrophes, and asterisks
       .replace(/\n/g, ' ') // replace any instance of \n with a space
       .replace(/\s{2,}/g, ' ') // remove extra spaces
       .split(' ') // split raw lyrics by spaces into array of words, numbers, and symbols
@@ -24,7 +24,7 @@ class Song {
       .replace(/'/g, ''); // replace apostrophes with nothing
     this.linesLower = this.lyricsLower.split("\n");
     this.wordsLower = this.lyricsLower
-      .replace(/([^a-zA-Z0-9\s\u00C0-\u017F'])/g, ' $1 ') // add spaces around symbols excluding letters with accents and apostrophes
+    .replace(/([^a-zA-Z0-9\s\u00C0-\u017F'*])/g, ' $1 ') // add spaces around symbols excluding letters with accents, apostrophes, and asterisks
       .replace(/\n/g, ' ') // replace any instance of \n with a space
       .replace(/\s{2,}/g, ' ') // remove extra spaces
       .split(' ') // split raw lyrics by spaces into array of words, numbers, and symbols
@@ -184,7 +184,7 @@ function constructInputBoxes(song, container) {
   // for each line in the song, execute the following function
   song.linesLower.forEach(function (line) {
     var lineWords = line // there is probably a more efficient way to do this in the original construction of the object (dictionary/hashmap?)
-      .replace(/([^a-zA-Z0-9\s])/g, ' $1 ') // add spaces around symbols
+      .replace(/([^a-zA-Z0-9\s*])/g, ' $1 ') // add spaces around symbols except asterisks
       .replace(/\n/g, ' ') // replace any instance of \n with a space
       .replace(/\s{2,}/g, ' ') // remove extra spaces
       .split(' ') // split raw lyrics by spaces into array of words, numbers, and symbols
@@ -291,6 +291,8 @@ function startGame(songData) { // Loads main game with song lyrics to guess
       submit(song); // call the submit function
     }
   });
+
+  calculateProperties(song)
 }
 
 function completeGame(song) {
@@ -335,6 +337,31 @@ function submit(song) { // submit the guessed lyrics and calculate and return sc
   }
   );
   submitContainer.appendChild(noButton); // append the button to the submit container/div
+}
+
+function calculateProperties(song) { // Calculate properties of song lyrics
+  // Output number of lines in song
+  console.log("LinesCount: " + song.lines.length);
+
+  // Output number of words in song excluding symbols
+  const wordsWithoutSymbols = song.words.filter(word => /^[a-zA-Z]+$/.test(word));
+  console.log("WordsCount: " + wordsWithoutSymbols.length);
+
+  // Calculate and Output number of unique words in song
+  const uniqueWords = new Set(song.lyrics.split(" "));
+  console.log("UniqueWordsCount: " + uniqueWords.size);
+  
+  // Calculate number of censored words (indicated by sequence of *'s)
+  const censoredWords = song.lyrics.match(/\*+/g);
+
+  // if there are censored words in the lyrics, output the number of censored words
+  // else, output 0
+  if (censoredWords != null) {
+    console.log("CensoredWordsCount: " + censoredWords.length);
+  }
+  else {
+    console.log("CensoredWordsCount: 0");
+  }
 }
 
 function init() { // Initialize the game

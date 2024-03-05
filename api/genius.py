@@ -20,7 +20,7 @@ import requests # Module for making HTTP requests
 from time import sleep # Module for adding a delay to the script
 
 #region Variables
-daily_song_path = 'docs/gameData.json'
+daily_song_path = 'data/gameData.json'
 topSongsJson = 'api/topSongs.json'
 #endregion
 
@@ -204,6 +204,32 @@ for song in top_songs:
             print("Chorus not found. Proceeding to next song in array.")
             print("\n\n\n")
             continue
+
+        # If there are more than 50 total words in the chorus,
+        # repeatedly remove the last line from the chorus until
+        # there are fewer than 50 total words AND more than 20 unique words in the chorus
+        words = chorus.split()
+        totalWordsCount = len(words)
+        while totalWordsCount > 50:
+            print(f"\n{totalWordsCount} total words detected. Removing last line from chorus.")
+            chorus = '\n'.join(chorus.split('\n')[:-1])
+
+            print("\nChorus After Last Line Removal:")
+            print(chorus)
+
+            # Recalculate the total number of unique words in the chorus
+            words = chorus.split()
+            totalWordsCount = len(words)
+            
+        # If there are fewer than 20 unique words in the chorus, then continue to next song
+        uniqueWords = set(words)
+        if len(uniqueWords) < 20:
+            print("Less than 20 unique words. Proceeding to next song in array.")
+            print("\n\n\n")
+            continue
+
+        print("\nTotal Words in Chorus: " + str(totalWordsCount))
+        print("\nUnique Words in Chorus: " + str(len(uniqueWords)))
 
         # Add the song with the lyrics to the songData array
         songData.append(Song(song['id'], geniusData.title, geniusData.artist, chorus))
