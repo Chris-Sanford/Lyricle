@@ -343,8 +343,9 @@ function calculateProperties(song) { // Calculate properties of song lyrics
   // Output number of lines in song
   console.log("LinesCount: " + song.lines.length);
 
-  // Output number of words in song
-  console.log("WordsCount: " + song.words.length);
+  // Output number of words in song excluding symbols
+  const wordsWithoutSymbols = song.words.filter(word => /^[a-zA-Z]+$/.test(word));
+  console.log("WordsCount: " + wordsWithoutSymbols.length);
 
   // Calculate and Output number of unique words in song
   const uniqueWords = new Set(song.lyrics.split(" "));
