@@ -142,6 +142,7 @@ def search_song_with_retry(song_title, song_artist, max_retries=5, delay=5):
     return None
 
 def filter_profanity(chorus, neutrino_access_token):
+    # Not in use. Leaving this here for now in case we implement in the future
     # Let's consider using the "obscene" option rather than "strict" to avoid filtering words like "kill"
     # Use the Neutrino API to filter profanity from the chorus
     url = "https://neutrinoapi.net/bad-word-filter"
@@ -203,9 +204,6 @@ for song in top_songs:
             print("Chorus not found. Proceeding to next song in array.")
             print("\n\n\n")
             continue
-
-        # Censor lyrics in the chorus
-        chorus = filter_profanity(chorus, neutrino_access_token)
 
         # Add the song with the lyrics to the songData array
         songData.append(Song(song['id'], geniusData.title, geniusData.artist, chorus))

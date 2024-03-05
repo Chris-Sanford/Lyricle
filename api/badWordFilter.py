@@ -12,6 +12,8 @@ Also as a side note, I think what happens with the BWF API is if you send it too
 it won't give you a complete repeat of the censored content so we might
 have to just receive the bad words in response and then do the censoring ourselves.
 Also it doesn't seem to properly interpret the \\n in the JSON so we might have to do that ourselves as well.
+
+For now, I'm keeping this code here just for reference.
 '''
 
 import requests
