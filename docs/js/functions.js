@@ -1,8 +1,9 @@
 // functions.js
 
 // is this bad practice to make global? should it be a local variable in the startGame function?
-var wordsCorrect = 0; // initialize score to 0, make variable global so it can be accessed by all functions
-var lastLine = 0; // initialize lastLine to 1, make variable global so it can be accessed by all functions
+var wordsCorrect = 0; // initialize wordsCorrect score to 0, make variable global so it can be accessed by all functions
+var lastLine = 0; // initialize lastLine to 0, make variable global so it can be accessed by all functions
+var lifelines = 0;
 
 // construct/declare a class called Song that will contain the original data and the properties/values that we calculate for the game
 class Song {
@@ -51,9 +52,43 @@ async function getAllSongData() {
   allSongData = await response.json();
 }
 
+function constructLifelineButton(song) {
+  var container = document.getElementById("lifeline"); // get the div element from the HTML document and set it to the variable named container so we can manipulate it
+  var button = document.createElement("button"); // create a button element
+  button.innerHTML = "Use a Lifeline"; // Define the text within the button to label it
+  button.addEventListener("click", useLifeline(song)); // Add event listener to the button so it responds to clicks and calls the useLifeline function
+  container.appendChild(button); // append the button to the div
+
+}
+
+function useLifeline(song) {
+  if (lifelines > 0) {
+    lifelines--;
+    console.log("Lifelines Remaining: " + lifelines);
+    var container = document.getElementById("songLyrics");
+    var wordIndex = Math.floor(Math.random() * song.words.length);
+    var input = document.getElementById("myInput" + wordIndex);
+    while (input.disabled) {
+      wordIndex = Math.floor(Math.random() * song.words.length);
+      input = document.getElementById("myInput" + wordIndex);
+    }
+    input.value = song.words[wordIndex];
+    input.style.backgroundColor = "green";
+    input.disabled = true;
+    wordsCorrect++;
+    if (wordsCorrect === song.words.length) { // if the wordsCorrect score equals the number of words in the song
+      completeGame(song); // call function that executes game completion code
+    }
+    selectNextInput(input, wordIndex); // call function that selects the next input box
+  }
+  else {
+    console.log("No Lifelines Remaining");
+  }
+}
+
 function constructRandomButton() {
   // Populate a button in the HTML document labeled "Random" that will call the startGame function with a random song
-  var container = document.getElementById("random"); // get the div element getSong from the HTML document and set it to the variable named container so we can manipulate it
+  var container = document.getElementById("random"); // get the div element from the HTML document and set it to the variable named container so we can manipulate it
   var button = document.createElement("button"); // create a button element
   button.innerHTML = "Random"; // Define the text within the button to label it
   button.addEventListener("click", getRandomSong); // Add event listener to the button so it responds to clicks and calls the getRandomSong function
@@ -260,6 +295,8 @@ function startGame(songData) { // Loads main game with song lyrics to guess
   document.getElementById("score").innerHTML = ""; // Clear the score div
 
   wordsCorrect = 0;
+  lifelines = 3;
+  console.log("Starting Lifelines: " + lifelines);
 
   // construct a new Song object using the songData object
   var song = new Song(songData.title, songData.artist, songData.chorus);
@@ -283,6 +320,7 @@ function startGame(songData) { // Loads main game with song lyrics to guess
   container.appendChild(document.createElement("br"));
 
   constructSubmit(song);
+  constructLifelineButton(song);
 
   container.addEventListener("keyup", function (event) {
     // adds event listener for key input on wordbox
