@@ -320,7 +320,8 @@ function startGame(songData) { // Loads main game with song lyrics to guess
   container.appendChild(document.createElement("br"));
 
   constructSubmit(song);
-  constructLifelineButton(song);
+  constructLifelineButton(song, button, 0);
+  constructRestart(songData)
 
   container.addEventListener("keyup", function (event) {
     // adds event listener for key input on wordbox
