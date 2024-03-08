@@ -1,8 +1,10 @@
 // functions.js
 
 // is this bad practice to make global? should it be a local variable in the startGame function?
-var wordsCorrect = 0; // initialize score to 0, make variable global so it can be accessed by all functions
-var lastLine = 0; // initialize lastLine to 1, make variable global so it can be accessed by all functions
+var wordsCorrect = 0; // initialize wordsCorrect score to 0, make variable global so it can be accessed by all functions
+var lastLine = 0; // initialize lastLine to 0, make variable global so it can be accessed by all functions
+var lifelines = 0;
+var focusedWordIndex = 0;
 
 // construct/declare a class called Song that will contain the original data and the properties/values that we calculate for the game
 class Song {
@@ -51,9 +53,52 @@ async function getAllSongData() {
   allSongData = await response.json();
 }
 
+function useLifeline(song, button) {
+  if (lifelines > 0) {
+    lifelines--;
+    console.log("Lifelines Remaining: " + lifelines);
+
+    button.innerHTML = "Use a Lifeline (" + lifelines + " remaining)";
+
+    var input = document.getElementById("myInput" + focusedWordIndex);
+    input.value = song.words[focusedWordIndex];
+    console.log("Focused Input Value: " + input.value);
+    input.style.backgroundColor = "green";
+    input.disabled = true;
+    wordsCorrect++;
+
+    if (wordsCorrect === song.words.length) { // if the wordsCorrect score equals the number of words in the song
+      completeGame(song); // call function that executes game completion code
+    }
+    selectNextInput(input, focusedWordIndex); // call function that selects the next input box
+  }
+
+  if (lifelines === 0) {
+    console.log("No Lifelines Remaining");
+    button.innerHTML = "No Lifelines Remaining";
+    button.disabled = true;
+    completeGame(song); // call function that executes game completion code
+  }
+}
+
+function constructLifelineButton(song, focusedWordIndex) {
+  var lifelineContainer = document.getElementById("lifeline"); // get the div element from the HTML document and set it to the variable named container so we can manipulate it
+  lifelineContainer.innerHTML = ""; // Clear the submit container/div
+  var button = document.createElement("button"); // create a button element
+  button.innerHTML = "Use a Lifeline (" + lifelines + " remaining)"; // Define the text within the button to label it
+
+  // Add event listener to the button so it responds to clicks and calls the useLifeline function
+  button.addEventListener('click', function() {
+    useLifeline(song, button, focusedWordIndex);
+  });
+
+  lifelineContainer.appendChild(button); // append the button to the div
+
+}
+
 function constructRandomButton() {
   // Populate a button in the HTML document labeled "Random" that will call the startGame function with a random song
-  var container = document.getElementById("random"); // get the div element getSong from the HTML document and set it to the variable named container so we can manipulate it
+  var container = document.getElementById("random"); // get the div element from the HTML document and set it to the variable named container so we can manipulate it
   var button = document.createElement("button"); // create a button element
   button.innerHTML = "Random"; // Define the text within the button to label it
   button.addEventListener("click", getRandomSong); // Add event listener to the button so it responds to clicks and calls the getRandomSong function
@@ -127,6 +172,16 @@ function wordboxInputListener(input, song, wordIndex) { // Event listener functi
 
     selectNextInput(input, wordIndex); // call function that selects the next input box
   }
+}
+
+function wordboxFocusListener (input, song, wordIndex) {
+  updateColor(input, song, wordIndex); // calls the updateColor function on focus
+
+  // Get the current word index from the input box
+  var wordIndex = parseInt(input.id.match(/\d+/)[0]);
+  console.log("Word Index: " + wordIndex);
+  focusedWordIndex = wordIndex;
+  console.log("Focused Word Index: " + focusedWordIndex);
 }
 
 function updateColor(input, song, wordIndex) { // Update the color of the lyric input boxes based on guess correctness
@@ -207,7 +262,7 @@ function constructInputBoxes(song, container) {
       input.style.width = width + "px"; // width needs to be defined in px (pixels) so we add the px string to the end of the width value
       input.style.textAlign = "center"; // center the text within the input box
       input.addEventListener('focus', function() { // adds event listener for focus on wordbox
-        updateColor(input, song, wordIndex); // calls the updateColor function on focus
+        wordboxFocusListener(input, song, wordIndex); // calls the wordboxFocusListener function on focus
       });
       input.addEventListener(
         "input",
@@ -254,12 +309,30 @@ function constructSubmit(song) {
   submitContainer.appendChild(button); // append the button to the container div
 }
 
+function constructRestart(songData) {
+  var restartContainer = document.getElementById("restart"); // Get the restart container/div
+  restartContainer.innerHTML = ""; // Clear the restart container/div
+
+  restartContainer.style.textAlign = "center"; // center align the content of the container div
+
+  // create a button labeled "Restart" to restart the game
+  var button = document.createElement("button"); // create a button element
+  button.innerHTML = "Restart"; // populate the button with the text "Restart"
+  button.addEventListener("click", function () { // add event listener to the button so it responds to clicks and calls the startGame function
+    startGame(songData); // call the startGame function
+  });
+  restartContainer.appendChild(button); // append the button to the container div
+
+}
+
 function startGame(songData) { // Loads main game with song lyrics to guess
   document.getElementById("songLyrics").innerHTML = ""; // Clear the songLyrics div
   document.getElementById("resultsMessage").innerHTML = ""; // Clear the resultsMessage div
   document.getElementById("score").innerHTML = ""; // Clear the score div
 
   wordsCorrect = 0;
+  lifelines = 3;
+  console.log("Starting Lifelines: " + lifelines);
 
   // construct a new Song object using the songData object
   var song = new Song(songData.title, songData.artist, songData.chorus);
@@ -283,6 +356,8 @@ function startGame(songData) { // Loads main game with song lyrics to guess
   container.appendChild(document.createElement("br"));
 
   constructSubmit(song);
+  constructLifelineButton(song);
+  constructRestart(songData)
 
   container.addEventListener("keyup", function (event) {
     // adds event listener for key input on wordbox
@@ -372,6 +447,10 @@ function init() { // Initialize the game
     console.log(allSongData)
     console.log(day);
     songData = allSongData[day]; // Get the song data for the day
+    // if songData is null (because today's int is higher than the length of allSongData), select an object at a random integer index from allSongData
+    if (songData == null) {
+      songData = allSongData[Math.floor(Math.random() * allSongData.length)];
+    }
     startGame(songData);
 });
 }
