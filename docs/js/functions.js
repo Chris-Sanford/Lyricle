@@ -380,14 +380,21 @@ function completeGame(song) {
   } else {
     document.getElementById("resultsMessage").innerHTML = // populate the resultsMessage div with the following text
       "<b style='color:red;'>Better luck next time!</b>";
+
+    // populate every incorrect input box with the correct word and shade it yellow
+    for (var i = 0; i < song.words.length; i++) {
+      var input = document.getElementById("myInput" + i); // get the input box element by id
+      if (input.style.backgroundColor !== "green") { // if the input box background color is not green
+        input.value = song.words[i]; // populate the input box with the correct word
+        input.style.backgroundColor = "yellow"; // set the input box background color to yellow
+      }
+    }
   }
   // Display the score
   document.getElementById("score").innerHTML = wordsCorrect + " Words Correct!"; // populate the score div with the final score
 
-  // Clear the submit container/div
+  // Clear the submit container/div to remove the button
   submitContainer.innerHTML = "";
-
-  // Remove the Restart button (for the future)
 }
 
 function submit(song) { // submit the guessed lyrics and calculate and return score
