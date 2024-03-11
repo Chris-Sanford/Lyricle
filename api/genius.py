@@ -20,8 +20,8 @@ import requests # Module for making HTTP requests
 from time import sleep # Module for adding a delay to the script
 
 #region Variables
-daily_song_path = 'data/gameData.json'
-topSongsJson = 'api/topSongs.json'
+daily_song_path = 'data/uncensoredGameData.json'
+topSongsJson = 'data/topSongs.json'
 #endregion
 
 #region Classes
