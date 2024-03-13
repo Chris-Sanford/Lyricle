@@ -1,0 +1,52 @@
+<!-- index.html -->
+
+<!DOCTYPE html>
+<html>
+
+<!-- FOR DEVELOPMENT ONLY?: Prevents webpage from loading from cache.-->
+<!-- This helps in testing changes made from recent PR merge / Actions deployment.-->
+<!-- How do we balance performance with ensuring the song rotates in time for our users?-->
+<meta http-equiv='cache-control' content='no-cache'>
+<meta http-equiv='expires' content='0'>
+<meta http-equiv='pragma' content='no-cache'>
+
+<head>
+  <title>Lyricle - Guess the Lyrics</title>
+  <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico">
+</head>
+
+<!--<style>
+  body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    margin: 0;
+  }
+</style>
+!-->
+
+<body>
+
+  <script src="./functions.js"></script>
+
+  <h2>Lyricle</h2>
+
+  <!-- <div id="getSong"></div> -->
+
+  <div id="songLyrics"></div>
+  <p>To use a lifeline, select the word you want to be given, then click "Use a Lifeline". Guess all the lyrics
+    correctly or use up all of your lifelines and the game is over!</p>
+  <div id="lifeline"></div>
+  <div id="submit"></div>
+  <div id="restart"></div>
+  <p id="resultsMessage"></p>
+  <p id="score"></p>
+  <p><button class="btn btn-primary">Primary button</button></p>
+
+  <div id="random"></div>
+
+</body>
+
+</html>

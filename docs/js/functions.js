@@ -1,4 +1,7 @@
 // functions.js
+import '../../scss/styles.scss'
+// Import all of Bootstrap's JS
+import * as bootstrap from 'bootstrap';
 
 // is this bad practice to make global? should it be a local variable in the startGame function?
 var wordsCorrect = 0; // initialize wordsCorrect score to 0, make variable global so it can be accessed by all functions
