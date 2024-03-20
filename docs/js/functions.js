@@ -37,7 +37,7 @@ class Song {
   }
 }
 
-async function getAllSongData() {
+/*async function getAllSongData() {
   /* Sadly, GitHub Pages doesn't support hosting files that are not HTML, CSS, or JS, so we can't use a local JSON file
   // Either way, you're still going to need to use the await fetch method which is not instantaneous and does not load in parallel to the index page
   // Code for Obtaining SongData via Local JSON File
@@ -48,13 +48,25 @@ async function getAllSongData() {
   } catch (error) {
     console.error('Error:', error);
   }
-  */
+  
 
   // Code for Obtaining SongData via HTTP Request
   var jsonUrl = 'https://pub-9d70620f0c724e4595b80ff107d19f59.r2.dev/gameData.json'
   const response = await fetch(jsonUrl);
   allSongData = await response.json();
+}*/
+let allSongData; 
+
+async function getAllSongData() {
+  var jsonUrl = '/apigameData.json';
+  const response = await fetch(jsonUrl);
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+  allSongData = await response.json();  // This will now modify the higher scoped variable
+  console.log(allSongData);  // Optional: for debugging
 }
+
 
 function useLifeline(song, button) {
   if (lifelines > 0) {
@@ -103,6 +115,7 @@ function constructRandomButton() {
   // Populate a button in the HTML document labeled "Random" that will call the startGame function with a random song
   var container = document.getElementById("random"); // get the div element from the HTML document and set it to the variable named container so we can manipulate it
   var button = document.createElement("button"); // create a button element
+  button.classList.add("btn", "btn-primary"); // add the btn and btn-primary classes to the button
   button.innerHTML = "Random"; // Define the text within the button to label it
   button.addEventListener("click", getRandomSong); // Add event listener to the button so it responds to clicks and calls the getRandomSong function
   container.appendChild(button); // append the button to the div
@@ -451,12 +464,12 @@ function calculateProperties(song) { // Calculate properties of song lyrics
 
 function init() { // Initialize the game
   constructRandomButton()
-  day = getDayInt(); // Get the integer value of the day of the year
+let day = getDayInt(); // Get the integer value of the day of the year
 
   getAllSongData().then(() => {
     console.log(allSongData)
     console.log(day);
-    songData = allSongData[day]; // Get the song data for the day
+    let songData = allSongData[day]; // Get the song data for the day
     // if songData is null (because today's int is higher than the length of allSongData), select an object at a random integer index from allSongData
     if (songData == null) {
       songData = allSongData[Math.floor(Math.random() * allSongData.length)];
