@@ -27,10 +27,11 @@ topSongsJson = 'data/topSongs.json'
 #region Classes
 # Define a class to represent a song (with lyrics)
 class Song:
-    def __init__(self, spotify_id, title, artist, chorus):
+    def __init__(self, spotify_id, title, artist, preview_url, chorus):
         self.spotify_id = spotify_id
         self.title = title
         self.artist = artist
+        self.preview_url = preview_url
         self.chorus = chorus
 #endregion Classes
 
@@ -189,6 +190,10 @@ songData = []
 # Get the lyrics for each song from the Genius API
 for song in top_songs:
     print()
+    
+    # Print the index of the song in the array
+    print(f"Song {top_songs.index(song)+1}/{len(top_songs)}")
+
     # Search for the song on Genius
     geniusData = search_song_with_retry(song['title'], song['artist'])
 
@@ -232,7 +237,7 @@ for song in top_songs:
         print("\nUnique Words in Chorus: " + str(len(uniqueWords)))
 
         # Add the song with the lyrics to the songData array
-        songData.append(Song(song['id'], geniusData.title, geniusData.artist, chorus))
+        songData.append(Song(song['id'], geniusData.title, geniusData.artist, song['preview_url'], chorus))
     else:
         print(f"Lyrics for {song['title']} by {song['artist']} not found.")
 

@@ -78,8 +78,8 @@ for i in range(pages):
     # Get track data
     tracks = results['items']
 
-    # Create an array of objects that contains the song name, artist name, and song ID
-    tracks = [{'title': track['track']['name'], 'artist': track['track']['artists'][0]['name'], 'id': track['track']['id']} for track in tracks]
+    # Create an array of objects that contains the song name, artist name, song ID, and preview URL
+    tracks = [{'title': track['track']['name'], 'artist': track['track']['artists'][0]['name'], 'id': track['track']['id'], 'preview_url': track['track']['preview_url']} for track in tracks]
 
     # Add the tracks to the all_tracks list
     all_tracks.extend(tracks)

@@ -1,4 +1,4 @@
-// functions.js
+// game.js
 
 // is this bad practice to make global? should it be a local variable in the startGame function?
 var wordsCorrect = 0; // initialize wordsCorrect score to 0, make variable global so it can be accessed by all functions
@@ -8,9 +8,10 @@ var focusedWordIndex = 0;
 
 // construct/declare a class called Song that will contain the original data and the properties/values that we calculate for the game
 class Song {
-  constructor(title, artist, lyrics) {
+  constructor(title, artist, preview, lyrics) {
     this.title = title;
     this.artist = artist;
+    this.preview = preview
     this.lyrics = lyrics;  // raw, unformatted lyrics straight from API
     this.lines = this.lyrics.split("\n"); // split raw lyrics by \n into array of lines
     this.words = this.lyrics
@@ -335,7 +336,7 @@ function startGame(songData) { // Loads main game with song lyrics to guess
   console.log("Starting Lifelines: " + lifelines);
 
   // construct a new Song object using the songData object
-  var song = new Song(songData.title, songData.artist, songData.chorus);
+  var song = new Song(songData.title, songData.artist, songData.preview_url, songData.chorus);
   console.log(song); // log the song object to the console
 
   var container = document.getElementById("songLyrics"); // Get the songLyrics div
@@ -371,6 +372,7 @@ function startGame(songData) { // Loads main game with song lyrics to guess
 }
 
 function completeGame(song) {
+  playSongPreview(song.preview)
   submitContainer = document.getElementById("submit"); // Get the submit container/div
   // add event listener to the button so it responds to clicks and calls the submit function
   var allCorrect = wordsCorrect === song.words.length
@@ -444,6 +446,11 @@ function calculateProperties(song) { // Calculate properties of song lyrics
   else {
     console.log("CensoredWordsCount: 0");
   }
+}
+
+function playSongPreview(preview) {
+  var audio = new Audio(preview);
+  audio.play();
 }
 
 function init() { // Initialize the game
