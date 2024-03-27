@@ -3,6 +3,13 @@ import '../../scss/styles.scss'
 // Import all of Bootstrap's JS
 import * as bootstrap from 'bootstrap';
 
+
+if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+  // Apply dark theme
+  document.documentElement.setAttribute('data-bs-theme', 'dark');
+  let darkmode = true;
+}
+
 // is this bad practice to make global? should it be a local variable in the startGame function?
 var wordsCorrect = 0; // initialize wordsCorrect score to 0, make variable global so it can be accessed by all functions
 var lastLine = 0; // initialize lastLine to 0, make variable global so it can be accessed by all functions
@@ -87,10 +94,15 @@ function useLifeline(song, button) {
     }
     selectNextInput(input, focusedWordIndex); // call function that selects the next input box
   }
+  
+  if(lifelines === 1) {
+    button.classList.add("btn-danger");
+  }
 
   if (lifelines === 0) {
     console.log("No Lifelines Remaining");
     button.innerHTML = "No Lifelines Remaining";
+    button.classList.add("btn-dark"); // add the btn and btn-primary classes to the button
     button.disabled = true;
     completeGame(song); // call function that executes game completion code
   }
@@ -98,8 +110,10 @@ function useLifeline(song, button) {
 
 function constructLifelineButton(song, focusedWordIndex) {
   var lifelineContainer = document.getElementById("lifeline"); // get the div element from the HTML document and set it to the variable named container so we can manipulate it
+  lifelineContainer.style.textAlign = "center"; // center align the content of the container div
   lifelineContainer.innerHTML = ""; // Clear the submit container/div
   var button = document.createElement("button"); // create a button element
+  button.classList.add("btn", "btn-primary"); // add the btn and btn-primary classes to the button
   button.innerHTML = "Use a Lifeline (" + lifelines + " remaining)"; // Define the text within the button to label it
 
   // Add event listener to the button so it responds to clicks and calls the useLifeline function
@@ -114,8 +128,9 @@ function constructLifelineButton(song, focusedWordIndex) {
 function constructRandomButton() {
   // Populate a button in the HTML document labeled "Random" that will call the startGame function with a random song
   var container = document.getElementById("random"); // get the div element from the HTML document and set it to the variable named container so we can manipulate it
+  container.style.textAlign = "center"; // center align the content of the container div
   var button = document.createElement("button"); // create a button element
-  button.classList.add("btn", "btn-primary"); // add the btn and btn-primary classes to the button
+  button.classList.add("btn", "btn-info"); // add the btn and btn-primary classes to the button
   button.innerHTML = "Random"; // Define the text within the button to label it
   button.addEventListener("click", getRandomSong); // Add event listener to the button so it responds to clicks and calls the getRandomSong function
   container.appendChild(button); // append the button to the div
@@ -251,7 +266,7 @@ function constructInputBoxes(song, container) {
   var lineIndex = 0; // Keep track of the line index
   var maxWidth = 100; // Define a maximum width for the input boxes (should 100 be the value? will any realistic word require more pixels than this?)
   var startOfNextLine = true; // Defines Start of Next Line as true so it can be used to determine if the input box is the start of a new line during the loop
-
+  
   // for each line in the song, execute the following function
   song.linesLower.forEach(function (line) {
     var lineWords = line // there is probably a more efficient way to do this in the original construction of the object (dictionary/hashmap?)
@@ -260,7 +275,12 @@ function constructInputBoxes(song, container) {
       .replace(/\s{2,}/g, ' ') // remove extra spaces
       .split(' ') // split raw lyrics by spaces into array of words, numbers, and symbols
       .filter(str => str !== ""); // removes empty strings from array, needed because index 1 seems to always be an empty string
-    lineWords.forEach(function (word) {
+      var linerowdiv = document.createElement("div"); // create a div element
+      linerowdiv.id = ("Line" + line); // create a div element
+      linerowdiv.classList.add("Row"); // add the linerow class to the div
+      container.appendChild(linerowdiv); // append the div to the container div
+     
+      lineWords.forEach(function (word) {
       // executes a function against each word from lineWords array
       var input = document.createElement("input"); // creates an input element
       input.type = "text"; // makes the element a text input
@@ -318,6 +338,7 @@ function constructSubmit(song) {
 
   // create a button labeled "Submit" to submit the guessed lyrics
   var button = document.createElement("button"); // create a button element
+  button.classList.add("btn", "btn-primary"); // add the btn and btn-primary classes to the button
   button.innerHTML = "Submit"; // populate the button with the text "Submit"
   button.addEventListener("click", function () { // add event listener to the button so it responds to clicks and calls the submit function
     submit(song); // call the submit function
@@ -333,6 +354,7 @@ function constructRestart(songData) {
 
   // create a button labeled "Restart" to restart the game
   var button = document.createElement("button"); // create a button element
+  button.classList.add("btn", "btn-danger"); // add the btn and btn-primary classes to the button
   button.innerHTML = "Restart"; // populate the button with the text "Restart"
   button.addEventListener("click", function () { // add event listener to the button so it responds to clicks and calls the startGame function
     startGame(songData); // call the startGame function
@@ -359,7 +381,7 @@ function startGame(songData) { // Loads main game with song lyrics to guess
   container.style.textAlign = "center"; // center align the content of the container div
 
   // Create a div to hold the song title and artist
-  var titleDiv = document.createElement("div"); // create a div element
+  var titleDiv = document.createElement("h2"); // create a div element
   titleDiv.innerHTML = "<b>" + song.title + "</b> by " + song.artist; // populate the div with the song title and artist
   container.appendChild(titleDiv); // append the div to the container div
   // append a line break to the container div to space out the title and artist from the lyrics

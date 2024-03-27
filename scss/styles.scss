@@ -1,1 +1,24 @@
 @import "~bootstrap/scss/bootstrap";
+
+h1 {
+    text-align: center;
+    font-family: "Times New Roman", cursive;
+}
+
+
+h2 {
+    text-align: center;
+    font-family: "Times New Roman", cursive;
+}
+
+.btn {
+    justify-content: center;
+    align-items: center;
+}
+
+html,
+body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
