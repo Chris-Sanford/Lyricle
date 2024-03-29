@@ -5,6 +5,9 @@ var wordsCorrect = 0; // initialize wordsCorrect score to 0, make variable globa
 var lastLine = 0; // initialize lastLine to 0, make variable global so it can be accessed by all functions
 var lifelines = 0;
 var focusedWordIndex = 0;
+var inputCounter = 0;
+
+let startTime, endTime, interval; // stopwatch variables
 
 // construct/declare a class called Song that will contain the original data and the properties/values that we calculate for the game
 class Song {
@@ -54,7 +57,31 @@ async function getAllSongData() {
   allSongData = await response.json();
 }
 
+function startStopwatch() {
+  startTime = Date.now();
+  interval = setInterval(function() {
+      var elapsedTime = Date.now() - startTime;
+  }, 1000); // update every second
+}
+
+function stopStopwatch() {
+  clearInterval(interval);
+  endTime = Date.now();
+}
+
+function resetStopwatch() {
+  //console.log("Resetting Stopwatch");
+  clearInterval(interval);
+  startTime = null;
+  endTime = null;
+}
+
 function useLifeline(song, button) {
+  // If the stopwatch hasn't been started, start it
+  if (!startTime) {
+    startStopwatch();
+  }
+
   if (lifelines > 0) {
     lifelines--;
     console.log("Lifelines Remaining: " + lifelines);
@@ -63,7 +90,7 @@ function useLifeline(song, button) {
 
     var input = document.getElementById("myInput" + focusedWordIndex);
     input.value = song.words[focusedWordIndex];
-    console.log("Focused Input Value: " + input.value);
+    //console.log("Focused Input Value: " + input.value);
     input.style.backgroundColor = "green";
     input.disabled = true;
     wordsCorrect++;
@@ -75,7 +102,7 @@ function useLifeline(song, button) {
   }
 
   if (lifelines === 0) {
-    console.log("No Lifelines Remaining");
+    //console.log("No Lifelines Remaining");
     button.innerHTML = "No Lifelines Remaining";
     button.disabled = true;
     completeGame(song); // call function that executes game completion code
@@ -109,7 +136,7 @@ function constructRandomButton() {
 function getRandomSong() {
   // Select a random song from the song data and start the game
   var seed = Math.floor(Math.random() * allSongData.length)
-  console.log(seed)
+  //console.log(seed)
   var songData = allSongData[seed];
   startGame(songData);
 }
@@ -158,6 +185,15 @@ function selectNextInput(input, wordIndex) {
 }
 
 function wordboxInputListener(input, song, wordIndex) { // Event listener function for lyric input boxes
+
+  // If the stopwatch hasn't been started, start it
+  if (!startTime) {
+    startStopwatch();
+  }
+
+  // Increment the input counter
+  inputCounter++;
+
   // Add event listener to disallow all characters but normal English letters, numbers 0-9, and apostrophes (')
   input.value = input.value.replace(/([^a-zA-Z0-9\u00C0-\u017F'])/g, ""); // disallow any input that isn't a standard English letter, number, or apostrophe
   updateColor(input, song, wordIndex); // call the updateColor function
@@ -180,9 +216,9 @@ function wordboxFocusListener (input, song, wordIndex) {
 
   // Get the current word index from the input box
   var wordIndex = parseInt(input.id.match(/\d+/)[0]);
-  console.log("Word Index: " + wordIndex);
+  //console.log("Word Index: " + wordIndex);
   focusedWordIndex = wordIndex;
-  console.log("Focused Word Index: " + focusedWordIndex);
+  //console.log("Focused Word Index: " + focusedWordIndex);
 }
 
 function updateColor(input, song, wordIndex) { // Update the color of the lyric input boxes based on guess correctness
@@ -332,8 +368,9 @@ function startGame(songData) { // Loads main game with song lyrics to guess
   document.getElementById("score").innerHTML = ""; // Clear the score div
 
   wordsCorrect = 0;
+  inputCounter = 0;
   lifelines = 3;
-  console.log("Starting Lifelines: " + lifelines);
+  //console.log("Starting Lifelines: " + lifelines);
 
   // construct a new Song object using the songData object
   var song = new Song(songData.title, songData.artist, songData.preview_url, songData.chorus);
@@ -368,10 +405,14 @@ function startGame(songData) { // Loads main game with song lyrics to guess
     }
   });
 
-  calculateProperties(song)
+  //calculateProperties(song)
+
+  resetStopwatch();
 }
 
 function completeGame(song) {
+  stopStopwatch();
+  calculateStats(song);
   playSongPreview(song.preview)
   submitContainer = document.getElementById("submit"); // Get the submit container/div
   // add event listener to the button so it responds to clicks and calls the submit function
@@ -423,7 +464,7 @@ function submit(song) { // submit the guessed lyrics and calculate and return sc
   submitContainer.appendChild(noButton); // append the button to the submit container/div
 }
 
-function calculateProperties(song) { // Calculate properties of song lyrics
+function calculateProperties(song) { // For Debugging: Calculate properties of song lyrics
   // Output number of lines in song
   console.log("LinesCount: " + song.lines.length);
 
@@ -448,6 +489,26 @@ function calculateProperties(song) { // Calculate properties of song lyrics
   }
 }
 
+function calculateStats(song) {
+  // Percentage of lyrics correct without decimals
+  let percentageCorrect = Math.floor((wordsCorrect / song.words.length) * 100);
+  console.log("Percentage Correct: " + percentageCorrect + "%");
+
+  // Lifelines Remaining
+  console.log("Final Lifelines Remaining: " + lifelines);
+
+  // Time to Completion
+  let totalTime = endTime - startTime; // Time in milliseconds
+  let totalSeconds = totalTime / 1000; // Convert to seconds
+  let minutes = Math.floor(totalSeconds / 60); // Get minutes
+  let seconds = Math.floor(totalSeconds % 60); // Get remaining seconds
+
+  console.log("Total Time to Completion: " + minutes + " minutes and " + seconds + " seconds");
+
+  // Number of total inputs
+  console.log("Total Inputs: " + inputCounter);
+}
+
 function playSongPreview(preview) {
   var audio = new Audio(preview);
   audio.play();
@@ -458,8 +519,8 @@ function init() { // Initialize the game
   day = getDayInt(); // Get the integer value of the day of the year
 
   getAllSongData().then(() => {
-    console.log(allSongData)
-    console.log(day);
+    //console.log(allSongData)
+    //console.log(day);
     songData = allSongData[day]; // Get the song data for the day
     // if songData is null (because today's int is higher than the length of allSongData), select an object at a random integer index from allSongData
     if (songData == null) {
