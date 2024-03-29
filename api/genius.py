@@ -94,12 +94,14 @@ def clean_up_lyrics(lyrics): # Clean up lyrics property since the lyricsgenius m
     lyrics = re.sub(r'^.*LiveGet tickets as low as.*$', '', lyrics, flags=re.MULTILINE)
 
     # Remove any instance of parentheses and their contents
+    # Lyrics within parenthesis often indicate lyrics that you can barely hear and likely would never know, so we remove them
     lyrics = re.sub(r'\([^)]*\)', '', lyrics)
 
     # Replace nonstandard characters with standard characters
     # This is done on an as-needed basis as we encounter nonstandard characters
     # Some replacements like this weird e are necessary and others the client handles fine
     lyrics = lyrics.replace('\u0435', "e")
+    lyrics = lyrics.replace('\u2019', "'")
 
     return lyrics
 
