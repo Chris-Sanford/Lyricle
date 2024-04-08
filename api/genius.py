@@ -102,6 +102,7 @@ def clean_up_lyrics(lyrics): # Clean up lyrics property since the lyricsgenius m
     # Some replacements like this weird e are necessary and others the client handles fine
     lyrics = lyrics.replace('\u0435', "e")
     lyrics = lyrics.replace('\u2019', "'")
+    lyrics = lyrics.replace('\u2005', " ")
 
     return lyrics
 
