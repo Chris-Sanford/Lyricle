@@ -19,7 +19,11 @@ jobs:
       with:
         node-version: 'node'  # Automatically uses the latest stable Node.js version
         
-    
+    - name: Check current directory and list files
+      run: |
+        pwd
+        ls -la
+
     - name: Install dependencies
       run: |
         npm install
