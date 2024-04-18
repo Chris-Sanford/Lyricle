@@ -40,9 +40,6 @@ jobs:
         with:
           # Upload entire repository
           path: '.'
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
       
       - name: Use latest Node.js
         uses: actions/setup-node@v3
@@ -60,7 +57,11 @@ jobs:
           npm i --save-dev webpack webpack-cli webpack-dev-server
           npm i --save bootstrap @popperjs/core
           npm i --save-dev autoprefixer css-loader postcss-loader sass sass-loader style-loader
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
   
-      - name: Run build and start server
-        run: |
-          npm run start-serv
+     # - name: Run build and start server
+     #  run: |
+    #    npm run start-serv
