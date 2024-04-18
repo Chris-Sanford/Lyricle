@@ -6,6 +6,7 @@ on:
     branches: [ "Bootstrap_Webpack-intergration" ]
   pull_request:
     branches: [ "Bootstrap_Webpack-intergration" ]
+  workflow_dispatch:
 
 jobs:
   build:
