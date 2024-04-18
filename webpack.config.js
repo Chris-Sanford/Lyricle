@@ -10,7 +10,7 @@ module.exports = {
   entry: './docs/js/functions.js', // the entry point of of the webapp
   output: {
     filename: 'functions.js', // the name of the bundled file
-    path: path.resolve(__dirname, 'docs')
+    path: path.resolve(__dirname)
   },
   devServer: {
     client: {
@@ -23,7 +23,7 @@ module.exports = {
       changeOrigin: true,
       pathRewrite: {'^/api' : ''} // remove the '/api' path from the request
     }],
-    static: path.resolve(__dirname, 'docs'), // serve the files from the 'dist' directory
+    static: path.resolve(__dirname), // serve the files from the 'dist' directory
     port: 8080, // listen on port 8080
     hot: true, // enable hot module replacement
     open: true, // open the browser when the server starts
