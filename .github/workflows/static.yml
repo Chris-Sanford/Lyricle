@@ -54,9 +54,9 @@ jobs:
       - name: Install dependencies
         run: |
           npm install
-          npm i --save-dev webpack webpack-cli webpack-dev-server
+          npm i --save webpack
           npm i --save bootstrap @popperjs/core
-          npm i --save-dev autoprefixer css-loader postcss-loader sass sass-loader style-loader
+          npm i --save autoprefixer css-loader postcss-loader sass sass-loader style-loader
           
       - name: Run build and start server
         run: npm run build
