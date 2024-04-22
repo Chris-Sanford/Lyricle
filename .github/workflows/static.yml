@@ -57,11 +57,11 @@ jobs:
           npm i --save-dev webpack webpack-cli webpack-dev-server
           npm i --save bootstrap @popperjs/core
           npm i --save-dev autoprefixer css-loader postcss-loader sass sass-loader style-loader
+          
+      - name: Run build and start server
+        run: npm run start-serv
 
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
   
-     # - name: Run build and start server
-     #  run: |
-    #    npm run start-serv
