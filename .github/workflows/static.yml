@@ -50,6 +50,14 @@ jobs:
         run: |
           pwd
           ls -la
+
+      - name: Cache Node.js modules
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.OS }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.OS }}-node-
   
       - name: Install dependencies
         run: |
