@@ -59,7 +59,7 @@ jobs:
           npm i --save-dev autoprefixer css-loader postcss-loader sass sass-loader style-loader
           
       - name: Run build and start server
-        run: npm run start-serv
+        run: npm run build
 
       - name: Deploy to GitHub Pages
         id: deployment
