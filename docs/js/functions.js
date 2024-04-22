@@ -486,8 +486,8 @@ function calculateProperties(song) { // Calculate properties of song lyrics
 
 function init() { // Initialize the game
   constructRandomButton()
-let day = getDayInt(); // Get the integer value of the day of the year
-
+//let day = getDayInt(); // Get the integer value of the day of the year
+  let day = 1; //for testing
   getAllSongData().then(() => {
     console.log(allSongData)
     console.log(day);
