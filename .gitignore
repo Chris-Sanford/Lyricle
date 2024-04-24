@@ -3,6 +3,9 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/main/VisualStudio.gitignore
 
+
+#Ignore Backups
+
 # Ignore any directory named "secrets" anywhere in the repository and all of its contents
 **/secrets/*
 
