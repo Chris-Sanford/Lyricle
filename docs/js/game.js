@@ -300,6 +300,7 @@ function constructInputBoxes(song, container) {
       // executes a function against each word from lineWords array
       var input = document.createElement("input"); // creates an input element
       input.type = "text"; // makes the element a text input
+      input.style.color = "black"; // This will change the typed text color to black
       input.id = "myInput" + wordIndex; // defines the unique id of the input element based on the index of the word in the secret string
       if (startOfNextLine == true) {
         // if the input box is the start of a new line it adds the StartOfLine and Line# classes to the input element
@@ -309,7 +310,7 @@ function constructInputBoxes(song, container) {
         //else it just adds the Line# class to the input element
         input.className = "Line" + lineIndex;
       }
-      var width = Math.min(17 * word.length, maxWidth); // defines variable width using the Math.min static method to set the value to either the length of the word * 10
+      var width = Math.min(((12 * word.length) + 10), maxWidth); // defines variable width using the Math.min static method to set the value to either the length of the word * 10
       // or the maxWidth value, whichever is smaller. This means a word with more than 10 characters will be restricted to the maxWidth value.
       input.style.width = width + "px"; // width needs to be defined in px (pixels) so we add the px string to the end of the width value
       input.style.textAlign = "center"; // center the text within the input box
@@ -528,7 +529,29 @@ function calculateStats(song) {
 
 function playSongPreview(preview) {
   var audio = new Audio(preview);
+  audio.volume = 0; // Set initial volume to 0
   audio.play();
+
+  // Fade in in 0.01 increments from 0 every 50ms until 100% volume
+  var fadeInInterval = setInterval(function() {
+    if (audio.volume < 1) {
+      audio.volume += 0.01; // Increase volume gradually
+    } else {
+      clearInterval(fadeInInterval); // Stop fading in
+    }
+  }, 50);
+
+  // Fade out for the last 5 seconds
+  var fadeOutInterval = setInterval(function() {
+    if (audio.currentTime >= audio.duration - 5) {
+      if (audio.volume > 0.02) {
+        audio.volume -= 0.005; // Decrease volume gradually
+      } else {
+        clearInterval(fadeOutInterval); // Stop fading out
+        audio.pause(); // Pause the audio
+      }
+    }
+  }, 10);
 }
 
 function init() { // Initialize the game
