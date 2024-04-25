@@ -1,5 +1,12 @@
 // game.js
 
+//Dark Mode Implementation 
+if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+  // Apply dark theme
+  document.documentElement.setAttribute('data-bs-theme', 'dark');
+  let darkmode = true;
+}
+
 // is this bad practice to make global? should it be a local variable in the startGame function?
 var wordsCorrect = 0; // initialize wordsCorrect score to 0, make variable global so it can be accessed by all functions
 var lastLine = 0; // initialize lastLine to 0, make variable global so it can be accessed by all functions
@@ -100,10 +107,14 @@ function useLifeline(song, button) {
     }
     selectNextInput(input, focusedWordIndex); // call function that selects the next input box
   }
+  if(lifelines === 1) {
+    button.classList.add("btn-danger");
+  }
 
   if (lifelines === 0) {
     //console.log("No Lifelines Remaining");
     button.innerHTML = "No Lifelines Remaining";
+    button.classList.add("btn-dark"); // add the btn and btn-primary classes to the button
     button.disabled = true;
     completeGame(song); // call function that executes game completion code
   }
@@ -111,8 +122,10 @@ function useLifeline(song, button) {
 
 function constructLifelineButton(song, focusedWordIndex) {
   var lifelineContainer = document.getElementById("lifeline"); // get the div element from the HTML document and set it to the variable named container so we can manipulate it
+  lifelineContainer.style.textAlign = "center"; // center align the content of the container div
   lifelineContainer.innerHTML = ""; // Clear the submit container/div
   var button = document.createElement("button"); // create a button element
+  button.classList.add("btn", "btn-primary"); // add the btn and btn-primary classes to the button
   button.innerHTML = "Use a Lifeline (" + lifelines + " remaining)"; // Define the text within the button to label it
 
   // Add event listener to the button so it responds to clicks and calls the useLifeline function
@@ -127,7 +140,9 @@ function constructLifelineButton(song, focusedWordIndex) {
 function constructRandomButton() {
   // Populate a button in the HTML document labeled "Random" that will call the startGame function with a random song
   var container = document.getElementById("random"); // get the div element from the HTML document and set it to the variable named container so we can manipulate it
+  container.style.textAlign = "center"; // center align the content of the container div
   var button = document.createElement("button"); // create a button element
+  button.classList.add("btn", "btn-info"); // add the btn and btn-primary classes to the button
   button.innerHTML = "Random"; // Define the text within the button to label it
   button.addEventListener("click", getRandomSong); // Add event listener to the button so it responds to clicks and calls the getRandomSong function
   container.appendChild(button); // append the button to the div
@@ -339,6 +354,7 @@ function constructSubmit(song) {
 
   // create a button labeled "Submit" to submit the guessed lyrics
   var button = document.createElement("button"); // create a button element
+  button.classList.add("btn", "btn-primary"); // add the btn and btn-primary classes to the button
   button.innerHTML = "Submit"; // populate the button with the text "Submit"
   button.addEventListener("click", function () { // add event listener to the button so it responds to clicks and calls the submit function
     submit(song); // call the submit function
@@ -354,6 +370,7 @@ function constructRestart(songData) {
 
   // create a button labeled "Restart" to restart the game
   var button = document.createElement("button"); // create a button element
+  button.classList.add("btn", "btn-danger"); // add the btn and btn-primary classes to the button
   button.innerHTML = "Restart"; // populate the button with the text "Restart"
   button.addEventListener("click", function () { // add event listener to the button so it responds to clicks and calls the startGame function
     startGame(songData); // call the startGame function
