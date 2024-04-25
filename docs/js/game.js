@@ -309,7 +309,7 @@ function constructInputBoxes(song, container) {
         //else it just adds the Line# class to the input element
         input.className = "Line" + lineIndex;
       }
-      var width = Math.min(10 * word.length, maxWidth); // defines variable width using the Math.min static method to set the value to either the length of the word * 10
+      var width = Math.min(17 * word.length, maxWidth); // defines variable width using the Math.min static method to set the value to either the length of the word * 10
       // or the maxWidth value, whichever is smaller. This means a word with more than 10 characters will be restricted to the maxWidth value.
       input.style.width = width + "px"; // width needs to be defined in px (pixels) so we add the px string to the end of the width value
       input.style.textAlign = "center"; // center the text within the input box
