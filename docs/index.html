@@ -1,7 +1,7 @@
 <!-- index.html -->
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-bs-theme="dark">
 
 <!-- FOR DEVELOPMENT ONLY?: Prevents webpage from loading from cache.-->
 <!-- This helps in testing changes made from recent PR merge / Actions deployment.-->
@@ -20,18 +20,37 @@
 
 <body>
 
-  <script src="./js/game.js"></script>
-
   <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-    integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
-    crossorigin="anonymous"></script>
+  integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+  crossorigin="anonymous"></script>
 
-  <h1 class="container">Lyricle</h1>
+  <!-- Import Game JS -->
+  <script src="./js/game.js"></script>
+
+  <!-- Title / Navigation Bar (as Grid) -->
+    <div class="container">
+      <div class="row">
+          <div class="col d-flex justify-content-start">
+          <!-- Left Intentionally Blank-->
+          </div>
+          <div class="col d-flex justify-content-center">
+          <h2>Lyricle</h2>
+          </div>
+          <div class="col d-flex justify-content-end gap-0 column-gap-2">
+            <button class="btn btn-outline-light" type="button">Sound</button>
+            <button class="btn btn-outline-light" type="button">How To Play</button>
+          </div>
+      </div>
+      </div>
+  </div>
+
+  <br> <!-- Space TitleBar from Game -->
+
   <p class="container">Welcome to Lyricle! The game where you guess the lyrics to a song. You can use a lifeline to
     reveal a word in the lyrics. If you guess all the lyrics correctly or use up all of your lifelines, the game is
     over!</p>
-  <!-- <div id="getSong"></div> -->
+
   <div class="container" id="songLyrics"></div>
   <p class="container">To use a lifeline, select the word you want to be given, then click "Use a Lifeline". Guess
     all the lyrics
