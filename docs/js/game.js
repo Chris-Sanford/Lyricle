@@ -347,9 +347,11 @@ function constructInputBoxes(song, container) {
 }
 
 function startGame(songData) { // Loads main game with song lyrics to guess
-  document.getElementById("songLyrics").innerHTML = ""; // Clear the songLyrics div
-  document.getElementById("resultsMessage").innerHTML = ""; // Clear the resultsMessage div
-  document.getElementById("score").innerHTML = ""; // Clear the score div
+  // Clear/Reset Divs from Previous Song
+  document.getElementById("songLyrics").innerHTML = "";
+  document.getElementById("lifeline").innerHTML = "";
+  document.getElementById("resultsMessage").innerHTML = "";
+  document.getElementById("score").innerHTML = "";
 
   wordsCorrect = 0;
   inputCounter = 0;
