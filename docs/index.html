@@ -22,66 +22,57 @@
   <script src="./js/game.js"></script>
 
   <!-- Title / Navigation Bar (as Grid) -->
-    <div class="container">
-      <div class="row">
-          <div class="col d-flex justify-content-start">
-          <!-- Left Intentionally Blank-->
-          </div>
-          <div class="col d-flex justify-content-center">
-          <h2>Lyricle</h2>
-          </div>
-          <div class="col d-flex justify-content-end gap-0 column-gap-2">
-            <button class="btn btn-outline-light" type="button">Sound</button>
-            <button class="btn btn-outline-light" type="button" data-bs-toggle="modal" data-bs-target="#Howtoplay">How To Play</button>
-            <div class="modal fade modal-lg" id="Howtoplay">
-              <div class="modal-dialog modal-dialog-scrollable modal-fullscreen-sm-down">
-                <div class="modal-content">
-                  <div class="modal-header">
-                    <h2 class="modal-title">How To Play Lyricle</h2>
-                  </div>
-                  <div class="modal-body">
-                    <span class="fs-4 fw-bold">Objective</span>
-                    <p>Guess the hidden lyrics to <b>SONG</b> by <b>ARTIST</b>!
-                    </p>
-                    <span class="fs-4 fw-bold">Instructions</span>
-                    <ul>
-                      <li>The first line of the secret lyrics are revealed to get you started.</li>
-                      <li>Click into a lyric input field and start typing your guesses!</li>
-                      <li>The size of each input field is relative to how long the lyric is.</li>
-                      <li>Your input will start to change color as you get closer to the secret lyric, so keep guessing and don't give up!</li>
-                      <li>If you get stuck, use a lifeline! Select the word you want to reveal, then press and hold &hearts; on the on-screen keyboard. Once you use your 3rd and final lifeline, the game is over. Choose wisely!</li>
-                      <li>Don't worry about punctuation or capitalization, just focus on the lyrics!</li>
-                      <li>The game is over when you've entered all of the correct lyrics or used all 3 of your lifelines.</li>
-                    </ul>
-                    <span class="fs-4 fw-bold">Scoring</span>
-                    <p>Scoring is based on number of guessed letters, time to completion, and remaining lifelines.</p>
-                  <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                  </div>
-                </div>
+  <div class="container">
+    <div class="row">
+      <div class="col d-flex justify-content-start">
+        <!-- Left Intentionally Blank-->
+      </div>
+      <div class="col d-flex justify-content-center">
+        <h2>Lyricle</h2>
+      </div>
+      <div class="col d-flex justify-content-end gap-0 column-gap-2" id="navbarButtonsColumn">
+        <button id="muteButton" class="btn btn-outline-light" type="button">Mute</button>
+        <button class="btn btn-outline-light" type="button" data-bs-toggle="modal" data-bs-target="#Howtoplay">How To Play</button>
+        <div class="modal fade modal-lg" id="Howtoplay">
+          <div class="modal-dialog modal-dialog-scrollable modal-fullscreen-sm-down">
+            <div class="modal-content">
+              <div class="modal-header">
+          <h2 class="modal-title">How To Play Lyricle</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+          <span class="fs-4 fw-bold">Objective</span>
+          <p>Guess the hidden lyrics to <b>SONG</b> by <b>ARTIST</b>!
+          </p>
+          <span class="fs-4 fw-bold">Instructions</span>
+          <ul>
+            <li>The first line of the secret lyrics are revealed to get you started.</li>
+            <li>Click into a lyric input field and start typing your guesses!</li>
+            <li>The size of each input field is relative to how long the lyric is.</li>
+            <li>Your input will start to change color as you get closer to the secret lyric, so keep guessing and don't give up!</li>
+            <li>If you get stuck, use a lifeline! Select the word you want to reveal, then press and hold &hearts; on the on-screen keyboard. Once you use your 3rd and final lifeline, the game is over. Choose wisely!</li>
+            <li>Don't worry about punctuation or capitalization, just focus on the lyrics!</li>
+            <li>The game is over when you've entered all of the correct lyrics or used all 3 of your lifelines.</li>
+          </ul>
+          <span class="fs-4 fw-bold">Scoring</span>
+          <p>Scoring is based on number of guessed letters, time to completion, and remaining lifelines.</p>
               </div>
             </div>
           </div>
+        </div>
       </div>
-      </div>
+    </div>
   </div>
+
+  <!-- Song Title and Artist Bar -->
 
   <br> <!-- Space TitleBar from Game -->
 
-  <p class="container">Welcome to Lyricle! The game where you guess the lyrics to a song. You can use a lifeline to
-    reveal a word in the lyrics. If you guess all the lyrics correctly or use up all of your lifelines, the game is
-    over!</p>
-
   <div class="container" id="songLyrics"></div>
-  <p class="container">To use a lifeline, select the word you want to be given, then click "Use a Lifeline". Guess
-    all the lyrics
-    correctly or use up all of your lifelines and the game is over!</p>
   <div class="container" id="lifeline"></div>
-  <div class="container" id="submit"></div>
-  <div class="container" id="restart"></div>
   <div class="container" id="resultsMessage"></div>
   <div class="container" id="score"></div>
-
+  <br>
   <div class="container" id="random"></div>
 
 </body>
