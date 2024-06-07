@@ -13,6 +13,7 @@ var lastLine = 0; // initialize lastLine to 0, make variable global so it can be
 var lifelines = 0;
 var focusedWordIndex = 0;
 var inputCounter = 0;
+var audio;
 
 let startTime, endTime, interval; // stopwatch variables
 
@@ -120,7 +121,7 @@ function useLifeline(song, button) {
   }
 }
 
-function constructLifelineButton(song, focusedWordIndex) {
+function constructLifelineButton(song) {
   var lifelineContainer = document.getElementById("lifeline"); // get the div element from the HTML document and set it to the variable named container so we can manipulate it
   lifelineContainer.style.textAlign = "center"; // center align the content of the container div
   var button = document.createElement("button"); // create a button element
@@ -129,7 +130,7 @@ function constructLifelineButton(song, focusedWordIndex) {
 
   // Add event listener to the button so it responds to clicks and calls the useLifeline function
   button.addEventListener('click', function() {
-    useLifeline(song, button, focusedWordIndex);
+    useLifeline(song, button);
   });
 
   lifelineContainer.appendChild(button); // append the button to the div
@@ -152,6 +153,12 @@ function getRandomSong() {
   var seed = Math.floor(Math.random() * allSongData.length)
   //console.log(seed)
   var songData = allSongData[seed];
+
+  // Stop any currently-playing audio
+  if (audio) {
+    audio.pause();
+  }
+
   startGame(songData);
 }
 
@@ -347,9 +354,11 @@ function constructInputBoxes(song, container) {
 }
 
 function startGame(songData) { // Loads main game with song lyrics to guess
-  document.getElementById("songLyrics").innerHTML = ""; // Clear the songLyrics div
-  document.getElementById("resultsMessage").innerHTML = ""; // Clear the resultsMessage div
-  document.getElementById("score").innerHTML = ""; // Clear the score div
+  // Clear/Reset Divs from Previous Song
+  document.getElementById("songLyrics").innerHTML = "";
+  document.getElementById("lifeline").innerHTML = "";
+  document.getElementById("resultsMessage").innerHTML = "";
+  document.getElementById("score").innerHTML = "";
 
   wordsCorrect = 0;
   inputCounter = 0;
@@ -383,13 +392,14 @@ function startGame(songData) { // Loads main game with song lyrics to guess
 
   resetStopwatch();
   
+  // Create an audio element to play the song preview
+  audio = new Audio(song.preview);
 }
 
 function completeGame(song) {
   stopStopwatch();
   calculateStats(song);
-  var audio = new Audio(song.preview);
-  playSongPreview(audio);
+  playSongPreview();
 
   var allCorrect = wordsCorrect === song.words.length
   if (allCorrect) {
@@ -457,18 +467,18 @@ function calculateStats(song) {
   console.log("Total Inputs: " + inputCounter);
 }
 
-function constructMuteButton(audio) {
+function constructMuteButton() {
   // Get the Mute button by id
   var muteButton = document.getElementById("muteButton");
 
   // Add event listener to the button so it responds to clicks and calls the toggleMuteSongPreview function
   muteButton.addEventListener('click', function() {
-    toggleMuteSongPreview(audio, muteButton);
+    toggleMuteSongPreview(muteButton);
   });
 }
 
-function playSongPreview(audio) {
-  constructMuteButton(audio)
+function playSongPreview() {
+  constructMuteButton()
   audio.volume = 0; // Set initial volume to 0
   audio.play();
 
@@ -497,7 +507,7 @@ function playSongPreview(audio) {
   }, 10);
 }
 
-function toggleMuteSongPreview(audio) {
+function toggleMuteSongPreview(muteButton) {
   // We're dirty liars and this actually pauses, not mutes
   if (audio.paused) {
     audio.play();
