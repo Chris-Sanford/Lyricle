@@ -113,10 +113,7 @@ function useLifeline(song, button) {
   }
 
   if (lifelines === 0) {
-    //console.log("No Lifelines Remaining");
-    button.innerHTML = "No Lifelines Remaining";
-    button.classList.add("btn-dark"); // add the btn and btn-primary classes to the button
-    button.disabled = true;
+    button.remove(); // Remove the lifelines button
     completeGame(song); // call function that executes game completion code
   }
 }
