@@ -93,7 +93,7 @@ function useLifeline(song, button) {
     lifelines--;
     console.log("Lifelines Remaining: " + lifelines);
 
-    button.innerHTML = "Use a Lifeline (" + lifelines + " remaining)";
+    button.innerHTML = "&hearts; (" + lifelines + " remaining)";
 
     var input = document.getElementById("myInput" + focusedWordIndex);
     input.value = song.words[focusedWordIndex];
@@ -123,10 +123,9 @@ function useLifeline(song, button) {
 function constructLifelineButton(song, focusedWordIndex) {
   var lifelineContainer = document.getElementById("lifeline"); // get the div element from the HTML document and set it to the variable named container so we can manipulate it
   lifelineContainer.style.textAlign = "center"; // center align the content of the container div
-  lifelineContainer.innerHTML = ""; // Clear the submit container/div
   var button = document.createElement("button"); // create a button element
   button.classList.add("btn", "btn-primary"); // add the btn and btn-primary classes to the button
-  button.innerHTML = "Use a Lifeline (" + lifelines + " remaining)"; // Define the text within the button to label it
+  button.innerHTML = "&hearts; (" + lifelines + " remaining)"; // Define the text within the button to label it
 
   // Add event listener to the button so it responds to clicks and calls the useLifeline function
   button.addEventListener('click', function() {
@@ -347,39 +346,6 @@ function constructInputBoxes(song, container) {
   });
 }
 
-function constructSubmit(song) {
-  var submitContainer = document.getElementById("submit"); // Get the submit container/div
-  submitContainer.innerHTML = ""; // Clear the submit container/div
-
-  submitContainer.style.textAlign = "center"; // center align the content of the container div
-
-  // create a button labeled "Submit" to submit the guessed lyrics
-  var button = document.createElement("button"); // create a button element
-  button.classList.add("btn", "btn-primary"); // add the btn and btn-primary classes to the button
-  button.innerHTML = "Submit"; // populate the button with the text "Submit"
-  button.addEventListener("click", function () { // add event listener to the button so it responds to clicks and calls the submit function
-    submit(song); // call the submit function
-  });
-  submitContainer.appendChild(button); // append the button to the container div
-}
-
-function constructRestart(songData) {
-  var restartContainer = document.getElementById("restart"); // Get the restart container/div
-  restartContainer.innerHTML = ""; // Clear the restart container/div
-
-  restartContainer.style.textAlign = "center"; // center align the content of the container div
-
-  // create a button labeled "Restart" to restart the game
-  var button = document.createElement("button"); // create a button element
-  button.classList.add("btn", "btn-danger"); // add the btn and btn-primary classes to the button
-  button.innerHTML = "Restart"; // populate the button with the text "Restart"
-  button.addEventListener("click", function () { // add event listener to the button so it responds to clicks and calls the startGame function
-    startGame(songData); // call the startGame function
-  });
-  restartContainer.appendChild(button); // append the button to the container div
-
-}
-
 function startGame(songData) { // Loads main game with song lyrics to guess
   document.getElementById("songLyrics").innerHTML = ""; // Clear the songLyrics div
   document.getElementById("resultsMessage").innerHTML = ""; // Clear the resultsMessage div
@@ -408,32 +374,23 @@ function startGame(songData) { // Loads main game with song lyrics to guess
   // construct the input boxes for the song lyrics to start the game
   constructInputBoxes(song, container);
 
-  // add a line break to the container div to space out the lyrics from the submit button
+  // add a line break to the container div to space out the lyrics from the buttons
   container.appendChild(document.createElement("br"));
 
-  constructSubmit(song);
   constructLifelineButton(song);
-  constructRestart(songData)
-
-  container.addEventListener("keyup", function (event) {
-    // adds event listener for key input on wordbox
-    if (event.key === "Enter") {
-      // if the key pressed is the Enter key
-      submit(song); // call the submit function
-    }
-  });
 
   //calculateProperties(song)
 
   resetStopwatch();
+  
 }
 
 function completeGame(song) {
   stopStopwatch();
   calculateStats(song);
-  playSongPreview(song.preview)
-  submitContainer = document.getElementById("submit"); // Get the submit container/div
-  // add event listener to the button so it responds to clicks and calls the submit function
+  var audio = new Audio(song.preview);
+  playSongPreview(audio);
+
   var allCorrect = wordsCorrect === song.words.length
   if (allCorrect) {
     document.getElementById("resultsMessage").innerHTML = // populate the resultsMessage div with the following text
@@ -453,33 +410,6 @@ function completeGame(song) {
   }
   // Display the score
   document.getElementById("score").innerHTML = wordsCorrect + " Words Correct!"; // populate the score div with the final score
-
-  // Clear the submit container/div to remove the button
-  submitContainer.innerHTML = "";
-}
-
-function submit(song) { // submit the guessed lyrics and calculate and return score
-  // Replace "Submit" button with the following text:
-  // "Are you sure you want to submit? [Yes] [No]"
-  submitContainer = document.getElementById("submit"); // Get the submit container/div
-  submitContainer.innerHTML = ""; // Clear the submit container/div
-  var paragraph = document.createElement("p"); // create a paragraph element
-  paragraph.innerHTML = "Are you sure you want to submit?"; // populate the paragraph
-  submitContainer.appendChild(paragraph); // append the paragraph to the submit container/div
-  var yesButton = document.createElement("button"); // create a button element
-  yesButton.innerHTML = "Yes"; // populate the button with the text "Yes"
-  yesButton.addEventListener("click", function () {
-    completeGame(song)
-  });
-
-  submitContainer.appendChild(yesButton); // append the button to the submit container/div
-  var noButton = document.createElement("button"); // create a button element
-  noButton.innerHTML = "No"; // populate the button with the text "No"
-  noButton.addEventListener("click", function () { // add event listener to the button so it responds to clicks and calls the submit function
-    constructSubmit(song); // reset the submit container/div
-  }
-  );
-  submitContainer.appendChild(noButton); // append the button to the submit container/div
 }
 
 function calculateProperties(song) { // For Debugging: Calculate properties of song lyrics
@@ -527,15 +457,28 @@ function calculateStats(song) {
   console.log("Total Inputs: " + inputCounter);
 }
 
-function playSongPreview(preview) {
-  var audio = new Audio(preview);
+function constructMuteButton(audio) {
+  // Get the Mute button by id
+  var muteButton = document.getElementById("muteButton");
+
+  // Add event listener to the button so it responds to clicks and calls the toggleMuteSongPreview function
+  muteButton.addEventListener('click', function() {
+    toggleMuteSongPreview(audio, muteButton);
+  });
+}
+
+function playSongPreview(audio) {
+  constructMuteButton(audio)
   audio.volume = 0; // Set initial volume to 0
   audio.play();
+
+  // This fading in and out logic is super buggy when coupled with muting
+  // but it's good enough for now just to be able to mute to avoid jumpscare
 
   // Fade in in 0.01 increments from 0 every 50ms until 100% volume
   var fadeInInterval = setInterval(function() {
     if (audio.volume < 1) {
-      audio.volume += 0.01; // Increase volume gradually
+      audio.volume = Math.min(1, audio.volume + 0.01); // Increase volume gradually
     } else {
       clearInterval(fadeInInterval); // Stop fading in
     }
@@ -545,13 +488,24 @@ function playSongPreview(preview) {
   var fadeOutInterval = setInterval(function() {
     if (audio.currentTime >= audio.duration - 5) {
       if (audio.volume > 0.02) {
-        audio.volume -= 0.005; // Decrease volume gradually
+        audio.volume = Math.max(0, audio.volume - 0.005); // Decrease volume gradually
       } else {
         clearInterval(fadeOutInterval); // Stop fading out
         audio.pause(); // Pause the audio
       }
     }
   }, 10);
+}
+
+function toggleMuteSongPreview(audio) {
+  // We're dirty liars and this actually pauses, not mutes
+  if (audio.paused) {
+    audio.play();
+    muteButton.innerHTML = "Mute";
+  } else {
+    audio.pause();
+    muteButton.innerHTML = "Unmute";
+  }
 }
 
 function init() { // Initialize the game
