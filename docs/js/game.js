@@ -489,7 +489,7 @@ async function playSongPreview() {
       } else {
         clearInterval(fadeInInterval);
       }
-    }, 1000); // Check every second
+    }, 100); // Check every 100 milliseconds
 
     // Fade out the audio in the last 5 seconds
     var fadeOutInterval = setInterval(function() {
@@ -498,9 +498,9 @@ async function playSongPreview() {
       } else {
         clearInterval(fadeOutInterval);
       }
-    }, 1000); // Check every second
+    }, 100); // Check every 100 milliseconds
 
-    await new Promise(resolve => setTimeout(resolve, 1000)); // Wait for 1 second before checking again
+    await new Promise(resolve => setTimeout(resolve, 100)); // Wait for 100 milliseconds before checking again
     console.log("Volume: "+ audio.volume);
   }
 }
