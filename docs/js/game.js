@@ -390,6 +390,7 @@ function startGame(songData) { // Loads main game with song lyrics to guess
   resetStopwatch();
   
   // Create an audio element to play the song preview
+  constructMuteButton();
   audio = new Audio(song.preview);
 }
 
@@ -474,44 +475,54 @@ function constructMuteButton() {
   });
 }
 
-function playSongPreview() {
-  constructMuteButton()
+async function playSongPreview() {
   audio.volume = 0; // Set initial volume to 0
   audio.play();
 
-  // This fading in and out logic is super buggy when coupled with muting
-  // but it's good enough for now just to be able to mute to avoid jumpscare
+  var fadeDuration = 5; // Duration of fade in and fade out in seconds
 
-  // Fade in in 0.01 increments from 0 every 50ms until 100% volume
-  var fadeInInterval = setInterval(function() {
-    if (audio.volume < 1) {
-      audio.volume = Math.min(1, audio.volume + 0.01); // Increase volume gradually
-    } else {
-      clearInterval(fadeInInterval); // Stop fading in
-    }
-  }, 50);
-
-  // Fade out for the last 5 seconds
-  var fadeOutInterval = setInterval(function() {
-    if (audio.currentTime >= audio.duration - 5) {
-      if (audio.volume > 0.02) {
-        audio.volume = Math.max(0, audio.volume - 0.005); // Decrease volume gradually
+  while (!audio.ended) {
+    // Fade in the audio in the first 5 seconds
+    var fadeInInterval = setInterval(function() {
+      if (audio.currentTime < fadeDuration) {
+        audio.volume = audio.currentTime / fadeDuration * 0.1;
       } else {
-        clearInterval(fadeOutInterval); // Stop fading out
-        audio.pause(); // Pause the audio
+        clearInterval(fadeInInterval);
       }
-    }
-  }, 10);
+    }, 1000); // Check every second
+
+    // Fade out the audio in the last 5 seconds
+    var fadeOutInterval = setInterval(function() {
+      if (audio.currentTime >= audio.duration - fadeDuration) {
+        audio.volume = (audio.duration - audio.currentTime) / fadeDuration * 0.1;
+      } else {
+        clearInterval(fadeOutInterval);
+      }
+    }, 1000); // Check every second
+
+    await new Promise(resolve => setTimeout(resolve, 1000)); // Wait for 1 second before checking again
+    console.log("Volume: "+ audio.volume);
+  }
 }
 
 function toggleMuteSongPreview(muteButton) {
-  // We're dirty liars and this actually pauses, not mutes
-  if (audio.paused) {
-    audio.play();
-    muteButton.innerHTML = "Mute";
-  } else {
-    audio.pause();
-    muteButton.innerHTML = "Unmute";
+  if (muteButton.innerHTML === "Mute") {
+    if (!audio.paused) {
+      audio.pause(); // clicking MUTE when a song is playing pauses it
+    } else if (audio.paused) {
+      audio.muted = true;  // clicking MUTE when a song isn't playing mutes audio
+    }
+    muteButton.innerHTML = "Unmute"; // Flip Button back to Unmute
+  } else if (muteButton.innerHTML === "Unmute") {
+    if (audio.paused) {
+      // clicking UNMUTE when a song is playing actually resumes the audio, doesn't unmute it
+      console.log("Resuming audio...");
+      audio.play();
+    } else {
+      // this code seems unreachable, possibly because audio is a global variable and is paused by default
+      console.log("No audio to unmute/unpause/resume!"); 
+    }
+    muteButton.innerHTML = "Mute"; // Flip Button back to Mute
   }
 }
 
