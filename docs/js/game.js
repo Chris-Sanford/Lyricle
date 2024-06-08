@@ -14,6 +14,7 @@ var lifelines = 0;
 var focusedWordIndex = 0;
 var inputCounter = 0;
 var audio;
+var terminateAudio = false;
 
 let startTime, endTime, interval; // stopwatch variables
 
@@ -84,6 +85,75 @@ function resetStopwatch() {
   endTime = null;
 }
 
+// Audio Playback Functions
+async function playSongPreview() {
+  audio.volume = 0; // Set initial volume to 0
+  audio.play();
+
+  var fadeDuration = 5; // Duration of fade in and fade out in seconds
+  while (!audio.ended && !terminateAudio) {
+    // Check if audio is muted
+    // if it is, restart while loop
+    if (audio.muted) {
+      await new Promise(resolve => setTimeout(resolve, 100)); // Wait for 100 milliseconds before checking again
+      continue;
+    }
+
+    // Fade in the audio in the first 5 seconds
+    var fadeInInterval = setInterval(function() {
+      if (audio.currentTime < fadeDuration) {
+        audio.volume = audio.currentTime / fadeDuration * 0.1;
+      } else {
+        clearInterval(fadeInInterval);
+      }
+    }, 100); // Check every 100 milliseconds
+
+    // Fade out the audio in the last 5 seconds
+    var fadeOutInterval = setInterval(function() {
+      if (audio.currentTime >= audio.duration - fadeDuration) {
+        audio.volume = (audio.duration - audio.currentTime) / fadeDuration * 0.1;
+      } else {
+        clearInterval(fadeOutInterval);
+      }
+    }, 100); // Check every 100 milliseconds
+
+    await new Promise(resolve => setTimeout(resolve, 100)); // Wait for 100 milliseconds before checking again
+    console.log("Volume: "+ audio.volume);
+  }
+
+  terminateAudio = false; // Reset the terminateAudio variable
+}
+
+async function stopSongPreview() {
+  terminateAudio = true;
+  while (terminateAudio) {
+    // while we wait for the async audio player/fader to terminate
+    if (audio != null) { // if the audio object exists
+      audio.pause();
+      audio.ended = true;
+    }
+    else { // if the audio object doesn't exist
+      terminateAudio = false; // terminate the loop and async function
+    }
+    await new Promise(resolve => setTimeout(resolve, 100));
+  }
+}
+
+function toggleMuteSongPreview() {
+  var muteButton = document.getElementById("muteButton"); // Get the Mute button by id
+  if (muteButton.innerHTML === "Mute") {
+    audio.pause();
+    audio.muted = true;
+    muteButton.innerHTML = "Unmute"; // Flip Button back to Unmute
+  } else if (muteButton.innerHTML === "Unmute") {
+    if (audio.currentTime > 0) { // if the audio has already started playing after game completion
+      audio.play(); // Resume playback
+    }
+    audio.muted = false;
+    muteButton.innerHTML = "Mute"; // Flip Button back to Mute
+  }
+}
+
 function useLifeline(song, button) {
   // If the stopwatch hasn't been started, start it
   if (!startTime) {
@@ -152,8 +222,8 @@ function getRandomSong() {
   var songData = allSongData[seed];
 
   // Stop any currently-playing audio
-  if (audio) {
-    audio.pause();
+  if (audio.currentTime > 0) {
+    stopSongPreview();
   }
 
   startGame(songData);
@@ -390,7 +460,6 @@ function startGame(songData) { // Loads main game with song lyrics to guess
   resetStopwatch();
   
   // Create an audio element to play the song preview
-  constructMuteButton();
   audio = new Audio(song.preview);
 }
 
@@ -463,67 +532,6 @@ function calculateStats(song) {
 
   // Number of total inputs
   console.log("Total Inputs: " + inputCounter);
-}
-
-function constructMuteButton() {
-  // Get the Mute button by id
-  var muteButton = document.getElementById("muteButton");
-
-  // Add event listener to the button so it responds to clicks and calls the toggleMuteSongPreview function
-  muteButton.addEventListener('click', function() {
-    toggleMuteSongPreview(muteButton);
-  });
-}
-
-async function playSongPreview() {
-  audio.volume = 0; // Set initial volume to 0
-  audio.play();
-
-  var fadeDuration = 5; // Duration of fade in and fade out in seconds
-
-  while (!audio.ended) {
-    // Fade in the audio in the first 5 seconds
-    var fadeInInterval = setInterval(function() {
-      if (audio.currentTime < fadeDuration) {
-        audio.volume = audio.currentTime / fadeDuration * 0.1;
-      } else {
-        clearInterval(fadeInInterval);
-      }
-    }, 1000); // Check every second
-
-    // Fade out the audio in the last 5 seconds
-    var fadeOutInterval = setInterval(function() {
-      if (audio.currentTime >= audio.duration - fadeDuration) {
-        audio.volume = (audio.duration - audio.currentTime) / fadeDuration * 0.1;
-      } else {
-        clearInterval(fadeOutInterval);
-      }
-    }, 1000); // Check every second
-
-    await new Promise(resolve => setTimeout(resolve, 1000)); // Wait for 1 second before checking again
-    console.log("Volume: "+ audio.volume);
-  }
-}
-
-function toggleMuteSongPreview(muteButton) {
-  if (muteButton.innerHTML === "Mute") {
-    if (!audio.paused) {
-      audio.pause(); // clicking MUTE when a song is playing pauses it
-    } else if (audio.paused) {
-      audio.muted = true;  // clicking MUTE when a song isn't playing mutes audio
-    }
-    muteButton.innerHTML = "Unmute"; // Flip Button back to Unmute
-  } else if (muteButton.innerHTML === "Unmute") {
-    if (audio.paused) {
-      // clicking UNMUTE when a song is playing actually resumes the audio, doesn't unmute it
-      console.log("Resuming audio...");
-      audio.play();
-    } else {
-      // this code seems unreachable, possibly because audio is a global variable and is paused by default
-      console.log("No audio to unmute/unpause/resume!"); 
-    }
-    muteButton.innerHTML = "Mute"; // Flip Button back to Mute
-  }
 }
 
 function init() { // Initialize the game
