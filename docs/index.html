@@ -32,8 +32,8 @@
       </div>
       <div class="col d-flex justify-content-end gap-0 column-gap-2" id="navbarButtonsColumn">
         <button id="muteButton" class="btn btn-outline-light" type="button" onclick="toggleMuteSongPreview()">Mute</button>
-        <button class="btn btn-outline-light" type="button" data-bs-toggle="modal" data-bs-target="#Howtoplay">How To Play</button>
-        <div class="modal fade modal-lg" id="Howtoplay">
+        <button class="btn btn-outline-light" type="button" data-bs-toggle="modal" data-bs-target="#howToPlay">How To Play</button>
+        <div class="modal fade modal-lg" id="howToPlay">
           <div class="modal-dialog modal-dialog-scrollable modal-fullscreen-sm-down">
             <div class="modal-content">
               <div class="modal-header">
@@ -42,7 +42,7 @@
               </div>
               <div class="modal-body">
           <span class="fs-4 fw-bold">Objective</span>
-          <p>Guess the hidden lyrics to <b>SONG</b> by <b>ARTIST</b>!
+          <p id="objectiveText">Guess the hidden lyrics to <b>SONG</b> by <b>ARTIST</b>!
           </p>
           <span class="fs-4 fw-bold">Instructions</span>
           <ul>
@@ -55,7 +55,7 @@
             <li>The game is over when you've entered all of the correct lyrics or used all 3 of your lifelines.</li>
           </ul>
           <span class="fs-4 fw-bold">Scoring</span>
-          <p>Scoring is based on number of guessed letters, time to completion, and remaining lifelines.</p>
+          <p>Scoring is based on number of correct lyrics entered, remaining lifelines, time to completion, and total number of letter inputs. Review your performance with the end-game statistics!</p>
               </div>
             </div>
           </div>
@@ -69,12 +69,11 @@
   <br> <!-- Space TitleBar from Game -->
 
   <div class="container" id="songLyrics"></div>
-  <div class="container d-flex justify-content-center" id="resultsMessage"></div>
-  <div class="container d-flex justify-content-center" id="score"></div>
-  <div class="container" id="score"></div>
   <div class="container" id="lifeline"></div>
   <br>
   <div class="container" id="random"></div>
+  <br>
+  <div class="container" id="gameCompleteButton"></div>
 
 </body>
 

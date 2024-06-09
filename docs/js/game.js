@@ -215,6 +215,16 @@ function constructRandomButton() {
   container.appendChild(button); // append the button to the div
 }
 
+function constructGameCompleteButton() {
+  var container = document.getElementById("gameCompleteButton"); // get the div element from the HTML document and set it to the variable named container so we can manipulate it
+  container.style.textAlign = "center"; // center align the content of the container div
+  var button = document.createElement("button"); // create a button element
+  button.classList.add("btn", "btn-info"); // add the btn and btn-primary classes to the button
+  button.innerHTML = "My Stats"; // Define the text within the button to label it
+  button.addEventListener("click", displayGameCompleteModal); // Add event listener to the button so it responds to clicks and calls the getRandomSong function
+  container.appendChild(button); // append the button to the div
+}
+
 function getRandomSong() {
   // Select a random song from the song data and start the game
   var seed = Math.floor(Math.random() * allSongData.length)
@@ -424,8 +434,7 @@ function startGame(songData) { // Loads main game with song lyrics to guess
   // Clear/Reset Divs from Previous Song
   document.getElementById("songLyrics").innerHTML = "";
   document.getElementById("lifeline").innerHTML = "";
-  document.getElementById("resultsMessage").innerHTML = "";
-  document.getElementById("score").innerHTML = "";
+  document.getElementById("gameCompleteButton").innerHTML = "";
 
   wordsCorrect = 0;
   inputCounter = 0;
@@ -446,6 +455,10 @@ function startGame(songData) { // Loads main game with song lyrics to guess
   container.appendChild(titleDiv); // append the div to the container div
   // append a line break to the container div to space out the title and artist from the lyrics
   container.appendChild(document.createElement("br"));
+
+  // Populate the How To Play text with the song title and artist
+  var howToPlayObjectiveText = document.getElementById("objectiveText");
+  howToPlayObjectiveText.innerHTML = "Guess the hidden lyrics to today's song, <b>" + song.title + "</b> by <b>" + song.artist + "</b>!";
 
   // construct the input boxes for the song lyrics to start the game
   constructInputBoxes(song, container);
@@ -470,12 +483,8 @@ function completeGame(song) {
 
   var allCorrect = wordsCorrect === song.words.length
   if (allCorrect) {
-    document.getElementById("resultsMessage").innerHTML = // populate the resultsMessage div with the following text
-      "<b style='color:green;'>SUCCESS!</b>";
+    // Do Nothing
   } else {
-    document.getElementById("resultsMessage").innerHTML = // populate the resultsMessage div with the following text
-      "<b style='color:red;'>Better luck next time!</b>";
-
     // populate every incorrect input box with the correct word and shade it yellow
     for (var i = 0; i < song.words.length; i++) {
       var input = document.getElementById("myInput" + i); // get the input box element by id
@@ -485,8 +494,8 @@ function completeGame(song) {
       }
     }
   }
-  // Display the score
-  document.getElementById("score").innerHTML = wordsCorrect + " Words Correct!"; // populate the score div with the final score
+
+  constructGameCompleteModal(song)
 }
 
 function calculateProperties(song) { // For Debugging: Calculate properties of song lyrics
@@ -534,8 +543,146 @@ function calculateStats(song) {
   console.log("Total Inputs: " + inputCounter);
 }
 
+function constructGameCompleteModal(song) {
+
+  constructGameCompleteButton();
+
+  // Check if modal already exists
+  var existingModal = document.getElementById("gameCompleteModal");
+  if (existingModal) {
+    existingModal.remove();
+  }
+
+  // Create the modal element
+  var modal = document.createElement("div");
+  modal.classList.add("modal", "fade");
+  modal.id = "gameCompleteModal";
+  modal.tabIndex = "-1";
+  modal.setAttribute("aria-labelledby", "gameCompleteModalLabel");
+  modal.setAttribute("aria-hidden", "true");
+
+  // Create the modal dialog
+  var modalDialog = document.createElement("div");
+  modalDialog.classList.add("modal-dialog");
+  modal.appendChild(modalDialog);
+
+  // Create the modal content
+  var modalContent = document.createElement("div");
+  modalContent.classList.add("modal-content");
+  modalDialog.appendChild(modalContent);
+
+  // Create the modal header
+  var modalHeader = document.createElement("div");
+  modalHeader.classList.add("modal-header");
+  modalContent.appendChild(modalHeader);
+
+  // Create the modal title
+  var modalTitle = document.createElement("h1");
+  modalTitle.classList.add("modal-title", "fs-5");
+  modalTitle.id = "gameCompleteModalLabel";
+  modalTitle.innerText = "Game Complete";
+  modalHeader.appendChild(modalTitle);
+
+  // Create the close button
+  var closeButton = document.createElement("button");
+  closeButton.type = "button";
+  closeButton.classList.add("btn-close");
+  closeButton.setAttribute("data-bs-dismiss", "modal");
+  closeButton.setAttribute("aria-label", "Close");
+  modalHeader.appendChild(closeButton);
+
+  // Create the modal body
+  var modalBody = document.createElement("div");
+  modalBody.classList.add("modal-body");
+  modalContent.appendChild(modalBody);
+
+  // Create the modal body content
+  var modalBodyContent = document.createElement("table");
+  modalBodyContent.classList.add("table", "table-borderless"); // Add the "table-borderless" class to remove table row outlines
+
+  // Create the table body
+  var tableBody = document.createElement("tbody");
+
+  // Create the body header
+  var bodyHeaderRow = document.createElement("tr");
+  var bodyHeaderCell = document.createElement("td");
+  bodyHeaderCell.setAttribute("colspan", "2");
+  bodyHeaderCell.innerHTML = '<span class="fs-4 fw-bold">How\'d you do?</span>';
+  bodyHeaderRow.appendChild(bodyHeaderCell);
+  tableBody.appendChild(bodyHeaderRow);
+
+  // Create the rows and cells for each statistic
+  var percentageCorrectRow = document.createElement("tr");
+  var percentageCorrectCell1 = document.createElement("td");
+  percentageCorrectCell1.innerText = "Percentage Correct";
+  var percentageCorrectCell2 = document.createElement("td");
+  percentageCorrectCell2.innerText = `${wordsCorrect} of ${song.words.length} (${Math.floor((wordsCorrect / song.words.length) * 100)}%)`;
+  percentageCorrectRow.appendChild(percentageCorrectCell1);
+  percentageCorrectRow.appendChild(percentageCorrectCell2);
+  tableBody.appendChild(percentageCorrectRow);
+
+  var lifelinesRemainingRow = document.createElement("tr");
+  var lifelinesRemainingCell1 = document.createElement("td");
+  lifelinesRemainingCell1.innerText = "Lifelines Remaining";
+  var lifelinesRemainingCell2 = document.createElement("td");
+  lifelinesRemainingCell2.innerText = lifelines + " of 3";
+  lifelinesRemainingRow.appendChild(lifelinesRemainingCell1);
+  lifelinesRemainingRow.appendChild(lifelinesRemainingCell2);
+  tableBody.appendChild(lifelinesRemainingRow);
+
+  var totalTimeRow = document.createElement("tr");
+  var totalTimeCell1 = document.createElement("td");
+  totalTimeCell1.innerText = "Time to Completion";
+  var totalTimeCell2 = document.createElement("td");
+  var totalTime = endTime - startTime;
+  var totalSeconds = totalTime / 1000;
+  var minutes = Math.floor(totalSeconds / 60);
+  var seconds = Math.floor(totalSeconds % 60);
+  totalTimeCell2.innerText = minutes + " minutes and " + seconds + " seconds";
+  totalTimeRow.appendChild(totalTimeCell1);
+  totalTimeRow.appendChild(totalTimeCell2);
+  tableBody.appendChild(totalTimeRow);
+
+  var totalInputsRow = document.createElement("tr");
+  var totalInputsCell1 = document.createElement("td");
+  totalInputsCell1.innerText = "Total Inputs";
+  var totalInputsCell2 = document.createElement("td");
+  totalInputsCell2.innerText = inputCounter;
+  totalInputsRow.appendChild(totalInputsCell1);
+  totalInputsRow.appendChild(totalInputsCell2);
+  tableBody.appendChild(totalInputsRow);
+
+  modalBodyContent.appendChild(tableBody);
+  modalBody.appendChild(modalBodyContent);
+
+  // Create the modal footer
+  var modalFooter = document.createElement("div");
+  modalFooter.classList.add("modal-footer");
+  modalContent.appendChild(modalFooter);
+
+  // Append the modal to the document body
+  document.body.appendChild(modal);
+
+  // Add text after the table
+  var thanksText = document.createElement("p");
+  thanksText.innerText = "Thanks for playing!";
+  thanksText.style.textAlign = "center"; // Center the text
+  modalBody.appendChild(thanksText);
+
+  // Display the modal
+  var modalElement = document.getElementById("gameCompleteModal");
+  var modalInstance = new bootstrap.Modal(modalElement);
+  modalInstance.show();
+}
+
+function displayGameCompleteModal() {
+  var modalElement = document.getElementById("gameCompleteModal");
+  var modalInstance = new bootstrap.Modal(modalElement);
+  modalInstance.show();
+}
+
 function init() { // Initialize the game
-  constructRandomButton()
+  constructRandomButton();
   day = getDayInt(); // Get the integer value of the day of the year
 
   getAllSongData().then(() => {
