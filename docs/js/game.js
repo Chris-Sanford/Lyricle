@@ -478,6 +478,10 @@ function startGame(songData) { // Loads main game with song lyrics to guess
 
 function completeGame(song) {
   stopStopwatch();
+
+  // Clear the lifeline div
+  document.getElementById("lifeline").innerHTML = "";
+  
   calculateStats(song);
   playSongPreview();
 
