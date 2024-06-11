@@ -174,6 +174,7 @@ function useLifeline(song, button) {
     wordsCorrect++;
 
     if (wordsCorrect === song.words.length) { // if the wordsCorrect score equals the number of words in the song
+      button.remove(); // Remove the lifelines button
       completeGame(song); // call function that executes game completion code
     }
     selectNextInput(input, focusedWordIndex); // call function that selects the next input box
@@ -480,7 +481,10 @@ function completeGame(song) {
   stopStopwatch();
 
   // Clear the lifeline div
-  document.getElementById("lifeline").innerHTML = "";
+  var lifelineContainer = document.getElementById("lifeline");
+  while (lifelineContainer.firstChild) {
+    lifelineContainer.removeChild(lifelineContainer.firstChild);
+  }
   
   calculateStats(song);
   playSongPreview();
