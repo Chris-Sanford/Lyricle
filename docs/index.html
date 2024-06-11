@@ -15,7 +15,16 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Ubuntu">
 
   <style>
-
+    /* Temporary Container, Row, and Column Outline for Visualizing Development and Layout */
+    /* .container {
+      border: 1px solid black;
+    }
+    .row {
+      border: 1px solid black;
+    }
+    .col {
+      border: 1px solid black;
+    } */
   </style>
 
 </head>
@@ -31,7 +40,7 @@
   <script src="./js/game.js"></script>
 
   <!-- Title / Navigation Bar (as Grid) -->
-  <div class="container">
+  <div class="container" id="navBar">
     <div class="row">
       <div class="col d-flex justify-content-start">
         <!-- Left Intentionally Blank-->
@@ -73,13 +82,27 @@
     </div>
   </div>
 
-  <br> <!-- Space NavBar from Game -->
+  <!-- Song Title by Artist Bar -->
+  <div class="container" id="songTitle"></div>
+
+  <!-- Main Game / Lyrics -->
   <div class="container" id="songLyrics"></div>
-  <div class="container" id="lifeline"></div>
-  <br> <!-- Separate Lifeline button from Random (should be replaced with margin/spacing) -->
-  <div class="container" id="random"></div>
-  <br> <!-- Separate Random button from "My Stats" button (should be replaced with margin/spacing) -->
-  <div class="container" id="gameCompleteButton"></div>
+
+  <!-- On-Screen KeyBoard -->
+  <div class="container position-fixed bottom-0 start-50 translate-middle-x" id="oskb">
+    <div class="row">
+      <!-- All keys from OSKB Row 1 will go here -->
+      <div class="container" id="lifeline"></div>
+    </div>
+
+    <div class="row">
+      <div class="container" id="random"></div>
+    </div>
+
+    <div class="row">
+      <div class="container" id="gameCompleteButton"></div>
+    </div>
+  </div>
 
 </body>
 

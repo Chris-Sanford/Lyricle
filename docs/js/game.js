@@ -441,8 +441,11 @@ function constructInputBoxes(song, container) {
 }
 
 function startGame(songData) { // Loads main game with song lyrics to guess
+  var container = document.getElementById("songLyrics"); // Get the songLyrics div
+
   // Clear/Reset Divs from Previous Song
-  document.getElementById("songLyrics").innerHTML = "";
+  container.innerHTML = "";
+  document.getElementById("songTitle").innerHTML = "";
   document.getElementById("lifeline").innerHTML = "";
   document.getElementById("gameCompleteButton").innerHTML = "";
 
@@ -455,16 +458,12 @@ function startGame(songData) { // Loads main game with song lyrics to guess
   var song = new Song(songData.title, songData.artist, songData.preview_url, songData.chorus);
   console.log(song); // log the song object to the console
 
-  var container = document.getElementById("songLyrics"); // Get the songLyrics div
-
   container.style.textAlign = "center"; // center align the content of the container div
 
   // Create a div to hold the song title and artist
-  var titleDiv = document.createElement("div"); // create a div element
+  var titleDiv = document.getElementById("songTitle"); // get songTitle div
   titleDiv.innerHTML = "<b>" + song.title + "</b> by " + song.artist; // populate the div with the song title and artist
-  container.appendChild(titleDiv); // append the div to the container div
-  // append a line break to the container div to space out the title and artist from the lyrics
-  container.appendChild(document.createElement("br"));
+  titleDiv.style.textAlign = "center"; // center align the text in the div
 
   // Populate the How To Play text with the song title and artist
   var howToPlayObjectiveText = document.getElementById("objectiveText");
