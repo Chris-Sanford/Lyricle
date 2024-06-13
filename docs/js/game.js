@@ -87,6 +87,7 @@ function resetStopwatch() {
 
 // Audio Playback Functions
 async function playSongPreview() {
+  var maxVolume = 0.2 // Set maximum allowable volume
   audio.volume = 0; // Set initial volume to 0
   audio.play();
 
@@ -102,7 +103,7 @@ async function playSongPreview() {
     // Fade in the audio in the first 5 seconds
     var fadeInInterval = setInterval(function() {
       if (audio.currentTime < fadeDuration) {
-        audio.volume = audio.currentTime / fadeDuration * 0.1;
+        audio.volume = audio.currentTime / fadeDuration * maxVolume;
       } else {
         clearInterval(fadeInInterval);
       }
@@ -111,7 +112,7 @@ async function playSongPreview() {
     // Fade out the audio in the last 5 seconds
     var fadeOutInterval = setInterval(function() {
       if (audio.currentTime >= audio.duration - fadeDuration) {
-        audio.volume = (audio.duration - audio.currentTime) / fadeDuration * 0.1;
+        audio.volume = (audio.duration - audio.currentTime) / fadeDuration * maxVolume;
       } else {
         clearInterval(fadeOutInterval);
       }
@@ -155,6 +156,13 @@ function toggleMuteSongPreview() {
 }
 
 function useLifeline(song, button) {
+
+  // if the current focusedWordIndex is already marked as green (correct) or is disabled, return/end the function
+  if (document.getElementById("myInput" + focusedWordIndex).style.backgroundColor === "green" || document.getElementById("myInput" + focusedWordIndex).disabled) {
+    console.log("You need to select a lyric input field to use your lifeline on before clicking the lifeline button!");
+    return;
+  }
+
   // If the stopwatch hasn't been started, start it
   if (!startTime) {
     startStopwatch();
@@ -162,7 +170,7 @@ function useLifeline(song, button) {
 
   if (lifelines > 0) {
     lifelines--;
-    console.log("Lifelines Remaining: " + lifelines);
+    //console.log("Lifelines Remaining: " + lifelines);
 
     button.innerHTML = "&hearts; (" + lifelines + " remaining)";
 
@@ -174,6 +182,7 @@ function useLifeline(song, button) {
     wordsCorrect++;
 
     if (wordsCorrect === song.words.length) { // if the wordsCorrect score equals the number of words in the song
+      button.remove(); // Remove the lifelines button
       completeGame(song); // call function that executes game completion code
     }
     selectNextInput(input, focusedWordIndex); // call function that selects the next input box
@@ -292,7 +301,7 @@ function wordboxInputListener(input, song, wordIndex) { // Event listener functi
   // Increment the input counter
   inputCounter++;
 
-  // Add event listener to disallow all characters but normal English letters, numbers 0-9, and apostrophes (')
+  // Disallow all characters but normal English letters, numbers 0-9, and apostrophes (')
   input.value = input.value.replace(/([^a-zA-Z0-9\u00C0-\u017F'])/g, ""); // disallow any input that isn't a standard English letter, number, or apostrophe
   updateColor(input, song, wordIndex); // call the updateColor function
   if (input.style.backgroundColor === "green") {
@@ -320,6 +329,7 @@ function wordboxFocusListener (input, song, wordIndex) {
 }
 
 function updateColor(input, song, wordIndex) { // Update the color of the lyric input boxes based on guess correctness
+
   var formattedInput = input.value // for comparison
   .replace(/([^a-zA-Z0-9\s\u00C0-\u017F])/g, "") // disallow any input that isn't a standard English letter or number
   .toLowerCase() // make all letters lowercase
@@ -431,8 +441,11 @@ function constructInputBoxes(song, container) {
 }
 
 function startGame(songData) { // Loads main game with song lyrics to guess
+  var container = document.getElementById("songLyrics"); // Get the songLyrics div
+
   // Clear/Reset Divs from Previous Song
-  document.getElementById("songLyrics").innerHTML = "";
+  container.innerHTML = "";
+  document.getElementById("songTitle").innerHTML = "";
   document.getElementById("lifeline").innerHTML = "";
   document.getElementById("gameCompleteButton").innerHTML = "";
 
@@ -445,16 +458,12 @@ function startGame(songData) { // Loads main game with song lyrics to guess
   var song = new Song(songData.title, songData.artist, songData.preview_url, songData.chorus);
   console.log(song); // log the song object to the console
 
-  var container = document.getElementById("songLyrics"); // Get the songLyrics div
-
   container.style.textAlign = "center"; // center align the content of the container div
 
   // Create a div to hold the song title and artist
-  var titleDiv = document.createElement("div"); // create a div element
+  var titleDiv = document.getElementById("songTitle"); // get songTitle div
   titleDiv.innerHTML = "<b>" + song.title + "</b> by " + song.artist; // populate the div with the song title and artist
-  container.appendChild(titleDiv); // append the div to the container div
-  // append a line break to the container div to space out the title and artist from the lyrics
-  container.appendChild(document.createElement("br"));
+  titleDiv.style.textAlign = "center"; // center align the text in the div
 
   // Populate the How To Play text with the song title and artist
   var howToPlayObjectiveText = document.getElementById("objectiveText");
@@ -478,6 +487,13 @@ function startGame(songData) { // Loads main game with song lyrics to guess
 
 function completeGame(song) {
   stopStopwatch();
+
+  // Clear the lifeline div
+  var lifelineContainer = document.getElementById("lifeline");
+  while (lifelineContainer.firstChild) {
+    lifelineContainer.removeChild(lifelineContainer.firstChild);
+  }
+  
   calculateStats(song);
   playSongPreview();
 
