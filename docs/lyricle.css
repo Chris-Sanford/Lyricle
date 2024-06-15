@@ -1,13 +1,62 @@
 /* Temporary Borders for Visualizing Development and Layout */
-/* .container {
-    border: 1px solid white;
-}
-.container-fluid {
-    border: 1px solid white;
-}
-.row {
-    border: 1px solid red;
-}
-.col {
-    border: 1px solid rgb(0, 255, 0);
+/* Apply a border to all elements */
+/* *{box-sizing:border-box;} */
+
+/* highlight an element as your cursor hovers over */
+/* *:hover { 
+    outline:1px solid rgb(0, 255, 0);;
 } */
+
+/* Production CSS */
+
+/* Apply to all classes containing the string container in the class name (helps with all the bootstrap classes */
+[class*="container"] { 
+    text-align: center;
+}
+/* .row {
+
+}
+[class*="col"] {
+
+} */
+.center, .lyricle-lyrics-row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.lyricle-topbar {
+    height: 5vh;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.177);
+}
+.lyricle-logo {
+    font-family: 'Ubuntu', sans-serif;
+    font-weight: bold;
+    font-size: 3vh;
+}
+.lyricle-topbar-button {
+    font-size: 3vh;
+    outline: none;
+    border: none;
+}
+.lyricle-songtitle {
+    height: 5vh;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.177);
+}
+.lyricle-lyrics { 
+    height: 56vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.lyricle-lyrics-row {
+    max-width: 484px;
+    height: 7vh;
+}
+.lyricle-oskb {
+    text-align: center;
+    min-height: 32vh;
+    max-width: 484px;
+    max-height: 198px;
+    margin-left: auto;
+    margin-right: auto;
+}
