@@ -141,17 +141,17 @@ async function stopSongPreview() {
 }
 
 function toggleMuteSongPreview() {
-  var muteButton = document.getElementById("muteButton"); // Get the Mute button by id
-  if (muteButton.innerHTML === "Mute") {
+  var muteButton = document.getElementById("muteButtonIcon"); // Get the Mute button by id
+  if (muteButton.className === "fas fa-volume-up") { // If the button currently shows that volume is on
     audio.pause();
     audio.muted = true;
-    muteButton.innerHTML = "Unmute"; // Flip Button back to Unmute
-  } else if (muteButton.innerHTML === "Unmute") {
+    muteButton.className = "fa-solid fa-volume-xmark"; // change icon to show that volume is off
+  } else if (muteButton.className === "fa-solid fa-volume-xmark") { // if the icon indicates audio is muted
     if (audio.currentTime > 0) { // if the audio has already started playing after game completion
       audio.play(); // Resume playback
     }
     audio.muted = false;
-    muteButton.innerHTML = "Mute"; // Flip Button back to Mute
+    muteButton.className = "fas fa-volume-up"; // change icon back to show that volume is on
   }
 }
 
@@ -215,7 +215,7 @@ function constructLifelineButton(song) {
 
 function constructRandomButton() {
   // Populate a button in the HTML document labeled "Random" that will call the startGame function with a random song
-  var container = document.getElementById("random"); // get the div element from the HTML document and set it to the variable named container so we can manipulate it
+  var container = document.getElementById("oskb"); // get the div element from the HTML document and set it to the variable named container so we can manipulate it
   container.style.textAlign = "center"; // center align the content of the container div
   var button = document.createElement("button"); // create a button element
   button.classList.add("btn", "btn-info"); // add the btn and btn-primary classes to the button
@@ -441,7 +441,7 @@ function constructInputBoxes(song, container) {
 }
 
 function startGame(songData) { // Loads main game with song lyrics to guess
-  var container = document.getElementById("songLyrics"); // Get the songLyrics div
+  var container = document.getElementById("lyrics"); // Get the lyrics div
 
   // Clear/Reset Divs from Previous Song
   container.innerHTML = "";
@@ -458,12 +458,9 @@ function startGame(songData) { // Loads main game with song lyrics to guess
   var song = new Song(songData.title, songData.artist, songData.preview_url, songData.chorus);
   console.log(song); // log the song object to the console
 
-  container.style.textAlign = "center"; // center align the content of the container div
-
   // Create a div to hold the song title and artist
-  var titleDiv = document.getElementById("songTitle"); // get songTitle div
-  titleDiv.innerHTML = "<b>" + song.title + "</b> by " + song.artist; // populate the div with the song title and artist
-  titleDiv.style.textAlign = "center"; // center align the text in the div
+  var titleDiv = document.getElementById("songTitle"); // get songTitle div\
+  titleDiv.innerHTML = `<span><b>${song.title}</b> by ${song.artist}</span>`; // populate the div with the song title and artist
 
   // Populate the How To Play text with the song title and artist
   var howToPlayObjectiveText = document.getElementById("objectiveText");
