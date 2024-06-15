@@ -42,6 +42,35 @@ integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEw
   <!-- Import Game JS -->
   <script src="./js/game.js"></script>
 
+  <!-- How To Play Modal -->
+  <div class="modal fade modal-lg" id="howToPlay">
+    <div class="modal-dialog modal-dialog-scrollable modal-fullscreen-sm-down">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title">How To Play Lyricle</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <span class="fs-4 fw-bold">Objective</span>
+          <p id="objectiveText">Guess the hidden lyrics to <b>SONG</b> by <b>ARTIST</b>!
+          </p>
+          <span class="fs-4 fw-bold">Instructions</span>
+          <ul>
+            <li>The first line of the secret lyrics are revealed to get you started.</li>
+            <li>Click into a lyric input field and start typing your guesses!</li>
+            <li>The size of each input field is relative to how long the lyric is.</li>
+            <li>Your input will start to change color as you get closer to the secret lyric, so keep guessing and don't give up!</li>
+            <li>If you get stuck, use a lifeline! Select the word you want to reveal, then press and hold &hearts; on the on-screen keyboard. Once you use your 3rd and final lifeline, the game is over. Choose wisely!</li>
+            <li>Don't worry about punctuation or capitalization, just focus on the lyrics!</li>
+            <li>The game is over when you've entered all of the correct lyrics or used all 3 of your lifelines.</li>
+          </ul>
+          <span class="fs-4 fw-bold">Scoring</span>
+          <p>Scoring is based on number of correct lyrics entered, remaining lifelines, time to completion, and total number of letter inputs. Review your performance with the end-game statistics!</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Top Bar -->
   <div id="topBar" class="container-fluid lyricle-topbar">
     <div class="row h-100">
@@ -64,10 +93,12 @@ integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEw
       </div>
     </div>
   </div>
+
 <!-- Song (Title by Artist) -->
   <div id="songTitle" class="container-fluid center lyricle-songtitle">
     <!-- Song by Artist :: POPULATED ONCE GAME IS LOADED -->
   </div>
+  
 <!-- Lyrics / Main Game -->
   <div id="lyrics" class="container-fluid lyricle-lyrics">
     <div id="lyricsGrid" class="lyricle-lyricsGrid">
@@ -108,6 +139,7 @@ integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEw
       </div>
     </div>
   </div>
+  
   <!-- On-Screen Keyboard -->
     <div id="oskb" class="fixed-bottom center lyricle-oskb">
       On-Screen Keyboard
