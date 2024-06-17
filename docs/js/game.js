@@ -72,6 +72,11 @@ function constructLyricObjects(chorus) {
       // else, set toGuess to true
       var toGuess = /^[a-zA-Z]+$/.test(word) ? true : false;
 
+      // if lineIndex is 0, set toGuess to false
+      if (lineIndex === 0) {
+        toGuess = false;
+      }
+
       // Construct a Lyric object with the boxIndex, lineIndex, content, and contentComparable
       var lyric = new Lyric(boxIndex, lineIndex, words[j], word, toGuess);
 
@@ -130,13 +135,11 @@ function constructRandomButton() {
 }
 
 function constructGameCompleteButton() {
-  var container = document.getElementById("gameCompleteButton"); // get the div element from the HTML document and set it to the variable named container so we can manipulate it
-  container.style.textAlign = "center"; // center align the content of the container div
-  var button = document.createElement("button"); // create a button element
-  button.classList.add("btn", "btn-info"); // add the btn and btn-primary classes to the button
-  button.innerHTML = "My Stats"; // Define the text within the button to label it
-  button.addEventListener("click", displayGameCompleteModal); // Add event listener to the button so it responds to clicks and calls the getRandomSong function
-  container.appendChild(button); // append the button to the div
+  var button = document.getElementById("statsButton");
+  var icon = document.createElement("i");
+  icon.classList.add("fa-solid", "fa-chart-column");
+  button.appendChild(icon);
+  button.addEventListener("click", displayGameCompleteModal);
 }
 
 function constructLyricInputBoxes(song, lyricsGridContainer) {
@@ -167,7 +170,7 @@ function constructLyricInputBoxes(song, lyricsGridContainer) {
       input.type = "text";
       input.id = "lyricInput" + lyricsToDisplay[i].boxIndex;
       input.classList.add("lyricle-lyrics-input");
-      input.style.width = (5 + (lyricsToDisplay[i].content.length * 10)) + "px";
+      input.style.width = (10 + (lyricsToDisplay[i].content.length * 10)) + "px";
 
       // Add input listener to the input box
       input.addEventListener("input", function() {
@@ -369,7 +372,7 @@ function useLifeline(song, button) {
     input.disabled = true;
     wordsCorrect++;
 
-    if (wordsCorrect === song.lyrics.length) { // if the wordsCorrect score equals the number of words in the song
+    if (wordsCorrect === wordsToGuess) {
       button.remove(); // Remove the lifelines button
       completeGame(song); // call function that executes game completion code
     }
@@ -429,6 +432,7 @@ function startGame(songData) { // Loads main game with song lyrics to guess
   document.getElementById("songTitle").innerHTML = "";
   document.getElementById("lifeline").innerHTML = "";
   document.getElementById("gameCompleteButton").innerHTML = "";
+  document.getElementById("statsButton").innerHTML = "";
 
   wordsCorrect = 0;
   wordsToGuess = 0;
@@ -438,6 +442,8 @@ function startGame(songData) { // Loads main game with song lyrics to guess
   // construct a new Song object using the songData object
   var song = constructSongObject(songData.title, songData.artist, songData.preview_url, songData.chorus);
   console.log(song); // log the song object to the console
+
+  wordsToGuess = song.lyrics.filter(lyric => lyric.toGuess).length;
 
   // Create a div to hold the song title and artist
   var titleDiv = document.getElementById("songTitle"); // get songTitle div\
@@ -562,7 +568,7 @@ function checkCorrectness(input, song) {
     input.classList.add("lyricle-lyrics-input-correct");
     input.disabled = true;
     wordsCorrect++;
-    if (wordsCorrect === song.lyrics.length) { // if the wordsCorrect score equals the number of words in the song
+    if (wordsCorrect === wordsToGuess) { // if the wordsCorrect score equals the number of words in the song
       completeGame(song); // call function that executes game completion code
     }
     selectNextInput(input, (focusedBoxIndex)); // call function that selects the next input box
@@ -604,7 +610,7 @@ function completeGame(song) {
   calculateStats(song);
   playSongPreview();
 
-  var allCorrect = wordsCorrect === song.lyrics.length
+  var allCorrect = wordsCorrect === wordsToGuess
   if (allCorrect) {
     // Do Nothing
   } else {
