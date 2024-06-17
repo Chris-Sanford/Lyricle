@@ -148,8 +148,6 @@ function constructLyricInputBoxes(song, lyricsGridContainer) {
 
   // while there are still lyrics to display
   while (lyricsToDisplay != null && lyricsToDisplay.length > 0) {
-    console.log(lyricsToDisplay);
-    
     // Create a row within the lyrics container
     var row = document.createElement("div");
     row.classList.add("row");
@@ -173,7 +171,7 @@ function constructLyricInputBoxes(song, lyricsGridContainer) {
 
       // Add input listener to the input box
       input.addEventListener("input", function() {
-        lyricBoxInputListener(input, song);
+        lyricBoxInputListener(song);
       });
 
       // Add focus listener to the input box
@@ -362,13 +360,11 @@ function useLifeline(song, button) {
 
   if (lifelines > 0) {
     lifelines--;
-    //console.log("Lifelines Remaining: " + lifelines);
 
     button.innerHTML = "&hearts; (" + lifelines + " remaining)";
 
     var input = document.getElementById("lyricInput" + focusedBoxIndex);
-    input.value = song.lyrics[focusedBoxIndex];
-    //console.log("Focused Input Value: " + input.value);
+    input.value = song.lyrics[focusedBoxIndex].content;
     input.style.backgroundColor = "green";
     input.disabled = true;
     wordsCorrect++;
@@ -392,7 +388,6 @@ function useLifeline(song, button) {
 function getRandomSong() {
   // Select a random song from the song data and start the game
   var seed = Math.floor(Math.random() * allSongData.length)
-  //console.log(seed)
   var songData = allSongData[seed];
 
   // Stop any currently-playing audio
@@ -404,7 +399,7 @@ function getRandomSong() {
 }
 
 // Listeners
-function lyricBoxInputListener(input, song) { // Event listener function for lyric input boxes
+function lyricBoxInputListener(song) { // Event listener function for lyric input boxes
 
   // If the stopwatch hasn't been started, start it
   if (!startTime) {
@@ -414,30 +409,15 @@ function lyricBoxInputListener(input, song) { // Event listener function for lyr
   // Increment the input counter
   inputCounter++;
 
+  // Get lyricBox element using activeElement
+  var lyricBox = document.activeElement;
+
   // If the input value is greater than the length of the secret word, don't allow any more characters
-  
-  console.log(`Checking correctness of focusBoxIndex ${focusedBoxIndex}`)
-  checkCorrectness(input, song, focusedBoxIndex)
-
-  if (input.classList.contains("lyricle-lyrics-input-correct")) {
-    input.value = song.lyrics[focusedBoxIndex]; // populate the input box with the unformatted secret word at focusedBoxIndex
-    input.disabled = true; // disable the input box so it can't be changed
-    wordsCorrect++; // increment the wordsCorrect score by 1
-
-    if (wordsCorrect === song.lyrics.length) { // if the wordsCorrect score equals the number of words in the song
-      completeGame(song); // call function that executes game completion code
-    }
-
-    selectNextInput(input, (focusedBoxIndex + 1)); // call function that selects the next input box
-  }
+  checkCorrectness(lyricBox, song)
 }
 
 function lyricBoxFocusListener (input) {
-  // Get the current word index from the input box
-  var boxIndex = parseInt(input.id.match(/\d+/)[0]);
-  //console.log("Word Index: " + boxIndex);
-  focusedBoxIndex = boxIndex;
-  //console.log("Focused Word Index: " + focusedBoxIndex);
+  focusedBoxIndex = parseInt(document.activeElement.id.replace("lyricInput", ""));
 }
 
 // Supporting Functions
@@ -487,7 +467,6 @@ async function getAllSongData() {
   try {
     const response = await fetch('../docs/gameData.json');
     allSongData = await response.json();
-    console.log(allSongData);
   } catch (error) {
     console.error('Error:', error);
   }
@@ -512,7 +491,6 @@ function stopStopwatch() {
 }
 
 function resetStopwatch() {
-  //console.log("Resetting Stopwatch");
   clearInterval(interval);
   startTime = null;
   endTime = null;
@@ -551,7 +529,6 @@ async function playSongPreview() {
     }, 100); // Check every 100 milliseconds
 
     await new Promise(resolve => setTimeout(resolve, 100)); // Wait for 100 milliseconds before checking again
-    console.log("Volume: "+ audio.volume);
   }
 
   terminateAudio = false; // Reset the terminateAudio variable
@@ -572,7 +549,7 @@ async function stopSongPreview() {
   }
 }
 
-function checkCorrectness(input, song, boxIndex) {
+function checkCorrectness(input, song) {
   // Compare the input value to the contentComparable of the lyric object
   var comparableInput = input.value // for comparison
   .replace(/([^a-zA-Z0-9\s\u00C0-\u017F])/g, "") // disallow any input that isn't a standard English letter or number
@@ -580,15 +557,15 @@ function checkCorrectness(input, song, boxIndex) {
   .normalize("NFD") // decompose letters and diatrics
   .replace(/\p{Diacritic}/gu, ''); // replace them with non-accented characters
 
-  if (comparableInput === song.lyrics[boxIndex].contentComparable) {
-    // If the input value matches the contentComparable, set the background color to green
+  if (comparableInput === song.lyrics[focusedBoxIndex].contentComparable) {
+    input.value = song.lyrics[focusedBoxIndex].content; // populate the input box with the unformatted secret word at boxIndex
     input.classList.add("lyricle-lyrics-input-correct");
     input.disabled = true;
     wordsCorrect++;
     if (wordsCorrect === song.lyrics.length) { // if the wordsCorrect score equals the number of words in the song
       completeGame(song); // call function that executes game completion code
     }
-    selectNextInput(input, boxIndex); // call function that selects the next input box
+    selectNextInput(input, (focusedBoxIndex)); // call function that selects the next input box
   }
 }
 
@@ -672,21 +649,12 @@ function calculateProperties(song) { // For Debugging: Calculate properties of s
 function calculateStats(song) {
   // Percentage of lyrics correct without decimals
   let percentageCorrect = Math.floor((wordsCorrect / song.lyrics.length) * 100);
-  console.log("Percentage Correct: " + percentageCorrect + "%");
-
-  // Lifelines Remaining
-  console.log("Final Lifelines Remaining: " + lifelines);
 
   // Time to Completion
   let totalTime = endTime - startTime; // Time in milliseconds
   let totalSeconds = totalTime / 1000; // Convert to seconds
   let minutes = Math.floor(totalSeconds / 60); // Get minutes
   let seconds = Math.floor(totalSeconds % 60); // Get remaining seconds
-
-  console.log("Total Time to Completion: " + minutes + " minutes and " + seconds + " seconds");
-
-  // Number of total inputs
-  console.log("Total Inputs: " + inputCounter);
 }
 
 function displayGameCompleteModal() {
@@ -707,8 +675,6 @@ function init() { // Initialize the game
   day = getDayInt(); // Get the integer value of the day of the year
 
   getAllSongData().then(() => {
-    //console.log(allSongData)
-    //console.log(day);
     songData = allSongData[day]; // Get the song data for the day
     // if songData is null (because today's int is higher than the length of allSongData), select an object at a random integer index from allSongData
     if (songData == null) {
