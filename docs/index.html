@@ -10,20 +10,25 @@
   <meta name="keywords" content="Lyricle, Lyrical, Lyrics, Song, Daily, Challenge">
   <meta name="description" content="Guess the hidden lyrics to the daily song!">
   <meta name="author" content="Rodford Company LLC">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!--Responsive Design-->
 
-  <!-- Define Favicon-->
+  <!-- Set viewport content width to device width for responsive design -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Define Favicon -->
   <link rel="icon" type="image/x-icon" href="images/favicon.ico">
 
   <!-- Import Lyricle Title Font -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Ubuntu">
 
-  <!-- Import Lyricle CSS -->
-  <link rel="stylesheet" href="./lyricle.css">
+  <!-- Import Font Awesome for Button Icons -->
+  <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css' crossorigin='anonymous'>
 
   <!-- Bootstrap 5.3.3 CSS -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" 
-    integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+
+  <!-- Import Lyricle CSS after Bootstrap so our code takes precedent -->
+  <link rel="stylesheet" href="./lyricle.css">
 
 </head>
 
@@ -37,70 +42,89 @@
   <!-- Import Game JS -->
   <script src="./js/game.js"></script>
 
-  <!-- Title / Navigation Bar (as Grid) -->
-  <div class="container" id="navBar">
-    <div class="row">
-      <div class="col d-flex justify-content-start">
-        <!-- Left Intentionally Blank-->
-      </div>
-      <div class="col d-flex justify-content-center">
-        <h2 style="font-family: 'Ubuntu', sans-serif; font-weight: bold;">Lyricle</h2>
-      </div>
-      <div class="col d-flex justify-content-end gap-0 column-gap-2" id="navbarButtonsColumn">
-        <button id="muteButton" class="btn btn-outline-light" type="button" onclick="toggleMuteSongPreview()">Mute</button>
-        <button class="btn btn-outline-light" type="button" data-bs-toggle="modal" data-bs-target="#howToPlay">How To Play</button>
-        <div class="modal fade modal-lg" id="howToPlay">
-          <div class="modal-dialog modal-dialog-scrollable modal-fullscreen-sm-down">
-            <div class="modal-content">
-              <div class="modal-header">
-                <h2 class="modal-title">How To Play Lyricle</h2>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-              </div>
-              <div class="modal-body">
-                <span class="fs-4 fw-bold">Objective</span>
-                <p id="objectiveText">Guess the hidden lyrics to <b>SONG</b> by <b>ARTIST</b>!
-                </p>
-                <span class="fs-4 fw-bold">Instructions</span>
-                <ul>
-                  <li>The first line of the secret lyrics are revealed to get you started.</li>
-                  <li>Click into a lyric input field and start typing your guesses!</li>
-                  <li>The size of each input field is relative to how long the lyric is.</li>
-                  <li>Your input will start to change color as you get closer to the secret lyric, so keep guessing and don't give up!</li>
-                  <li>If you get stuck, use a lifeline! Select the word you want to reveal, then press and hold &hearts; on the on-screen keyboard. Once you use your 3rd and final lifeline, the game is over. Choose wisely!</li>
-                  <li>Don't worry about punctuation or capitalization, just focus on the lyrics!</li>
-                  <li>The game is over when you've entered all of the correct lyrics or used all 3 of your lifelines.</li>
-                </ul>
-                <span class="fs-4 fw-bold">Scoring</span>
-                <p>Scoring is based on number of correct lyrics entered, remaining lifelines, time to completion, and total number of letter inputs. Review your performance with the end-game statistics!</p>
-              </div>
-            </div>
-          </div>
+  <!-- How To Play Modal -->
+  <div class="modal fade modal-lg" id="howToPlay">
+    <div class="modal-dialog modal-dialog-scrollable modal-fullscreen-sm-down">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title">How To Play Lyricle</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <span class="fs-4 fw-bold">Objective</span>
+          <p id="objectiveText">Guess the hidden lyrics to <b>SONG</b> by <b>ARTIST</b>!
+          </p>
+          <span class="fs-4 fw-bold">Instructions</span>
+          <ul>
+            <li>The first line of the secret lyrics are revealed to get you started.</li>
+            <li>Click into a lyric input field and start typing your guesses!</li>
+            <li>The size of each input field is relative to how long the lyric is.</li>
+            <li>Your input will start to change color as you get closer to the secret lyric, so keep guessing and don't give up!</li>
+            <li>If you get stuck, use a lifeline! Select the word you want to reveal, then press and hold &hearts; on the on-screen keyboard. Once you use your 3rd and final lifeline, the game is over. Choose wisely!</li>
+            <li>Don't worry about punctuation or capitalization, just focus on the lyrics!</li>
+            <li>The game is over when you've entered all of the correct lyrics or used all 3 of your lifelines.</li>
+          </ul>
+          <span class="fs-4 fw-bold">Scoring</span>
+          <p>Scoring is based on number of correct lyrics entered, remaining lifelines, time to completion, and total number of letter inputs. Review your performance with the end-game statistics!</p>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Song Title by Artist Bar -->
-  <div class="container" id="songTitle"></div>
-
-  <!-- Main Game / Lyrics -->
-  <div class="container" id="songLyrics"></div>
-
-  <!-- On-Screen KeyBoard -->
-  <div class="container position-fixed bottom-0 start-50 translate-middle-x" id="oskb">
-    <div class="row">
-      <!-- All keys from OSKB Row 1 will go here -->
-      <div class="container" id="lifeline"></div>
-    </div>
-
-    <div class="row">
-      <div class="container" id="random"></div>
-    </div>
-
-    <div class="row">
-      <div class="container" id="gameCompleteButton"></div>
+  <!-- Top Bar -->
+  <div id="topBar" class="container-fluid lyricle-topbar">
+    <div class="row h-100">
+      <div class="col-4 h-100 center">
+        <button id="statsButton" class="btn lyricle-topbar-button" type="button">
+        </button>
+      </div>
+      <div id="logo" class="col-4 h-100 center lyricle-logo">
+        Lyricle
+      </div>
+      <div id="topBarButtons" class="col-4 h-100 center">
+        
+        <button id="muteButton" class="btn lyricle-topbar-button" type="button" onclick="toggleMuteSongPreview()">
+          <i id="muteButtonIcon" class='fas fa-volume-up'></i>
+        </button>
+        <button id="howToPlayButton" class="btn lyricle-topbar-button" type="button" data-bs-toggle="modal" data-bs-target="#howToPlay">
+          <i class="far fa-question-circle"></i>
+        </button>
+      </div>
     </div>
   </div>
+
+<!-- Song (Title by Artist) -->
+  <div id="songTitle" class="container-fluid center lyricle-songtitle">
+    <!-- Song by Artist :: POPULATED ONCE GAME IS LOADED -->
+  </div>
+  
+<!-- Lyrics / Main Game -->
+  <div id="lyrics" class="container-fluid lyricle-lyrics"> <!-- Define parent div that children can center within-->
+    <div id="lyricsGrid" class="container lyricle-lyrics-grid"> <!-- Keeps lyrics bundled together -->
+      <!-- Dynamic Rows and Columns are generated by Javascript -->
+    </div>
+  </div>
+
+  <!-- On-Screen Keyboard -->
+    <div id="oskb" class="fixed-bottom center lyricle-oskb">
+      <div id="oskbGrid" class="container lyricle-oskb-grid">
+        <div class="row lyricle-oskb-row">
+          <div class="col">
+            <div id="lifeline"></div>
+          </div>
+        </div>
+        <div class="row lyricle-oskb-row">
+          <div class="col">
+            <div id="random"></div>
+          </div>
+        </div>
+        <div class="row lyricle-oskb-row">
+          <div class="col">
+            <div id="gameCompleteButton"></div>
+          </div>
+        </div>
+      </div>
+    </div>
 
 </body>
 
