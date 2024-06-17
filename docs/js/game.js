@@ -618,8 +618,7 @@ function completeGame(song) {
     for (var i = 0; i < song.lyrics.length; i++) {
       var input = document.getElementById("lyricInput" + i); // get the input box element by id
       if (input.style.backgroundColor !== "green") { // if the input box background color is not green
-        input.value = song.lyrics[i]; // populate the input box with the correct word
-        input.style.backgroundColor = "yellow"; // set the input box background color to yellow
+        input.value = song.lyrics[i].content; // populate the input box with the correct word
       }
     }
   }
