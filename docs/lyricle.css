@@ -33,7 +33,7 @@
     font-weight: bold;
     font-size: 3.5vh;
 }
-.lyricle-topbar-button {
+.lyricle-icon-button {
     font-size: 3vh;
     outline: none;
     border: none;
@@ -42,7 +42,7 @@
     height: 5vh;
     font-size: 1.8vmax;
     word-spacing: 0.10vmax;
-    border-bottom: 2px solid rgba(255, 255, 255, 0.177);
+    /* border-bottom: 2px solid rgba(255, 255, 255, 0.177); */
 }
 .lyricle-songtitle-spacer {
     margin-left: 0.4vmax;
@@ -51,7 +51,7 @@
     padding-right: 0.4vmax;
 }
 .lyricle-lyrics {
-    height: 56vh;
+    height: 43vh;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -72,6 +72,12 @@
 }
 .lyricle-lyrics-input-correct {
     color: green;
+}
+.lyricle-lifeline {
+    text-align: center;
+}
+.lyricle-lifeline-button {
+    text-align:center; /* Shouldn't be necessary, just want a class for this for now */
 }
 .lyricle-oskb {
     text-align: center;
