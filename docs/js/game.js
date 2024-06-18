@@ -371,6 +371,7 @@ function useLifeline(song, button) {
     if (wordsCorrect === wordsToGuess) {
       button.remove(); // Remove the lifelines button
       completeGame(song); // call function that executes game completion code
+      return;
     }
     selectNextInput(input, focusedBoxIndex); // call function that selects the next input box
   }
