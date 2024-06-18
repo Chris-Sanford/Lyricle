@@ -41,6 +41,9 @@ class Song {
 function constructLyricObjects(chorus) {
   // Split the chorus into lines (split by newline)
   var lines = chorus.split("\n");
+
+  // Process the lyric lines to be Lyricle-friendly (not too long)
+  lines = splitLengthyLyricLines(lines);
   
   // Initialize an empty array to store the lyric objects
   var lyrics = [];
@@ -49,9 +52,15 @@ function constructLyricObjects(chorus) {
   var boxIndex = 0;
   // Set lineIndex to 0
   var lineIndex = 0;
+  
+  var maxLines = 7; // Maximum number of lines to display in the game
+  // If the total number of lines is less than 7, set maxLines to the total number of lines
+  if (lines.length < maxLines) {
+    var maxLines = lines.length;
+  }
 
   // For each line in the chorus
-  for (var i = 0; i < lines.length; i++) {
+  for (var i = 0; i < maxLines; i++) {
     // Split the line into words
     var words = lines[i]
       .replace(/([^a-zA-Z0-9\s\u00C0-\u017F'*])/g, ' $1 ') // add spaces around symbols excluding letters with accents, apostrophes, and asterisks
@@ -445,9 +454,13 @@ function startGame(songData) { // Loads main game with song lyrics to guess
 
   wordsToGuess = song.lyrics.filter(lyric => lyric.toGuess).length;
 
-  // Create a div to hold the song title and artist
-  var titleDiv = document.getElementById("songTitle"); // get songTitle div\
-  titleDiv.innerHTML = `<span><b>${song.title}</b> by ${song.artist}</span>`; // populate the div with the song title and artist
+  // Get the songTitle div
+  var songTitle = document.getElementById("songTitle");
+
+  // Populate the songTitle div with the song title and artist
+  songTitle.innerHTML = '<span id="title"><b>' + song.title + '</b></span>' +
+              '<span id="by" class="lyricle-songtitle-spacer">by</span>' +
+              '<span id="artist">' + song.artist + '</span>';
 
   // Populate the How To Play text with the song title and artist
   var howToPlayObjectiveText = document.getElementById("objectiveText");
@@ -464,6 +477,66 @@ function startGame(songData) { // Loads main game with song lyrics to guess
   
   // Create an audio element to play the song preview
   audio = new Audio(song.preview);
+}
+
+function splitLineForDisplay(line, maxLineLength) {
+  // if the line is less than or equal to the maxLineLength, return the line as is
+  if (line.length <= maxLineLength) {
+    return [line];
+  }
+
+  // Calculate total number of lines to create
+  // This is determined by dividing the length of the line by the maxLineLength and rounding up
+  var totalLines = Math.ceil(line.length / maxLineLength);
+
+  // Calculate the max number of characters per line for this specific provided line
+  // This is based on the length of the line divided by the total number of lines
+  var maxCharsPerLine = Math.ceil(line.length / totalLines);
+
+  // Initialize newLines array
+  var newLines = [];
+
+  // For each word in the original line
+  var words = line.split(" ");
+  var i = 0;
+  while (i < words.length) {
+    // Initialize a new line
+    var newLine = "";
+
+    // While the new line is less than the maxCharsPerLine and there are still words left
+    while (newLine.length < maxCharsPerLine && i < words.length) {
+      // Add the next word to the new line
+      newLine += words[i] + " ";
+      i++;
+    }
+
+    // Push the new line to the newLines array
+    newLines.push(newLine.trim());
+  }
+
+  // Return the newLines array
+  return newLines;
+}
+
+function splitLengthyLyricLines(lines) {
+  // Initialize newLines array
+  let newLines = [];
+
+  // For each line in the provided lines array
+  for (let line of lines) {
+    splitLines = splitLineForDisplay(line, 30);
+
+    // For each split line in the splitLines array
+    for (let splitLine of splitLines) {
+      newLines.push(splitLine);
+    }
+  }
+
+  // Remove any undefined values from the end of the array
+  newLines = newLines.filter(line => line !== undefined);
+
+  // return the new array of lines that have been split to not be too long for the game to display
+  return newLines;
 }
 
 async function getAllSongData() {
