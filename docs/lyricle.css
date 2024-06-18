@@ -3,9 +3,9 @@
 /* *{box-sizing:border-box;} */
 
 /* highlight an element as your cursor hovers over */
-/* *:hover { 
+*:hover { 
     outline:1px solid rgb(0, 255, 0);;
-} */
+}
 
 /* Production CSS */
 
@@ -23,6 +23,14 @@
     display: flex;
     justify-content: center;
     align-items: center;
+}
+.lyricle-alerts {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 5vh;
+    margin-top: 30px;
+    padding-top: 30px;
 }
 .lyricle-topbar {
     height: 5vh;

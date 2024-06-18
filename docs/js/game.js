@@ -346,11 +346,27 @@ function toggleMuteSongPreview() {
   }
 }
 
+async function populateAlertsDiv() {
+  const alertsDiv = document.getElementById("alerts");
+  const alertHTML = `
+    <div class="alert alert-warning" role="alert">
+      <span id="alertText">Select a lyric before using a lifeline!</span>
+    </div>
+  `;
+  alertsDiv.innerHTML = alertHTML;
+
+  // Remove the alert after 3 seconds
+  setTimeout(() => {
+    alertsDiv.innerHTML = '';
+  }, 3000);
+}
+
 function useLifeline(song, button) {
 
   // if the current focusedBoxIndex is already marked as green (correct) or is disabled, return/end the function
   if (document.getElementById("lyricInput" + focusedBoxIndex).style.backgroundColor === "green" || document.getElementById("lyricInput" + focusedBoxIndex).disabled) {
     console.log("You need to select a lyric input field to use your lifeline on before clicking the lifeline button!");
+    populateAlertsDiv()
     return;
   }
 
