@@ -53,7 +53,7 @@ function constructLyricObjects(chorus) {
   // Set lineIndex to 0
   var lineIndex = 0;
   
-  var maxLines = 7; // Maximum number of lines to display in the game
+  var maxLines = 5; // Maximum number of lines to display in the game
   // If the total number of lines is less than 7, set maxLines to the total number of lines
   if (lines.length < maxLines) {
     var maxLines = lines.length;
@@ -117,33 +117,22 @@ function constructSongObject(title, artist, preview, chorus) {
 }
 
 function constructLifelineButton(song) {
-  var lifelineContainer = document.getElementById("lifeline"); // get the div element from the HTML document and set it to the variable named container so we can manipulate it
-  lifelineContainer.style.textAlign = "center"; // center align the content of the container div
-  var button = document.createElement("button"); // create a button element
-  button.classList.add("btn", "btn-primary"); // add the btn and btn-primary classes to the button
-  button.innerHTML = "&hearts; (" + lifelines + " remaining)"; // Define the text within the button to label it
+  var lifelineContainer = document.getElementById("lifeline");
+  var lifelineButton = document.createElement("button");
+  lifelineButton.id = "lifelineButton";
+  lifelineButton.classList.add("btn", "lyricle-icon-button");
+  lifelineContainer.appendChild(lifelineButton);
+  var icon = document.createElement("i");
+  icon.classList.add("fa-solid","fa-heart");
+  lifelineButton.appendChild(icon);
 
   // Add event listener to the button so it responds to clicks and calls the useLifeline function
-  button.addEventListener('click', function() {
-    useLifeline(song, button);
+  lifelineButton.addEventListener('click', function() {
+    useLifeline(song, lifelineButton);
   });
-
-  lifelineContainer.appendChild(button); // append the button to the div
-
 }
 
-function constructRandomButton() {
-  // Populate a button in the HTML document labeled "Random" that will call the startGame function with a random song
-  var container = document.getElementById("random"); // get the div element from the HTML document and set it to the variable named container so we can manipulate it
-  container.style.textAlign = "center"; // center align the content of the container div
-  var button = document.createElement("button"); // create a button element
-  button.classList.add("btn", "btn-info"); // add the btn and btn-primary classes to the button
-  button.innerHTML = "Random"; // Define the text within the button to label it
-  button.addEventListener("click", getRandomSong); // Add event listener to the button so it responds to clicks and calls the getRandomSong function
-  container.appendChild(button); // append the button to the div
-}
-
-function constructGameCompleteButton() {
+function constructStatsButton() {
   var button = document.getElementById("statsButton");
   var icon = document.createElement("i");
   icon.classList.add("fa-solid", "fa-chart-column");
@@ -211,7 +200,7 @@ function constructLyricInputBoxes(song, lyricsGridContainer) {
 
 function constructGameCompleteModal(song) {
 
-  constructGameCompleteButton();
+  constructStatsButton();
 
   // Check if modal already exists
   var existingModal = document.getElementById("gameCompleteModal");
@@ -282,7 +271,7 @@ function constructGameCompleteModal(song) {
   var percentageCorrectCell1 = document.createElement("td");
   percentageCorrectCell1.innerText = "Percentage Correct";
   var percentageCorrectCell2 = document.createElement("td");
-  percentageCorrectCell2.innerText = `${wordsCorrect} of ${song.lyrics.length} (${Math.floor((wordsCorrect / song.lyrics.length) * 100)}%)`;
+  percentageCorrectCell2.innerText = `${wordsCorrect} of ${wordsToGuess} (${Math.floor((wordsCorrect / wordsToGuess) * 100)}%)`;
   percentageCorrectRow.appendChild(percentageCorrectCell1);
   percentageCorrectRow.appendChild(percentageCorrectCell2);
   tableBody.appendChild(percentageCorrectRow);
@@ -373,8 +362,6 @@ function useLifeline(song, button) {
   if (lifelines > 0) {
     lifelines--;
 
-    button.innerHTML = "&hearts; (" + lifelines + " remaining)";
-
     var input = document.getElementById("lyricInput" + focusedBoxIndex);
     input.value = song.lyrics[focusedBoxIndex].content;
     input.style.backgroundColor = "green";
@@ -440,7 +427,6 @@ function startGame(songData) { // Loads main game with song lyrics to guess
   lyricsGridContainer.innerHTML = "";
   document.getElementById("songTitle").innerHTML = "";
   document.getElementById("lifeline").innerHTML = "";
-  document.getElementById("gameCompleteButton").innerHTML = "";
   document.getElementById("statsButton").innerHTML = "";
 
   wordsCorrect = 0;
@@ -459,7 +445,7 @@ function startGame(songData) { // Loads main game with song lyrics to guess
 
   // Populate the songTitle div with the song title and artist
   songTitle.innerHTML = '<span id="title"><b>' + song.title + '</b></span>' +
-              '<span id="by" class="lyricle-songtitle-spacer">by</span>' +
+              '<span id="by" class="lyricle-songtitle-spacer">-</span>' +
               '<span id="artist">' + song.artist + '</span>';
 
   // Populate the How To Play text with the song title and artist
@@ -524,7 +510,7 @@ function splitLengthyLyricLines(lines) {
 
   // For each line in the provided lines array
   for (let line of lines) {
-    splitLines = splitLineForDisplay(line, 30);
+    splitLines = splitLineForDisplay(line, 40);
 
     // For each split line in the splitLines array
     for (let splitLine of splitLines) {
@@ -629,6 +615,12 @@ async function stopSongPreview() {
 }
 
 function checkCorrectness(input, song) {
+  // Disallow user to input more characters than the length of the secret word
+  // If the length of input.value is greater than the length of the secret word, set input.value to its original value but only the first n characters (n being the length of the secret word)
+  if (input.value.length > song.lyrics[focusedBoxIndex].contentComparable.length) {
+    input.value = input.value.substring(0, song.lyrics[focusedBoxIndex].contentComparable.length);
+  }
+
   // Compare the input value to the contentComparable of the lyric object
   var comparableInput = input.value // for comparison
   .replace(/([^a-zA-Z0-9\s\u00C0-\u017F])/g, "") // disallow any input that isn't a standard English letter or number
@@ -679,8 +671,7 @@ function completeGame(song) {
   while (lifelineContainer.firstChild) {
     lifelineContainer.removeChild(lifelineContainer.firstChild);
   }
-  
-  calculateStats(song);
+
   playSongPreview();
 
   var allCorrect = wordsCorrect === wordsToGuess
@@ -724,17 +715,6 @@ function calculateProperties(song) { // For Debugging: Calculate properties of s
   }
 }
 
-function calculateStats(song) {
-  // Percentage of lyrics correct without decimals
-  let percentageCorrect = Math.floor((wordsCorrect / song.lyrics.length) * 100);
-
-  // Time to Completion
-  let totalTime = endTime - startTime; // Time in milliseconds
-  let totalSeconds = totalTime / 1000; // Convert to seconds
-  let minutes = Math.floor(totalSeconds / 60); // Get minutes
-  let seconds = Math.floor(totalSeconds % 60); // Get remaining seconds
-}
-
 function displayGameCompleteModal() {
   var modalElement = document.getElementById("gameCompleteModal");
   var modalInstance = new bootstrap.Modal(modalElement);
@@ -749,7 +729,6 @@ function init() { // Initialize the game
     let darkmode = true;
   }
 
-  constructRandomButton();
   day = getDayInt(); // Get the integer value of the day of the year
 
   getAllSongData().then(() => {
