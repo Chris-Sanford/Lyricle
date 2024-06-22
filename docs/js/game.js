@@ -117,19 +117,34 @@ function constructSongObject(title, artist, preview, chorus) {
 }
 
 function constructLifelineButton(song) {
-  var lifelineContainer = document.getElementById("lifeline");
+  // Get the OSKB Col element to populate the lifeline button into
+  var oskbRow = document.getElementById("oskbRow1Col1");
+
+  // Create the lifeline button
   var lifelineButton = document.createElement("button");
   lifelineButton.id = "lifelineButton";
+  lifelineButton.type = "button";
   lifelineButton.classList.add("btn", "lyricle-icon-button");
-  lifelineContainer.appendChild(lifelineButton);
-  var icon = document.createElement("i");
-  icon.classList.add("fa-solid","fa-heart");
-  lifelineButton.appendChild(icon);
 
-  // Add event listener to the button so it responds to clicks and calls the useLifeline function
-  lifelineButton.addEventListener('click', function() {
+  // Set the click event listener for the lifeline button
+  lifelineButton.addEventListener("click", function() {
     useLifeline(song, lifelineButton);
   });
+
+  // Create the lifeline button icon
+  var lifelineButtonIcon = document.createElement("i");
+  lifelineButtonIcon.classList.add("fas", "fa-heart");
+  lifelineButton.appendChild(lifelineButtonIcon);
+
+  // Create the lifeline button number
+  var lifelineButtonNumber = document.createElement("span");
+  lifelineButtonNumber.id = "lifelineButtonNumber";
+  lifelineButtonNumber.classList.add("lyricle-lifeline-number");
+  lifelineButtonNumber.innerText = lifelines;
+  lifelineButton.appendChild(lifelineButtonNumber);
+
+  // Append the lifeline button to the OSKB Col element
+  oskbRow.appendChild(lifelineButton);
 }
 
 function constructStatsButton() {
@@ -346,11 +361,36 @@ function toggleMuteSongPreview() {
   }
 }
 
+async function populateAlertsDiv() {
+  const alertsDiv = document.getElementById("alerts");
+  const alertHTML = `
+    <div class="alert alert-warning" role="alert">
+      <span id="alertText">Select a lyric before using a lifeline!</span>
+    </div>
+  `;
+  alertsDiv.innerHTML = alertHTML;
+
+  // Remove the alert after 3 seconds
+  setTimeout(() => {
+    alertsDiv.innerHTML = '';
+  }, 3000);
+}
+
 function useLifeline(song, button) {
+
+  console.log("FocusedBoxIndex: " + focusedBoxIndex);
+
+  // If lifelines is 0, return/end the function
+  // We shouldn't be able to hit this but it's just an extra layer of protection against bugs
+  if (lifelines === 0) {
+    console.log("You have no lifelines remaining!");
+    return;
+  }
 
   // if the current focusedBoxIndex is already marked as green (correct) or is disabled, return/end the function
   if (document.getElementById("lyricInput" + focusedBoxIndex).style.backgroundColor === "green" || document.getElementById("lyricInput" + focusedBoxIndex).disabled) {
     console.log("You need to select a lyric input field to use your lifeline on before clicking the lifeline button!");
+    populateAlertsDiv()
     return;
   }
 
@@ -369,8 +409,10 @@ function useLifeline(song, button) {
     wordsCorrect++;
 
     if (wordsCorrect === wordsToGuess) {
-      button.remove(); // Remove the lifelines button
+      button.classList.remove("btn-danger");
+      button.classList.add("disabled"); // Add disabled attribute to lifeline button
       completeGame(song); // call function that executes game completion code
+      return;
     }
     selectNextInput(input, focusedBoxIndex); // call function that selects the next input box
   }
@@ -379,9 +421,17 @@ function useLifeline(song, button) {
   }
 
   if (lifelines === 0) {
-    button.remove(); // Remove the lifelines button
+    button.classList.remove("btn-danger");
+    button.classList.add("disabled"); // Add disabled attribute to lifeline button
     completeGame(song); // call function that executes game completion code
   }
+
+  // Update the lifelines remaining text
+  // Get the lifelineButtonNumber element
+  var lifelineButtonNumber = document.getElementById("lifelineButtonNumber");
+
+  // Set the innerText to the number of lifelines remaining
+  lifelineButtonNumber.innerText = lifelines;
 }
 
 function getRandomSong() {
@@ -425,9 +475,10 @@ function startGame(songData) { // Loads main game with song lyrics to guess
 
   // Clear/Reset Divs from Previous Song
   lyricsGridContainer.innerHTML = "";
-  document.getElementById("songTitle").innerHTML = "";
-  document.getElementById("lifeline").innerHTML = "";
+  document.getElementById("songTitleName").innerHTML = "";
+  document.getElementById("songTitleArtist").innerHTML = "";
   document.getElementById("statsButton").innerHTML = "";
+  document.getElementById("oskbRow1Col1").innerHTML = "";
 
   wordsCorrect = 0;
   wordsToGuess = 0;
@@ -440,13 +491,20 @@ function startGame(songData) { // Loads main game with song lyrics to guess
 
   wordsToGuess = song.lyrics.filter(lyric => lyric.toGuess).length;
 
-  // Get the songTitle div
-  var songTitle = document.getElementById("songTitle");
+  // Get the songTitle, songTitleName and songTitleArtist divs
+  var songTitleDiv = document.getElementById("songTitle");
+  var songTitleNameDiv = document.getElementById("songTitleName");
+  var artistDiv = document.getElementById("songTitleArtist");
 
-  // Populate the songTitle div with the song title and artist
-  songTitle.innerHTML = '<span id="title"><b>' + song.title + '</b></span>' +
-              '<span id="by" class="lyricle-songtitle-spacer">-</span>' +
-              '<span id="artist">' + song.artist + '</span>';
+  // Calculate the font size to use based on character length
+  var songTitleFontSize = (1.5 - (((song.title.length + song.artist.length) - 15) * 0.02));
+
+  // Set the font size of the songTitle div
+  songTitleDiv.style.fontSize = songTitleFontSize + "em";
+
+  // Update the divs with the song title and artist
+  songTitleNameDiv.innerHTML = '<b>' + song.title + '</b>';
+  artistDiv.innerHTML = song.artist;
 
   // Populate the How To Play text with the song title and artist
   var howToPlayObjectiveText = document.getElementById("objectiveText");
@@ -618,7 +676,7 @@ function checkCorrectness(input, song) {
   // Disallow user to input more characters than the length of the secret word
   // If the length of input.value is greater than the length of the secret word, set input.value to its original value but only the first n characters (n being the length of the secret word)
   if (input.value.length > song.lyrics[focusedBoxIndex].contentComparable.length) {
-    input.value = input.value.substring(0, song.lyrics[focusedBoxIndex].contentComparable.length);
+    input.value = input.value.substring(0, song.lyrics[focusedBoxIndex].content.length);
   }
 
   // Compare the input value to the contentComparable of the lyric object
@@ -665,12 +723,6 @@ function selectNextInput(input, boxIndex) {
 
 function completeGame(song) {
   stopStopwatch();
-
-  // Clear the lifeline div
-  var lifelineContainer = document.getElementById("lifeline");
-  while (lifelineContainer.firstChild) {
-    lifelineContainer.removeChild(lifelineContainer.firstChild);
-  }
 
   playSongPreview();
 
