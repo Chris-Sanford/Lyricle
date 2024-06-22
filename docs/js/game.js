@@ -620,6 +620,12 @@ function resetStopwatch() {
 }
 
 async function playSongPreview() {
+
+  // While the user has the audio muted, wait for the user to unmute the audio
+  while (document.getElementById("muteButtonIcon").className === "fa-solid fa-volume-xmark") {
+    await new Promise(resolve => setTimeout(resolve, 100)); // Wait for 100 milliseconds before checking again
+  }
+
   var maxVolume = 0.2 // Set maximum allowable volume
   audio.volume = 0; // Set initial volume to 0
   audio.play();
