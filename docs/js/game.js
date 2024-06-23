@@ -124,7 +124,7 @@ function constructLifelineButton(song) {
   var lifelineButton = document.createElement("button");
   lifelineButton.id = "lifelineButton";
   lifelineButton.type = "button";
-  lifelineButton.classList.add("btn", "lyricle-icon-button");
+  lifelineButton.classList.add("btn", "lyricle-lifeline-button");
 
   // Set the click event listener for the lifeline button
   lifelineButton.addEventListener("click", function() {
