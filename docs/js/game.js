@@ -182,6 +182,9 @@ function constructLyricInputBoxes(song, lyricsGridContainer) {
       var input = document.createElement("input");
       input.type = "text";
       input.id = "lyricInput" + lyricsToDisplay[i].boxIndex;
+      input.name = "lyricInput" + lyricsToDisplay[i].boxIndex;
+      input.maxLength = lyricsToDisplay[i].content.length;
+      input.autocomplete = "off";
       input.classList.add("lyricle-lyrics-input");
       input.style.width = (10 + (lyricsToDisplay[i].content.length * 10)) + "px";
 
@@ -327,8 +330,21 @@ function constructGameCompleteModal(song) {
 
   // Create the modal footer
   var modalFooter = document.createElement("div");
-  modalFooter.classList.add("modal-footer");
+  modalFooter.classList.add("modal-footer","center");
   modalContent.appendChild(modalFooter);
+
+  // Populate the modal footer with a mute button
+  var muteButton = document.createElement("button");
+  muteButton.type = "button";
+  muteButton.classList.add("btn", "btn-secondary");
+  muteButton.id = "muteButton2";
+  muteButton.addEventListener("click", toggleMuteSongPreview);
+  var muteButtonIcon = document.createElement("i");
+  muteButtonIcon.id = "muteButtonIcon2";
+  var originalMuteButtonIcon = document.getElementById("muteButtonIcon"); // Get the original mute button icon element
+  muteButtonIcon.className = originalMuteButtonIcon.className; // Set the className to be the same as the original muteButton
+  muteButton.appendChild(muteButtonIcon);
+  modalFooter.appendChild(muteButton);
 
   // Append the modal to the document body
   document.body.appendChild(modal);
@@ -358,6 +374,13 @@ function toggleMuteSongPreview() {
     }
     audio.muted = false;
     muteButton.className = "fas fa-volume-up"; // change icon back to show that volume is on
+  }
+
+  // Get the mute button in the modal footer if it exists
+  var muteButton2 = document.getElementById("muteButtonIcon2");
+  if (muteButton2) {
+    // Set the className to be the same as the original muteButton
+    muteButton2.className = muteButton.className;
   }
 }
 
@@ -679,11 +702,6 @@ async function stopSongPreview() {
 }
 
 function checkCorrectness(input, song) {
-  // Disallow user to input more characters than the length of the secret word
-  // If the length of input.value is greater than the length of the secret word, set input.value to its original value but only the first n characters (n being the length of the secret word)
-  if (input.value.length > song.lyrics[focusedBoxIndex].contentComparable.length) {
-    input.value = input.value.substring(0, song.lyrics[focusedBoxIndex].content.length);
-  }
 
   // Compare the input value to the contentComparable of the lyric object
   var comparableInput = input.value // for comparison
