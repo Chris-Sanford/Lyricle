@@ -182,6 +182,8 @@ function constructLyricInputBoxes(song, lyricsGridContainer) {
       var input = document.createElement("input");
       input.type = "text";
       input.id = "lyricInput" + lyricsToDisplay[i].boxIndex;
+      input.name = "lyricInput" + lyricsToDisplay[i].boxIndex;
+      input.maxLength = lyricsToDisplay[i].content.length;
       input.classList.add("lyricle-lyrics-input");
       input.style.width = (10 + (lyricsToDisplay[i].content.length * 10)) + "px";
 
@@ -679,11 +681,6 @@ async function stopSongPreview() {
 }
 
 function checkCorrectness(input, song) {
-  // Disallow user to input more characters than the length of the secret word
-  // If the length of input.value is greater than the length of the secret word, set input.value to its original value but only the first n characters (n being the length of the secret word)
-  if (input.value.length > song.lyrics[focusedBoxIndex].contentComparable.length) {
-    input.value = input.value.substring(0, song.lyrics[focusedBoxIndex].content.length);
-  }
 
   // Compare the input value to the contentComparable of the lyric object
   var comparableInput = input.value // for comparison
