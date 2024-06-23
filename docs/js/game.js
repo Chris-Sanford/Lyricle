@@ -184,6 +184,7 @@ function constructLyricInputBoxes(song, lyricsGridContainer) {
       input.id = "lyricInput" + lyricsToDisplay[i].boxIndex;
       input.name = "lyricInput" + lyricsToDisplay[i].boxIndex;
       input.maxLength = lyricsToDisplay[i].content.length;
+      input.autocomplete = "off";
       input.classList.add("lyricle-lyrics-input");
       input.style.width = (10 + (lyricsToDisplay[i].content.length * 10)) + "px";
 
@@ -329,8 +330,21 @@ function constructGameCompleteModal(song) {
 
   // Create the modal footer
   var modalFooter = document.createElement("div");
-  modalFooter.classList.add("modal-footer");
+  modalFooter.classList.add("modal-footer","center");
   modalContent.appendChild(modalFooter);
+
+  // Populate the modal footer with a mute button
+  var muteButton = document.createElement("button");
+  muteButton.type = "button";
+  muteButton.classList.add("btn", "btn-secondary");
+  muteButton.id = "muteButton2";
+  muteButton.addEventListener("click", toggleMuteSongPreview);
+  var muteButtonIcon = document.createElement("i");
+  muteButtonIcon.id = "muteButtonIcon2";
+  var originalMuteButtonIcon = document.getElementById("muteButtonIcon"); // Get the original mute button icon element
+  muteButtonIcon.className = originalMuteButtonIcon.className; // Set the className to be the same as the original muteButton
+  muteButton.appendChild(muteButtonIcon);
+  modalFooter.appendChild(muteButton);
 
   // Append the modal to the document body
   document.body.appendChild(modal);
@@ -360,6 +374,13 @@ function toggleMuteSongPreview() {
     }
     audio.muted = false;
     muteButton.className = "fas fa-volume-up"; // change icon back to show that volume is on
+  }
+
+  // Get the mute button in the modal footer if it exists
+  var muteButton2 = document.getElementById("muteButtonIcon2");
+  if (muteButton2) {
+    // Set the className to be the same as the original muteButton
+    muteButton2.className = muteButton.className;
   }
 }
 
