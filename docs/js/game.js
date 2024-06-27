@@ -155,6 +155,40 @@ function constructStatsButton() {
   button.addEventListener("click", displayGameCompleteModal);
 }
 
+function calculateOptimizedLyricBoxWidth(lyricContent) {
+  // Define the standard width buffer to add to each calculated width
+  var widthBuffer = 5;
+
+  // Create a div
+  var div = document.createElement("div");
+
+  // Hide the div so it's not displayed and doesn't interfere with the page layout
+  div.style.visibility = "hidden";
+
+  // Set its font size to the same font size as the actual lyric boxes
+  div.style.fontSize = "1.5em";
+
+  // Set its width to max-content, something not available in an input element
+  div.style.width = "max-content";
+
+  // Set the inner HTML value to the lyric content
+  div.innerHTML = lyricContent;
+
+  // Append the div to the body so it's rendered and we can get the width
+  document.body.appendChild(div);
+
+  // Get the width of the div to get the exact pixel width that will fit the secret lyric content perfectly
+  var width = div.clientWidth;
+
+  // Remove the div from the body
+  div.remove();
+
+  // console.log(`Width for ${lyricContent}: ${width}`);
+
+  // Return the width
+  return width + widthBuffer;
+}
+
 function constructLyricInputBoxes(song, lyricsGridContainer) {
   // Set lineIndex to 0
   var lineIndex = 0;
@@ -186,7 +220,10 @@ function constructLyricInputBoxes(song, lyricsGridContainer) {
       input.maxLength = lyricsToDisplay[i].content.length;
       input.autocomplete = "off";
       input.classList.add("lyricle-lyrics-input");
-      input.style.width = (10 + (lyricsToDisplay[i].content.length * 10)) + "px";
+      // input.size = lyricsToDisplay[i].content.length;
+
+      var width = calculateOptimizedLyricBoxWidth(lyricsToDisplay[i].content)
+      input.style.width = width + "px";
 
       // Add input listener to the input box
       input.addEventListener("input", function() {
@@ -201,6 +238,7 @@ function constructLyricInputBoxes(song, lyricsGridContainer) {
       // If the word is not to be guessed, populate the input box with the word and disable it
       if (!lyricsToDisplay[i].toGuess) {
         input.value = lyricsToDisplay[i].content;
+        input.classList.add("lyricle-lyrics-input-noguess");
         input.disabled = true;
       }
 
@@ -427,7 +465,7 @@ function useLifeline(song, button) {
 
     var input = document.getElementById("lyricInput" + focusedBoxIndex);
     input.value = song.lyrics[focusedBoxIndex].content;
-    input.style.backgroundColor = "green";
+    input.classList.add("lyricle-lyrics-input-correct");
     input.disabled = true;
     wordsCorrect++;
 
