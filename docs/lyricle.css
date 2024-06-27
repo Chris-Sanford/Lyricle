@@ -90,13 +90,25 @@
     margin-right: auto;
 }
 .lyricle-lyrics-input {
-    height: 7vh;
     text-align: center;
-    font-weight: normal;
-    display: inline-block; /* https://www.w3schools.com/css/css_inline-block.asp */
+    font-size: 1.5em;
+    font-weight: bold;
+    display: inline-block;
+    background: transparent;
+    border: none;
+    /* border: 1px solid white; */
+    border-bottom: 2px solid rgb(255, 255, 255);
+    color: rgb(209, 209, 209);
+    margin: 2px;
+    height: 1.5em;
+    /* block-size: fit-content; */
+}
+.lyricle-lyrics-input-noguess {
+    border-bottom: none;
 }
 .lyricle-lyrics-input-correct {
     color: green;
+    border-bottom: none;
 }
 .lyricle-oskb-row {
     max-width: 484px; /* Prevents larger displays from creating unreasonably large OSKB */
