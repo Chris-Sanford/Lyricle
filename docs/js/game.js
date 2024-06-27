@@ -157,7 +157,7 @@ function constructStatsButton() {
 
 function calculateOptimizedLyricBoxWidth(lyricContent) {
   // Define the standard width buffer to add to each calculated width
-  var widthBuffer = 5;
+  var widthBuffer = 10;
 
   // Create a div
   var div = document.createElement("div");
