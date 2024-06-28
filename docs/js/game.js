@@ -157,6 +157,7 @@ function constructStatsButton() {
 
 function calculateOptimizedLyricBoxWidth(lyricContent) {
   // Define the standard width buffer to add to each calculated width
+  // I believe this is only necessary for input elements because their sizing is handled differently
   var widthBuffer = 10;
 
   // Create a div
@@ -183,7 +184,8 @@ function calculateOptimizedLyricBoxWidth(lyricContent) {
   // Remove the div from the body
   div.remove();
 
-  // console.log(`Width for ${lyricContent}: ${width}`);
+  // console.log(`Original Calculated Width: ${lyricContent}: ${width}`);
+  // console.log(`Width With Buffer: ${lyricContent}: ${width + widthBuffer}`);
 
   // Return the width
   return width + widthBuffer;
@@ -212,20 +214,30 @@ function constructLyricInputBoxes(song, lyricsGridContainer) {
 
     // For each lyric object in the lyricsToDisplay array
     for (var i = 0; i < lyricsToDisplay.length; i++) {
-      // Create an input box within the column
-      var input = document.createElement("input");
-      input.type = "text";
-      input.id = "lyricInput" + lyricsToDisplay[i].boxIndex;
-      input.name = "lyricInput" + lyricsToDisplay[i].boxIndex;
-      input.maxLength = lyricsToDisplay[i].content.length;
-      input.autocomplete = "off";
-      input.classList.add("lyricle-lyrics-input");
-      // input.size = lyricsToDisplay[i].content.length;
+      // Create a parent div within the column
+      var div = document.createElement("div");
+      div.id = "lyricInputDiv" + lyricsToDisplay[i].boxIndex;
+      
+      // Add the lyricle-lyrics-div class
+      div.classList.add("lyricle-lyrics-div");
 
+      // Dynamically calculate the width of the div based on the content of the lyric
       var width = calculateOptimizedLyricBoxWidth(lyricsToDisplay[i].content)
-      input.style.width = width + "px";
+      div.style.width = width + "px";
 
-      // Add input listener to the input box
+      // Create a span as an input box within the div
+      var input = document.createElement("span");
+      input.classList.add("input", "lyricle-lyrics-input");
+      input.role = "textbox"
+      input.contentEditable = true;
+      input.id = "lyricInput" + lyricsToDisplay[i].boxIndex;
+
+      // Add a keydown listener to the input box
+      input.addEventListener("keydown", function(event) {
+        lyricBoxKeyDownListener(event, song);
+      });
+
+      // Add an input listener to the input box
       input.addEventListener("input", function() {
         lyricBoxInputListener(song);
       });
@@ -237,13 +249,17 @@ function constructLyricInputBoxes(song, lyricsGridContainer) {
 
       // If the word is not to be guessed, populate the input box with the word and disable it
       if (!lyricsToDisplay[i].toGuess) {
-        input.value = lyricsToDisplay[i].content;
-        input.classList.add("lyricle-lyrics-input-noguess");
+        input.innerHTML = lyricsToDisplay[i].content;
+        div.classList.add("lyricle-lyrics-input-noguess");
         input.disabled = true;
+        input.contentEditable = false;
       }
 
-      // Add the input box to the column
-      col.appendChild(input);
+      // Add the input box to the div
+      div.appendChild(input);
+
+      // Add the div to the column
+      col.appendChild(div);
     }
 
     // Increment lineIndex by 1
@@ -448,12 +464,22 @@ function useLifeline(song, button) {
     return;
   }
 
-  // if the current focusedBoxIndex is already marked as green (correct) or is disabled, return/end the function
-  if (document.getElementById("lyricInput" + focusedBoxIndex).style.backgroundColor === "green" || document.getElementById("lyricInput" + focusedBoxIndex).disabled) {
+  // if the current focusedBoxIndex is already marked as correct or is disabled, return/end the function
+  var input = document.getElementById("lyricInput" + focusedBoxIndex);
+  if (input.classList.contains("lyricle-lyrics-input-correct") || input.disabled) {
     console.log("You need to select a lyric input field to use your lifeline on before clicking the lifeline button!");
     populateAlertsDiv()
     return;
   }
+
+  lifelines--;
+
+  // Update the lifelines remaining text
+  // Get the lifelineButtonNumber element
+  var lifelineButtonNumber = document.getElementById("lifelineButtonNumber");
+
+  // Set the innerText to the number of lifelines remaining
+  lifelineButtonNumber.innerText = lifelines;
 
   // If the stopwatch hasn't been started, start it
   if (!startTime) {
@@ -461,11 +487,9 @@ function useLifeline(song, button) {
   }
 
   if (lifelines > 0) {
-    lifelines--;
-
-    var input = document.getElementById("lyricInput" + focusedBoxIndex);
-    input.value = song.lyrics[focusedBoxIndex].content;
+    input.innerHTML = song.lyrics[focusedBoxIndex].content;
     input.classList.add("lyricle-lyrics-input-correct");
+    input.parentElement.classList.add("lyricle-lyrics-input-correct");
     input.disabled = true;
     wordsCorrect++;
 
@@ -486,13 +510,6 @@ function useLifeline(song, button) {
     button.classList.add("disabled"); // Add disabled attribute to lifeline button
     completeGame(song); // call function that executes game completion code
   }
-
-  // Update the lifelines remaining text
-  // Get the lifelineButtonNumber element
-  var lifelineButtonNumber = document.getElementById("lifelineButtonNumber");
-
-  // Set the innerText to the number of lifelines remaining
-  lifelineButtonNumber.innerText = lifelines;
 }
 
 function getRandomSong() {
@@ -509,8 +526,16 @@ function getRandomSong() {
 }
 
 // Listeners
-function lyricBoxInputListener(song) { // Event listener function for lyric input boxes
+function lyricBoxKeyDownListener(event, song) {
+  // If the key pressed is not the backspace key and the length of the input is greater than or equal to the length of the secret word
+  if (event.key !== "Backspace" && event.srcElement.innerText.length >= song.lyrics[focusedBoxIndex].content.length) {
+    // Prevent the default action of the event, thusly preventing additional characters from being entered
+    console.log("Preventing default action")
+    event.preventDefault();
+  }
+}
 
+function lyricBoxInputListener(song) {
   // If the stopwatch hasn't been started, start it
   if (!startTime) {
     startStopwatch();
@@ -522,8 +547,9 @@ function lyricBoxInputListener(song) { // Event listener function for lyric inpu
   // Get lyricBox element using activeElement
   var lyricBox = document.activeElement;
 
+  console.log(`Checking for correctness of ${event.srcElement.innerText}`);
   // If the input value is greater than the length of the secret word, don't allow any more characters
-  checkCorrectness(lyricBox, song)
+  checkCorrectness(lyricBox, song);
 }
 
 function lyricBoxFocusListener (input) {
@@ -739,24 +765,25 @@ async function stopSongPreview() {
   }
 }
 
-function checkCorrectness(input, song) {
-
-  // Compare the input value to the contentComparable of the lyric object
-  var comparableInput = input.value // for comparison
+function checkCorrectness(lyricBox, song) {
+  // Compare the lyricBox value to the contentComparable of the lyric object
+  var comparableInput = lyricBox.innerHTML // for comparison
   .replace(/([^a-zA-Z0-9\s\u00C0-\u017F])/g, "") // disallow any input that isn't a standard English letter or number
   .toLowerCase() // make all letters lowercase
   .normalize("NFD") // decompose letters and diatrics
   .replace(/\p{Diacritic}/gu, ''); // replace them with non-accented characters
 
   if (comparableInput === song.lyrics[focusedBoxIndex].contentComparable) {
-    input.value = song.lyrics[focusedBoxIndex].content; // populate the input box with the unformatted secret word at boxIndex
-    input.classList.add("lyricle-lyrics-input-correct");
-    input.disabled = true;
+    lyricBox.innerHTML = song.lyrics[focusedBoxIndex].content; // populate the lyricBox box with the unformatted secret word at boxIndex
+    lyricBox.classList.add("lyricle-lyrics-input-correct");
+    lyricBox.parentElement.classList.add("lyricle-lyrics-input-correct");
+    lyricBox.disabled = true;
+    lyricBox.contentEditable = false;
     wordsCorrect++;
     if (wordsCorrect === wordsToGuess) { // if the wordsCorrect score equals the number of words in the song
       completeGame(song); // call function that executes game completion code
     }
-    selectNextInput(input, (focusedBoxIndex)); // call function that selects the next input box
+    selectNextInput(lyricBox, (focusedBoxIndex)); // call function that selects the next lyricBox box
   }
 }
 
@@ -792,11 +819,12 @@ function completeGame(song) {
   if (allCorrect) {
     // Do Nothing
   } else {
-    // populate every incorrect input box with the correct word and shade it yellow
+    // populate every incorrect input box with the correct word
     for (var i = 0; i < song.lyrics.length; i++) {
       var input = document.getElementById("lyricInput" + i); // get the input box element by id
-      if (input.style.backgroundColor !== "green") { // if the input box background color is not green
-        input.value = song.lyrics[i].content; // populate the input box with the correct word
+      if (!input.classList.contains("lyricle-lyrics-input-correct")) { // if the lyric isn't already correct
+        input.innerHTML = song.lyrics[i].content; // populate the input box with the correct word
+        input.parentElement.classList.add("lyricle-lyrics-input-noguess");
       }
     }
   }
