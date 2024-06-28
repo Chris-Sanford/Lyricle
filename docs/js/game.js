@@ -232,7 +232,12 @@ function constructLyricInputBoxes(song, lyricsGridContainer) {
       input.contentEditable = true;
       input.id = "lyricInput" + lyricsToDisplay[i].boxIndex;
 
-      // Add input listener to the input box
+      // Add a keydown listener to the input box
+      input.addEventListener("keydown", function(event) {
+        lyricBoxKeyDownListener(event, song);
+      });
+
+      // Add an input listener to the input box
       input.addEventListener("input", function() {
         lyricBoxInputListener(song);
       });
@@ -467,14 +472,21 @@ function useLifeline(song, button) {
     return;
   }
 
+  lifelines--;
+
+  // Update the lifelines remaining text
+  // Get the lifelineButtonNumber element
+  var lifelineButtonNumber = document.getElementById("lifelineButtonNumber");
+
+  // Set the innerText to the number of lifelines remaining
+  lifelineButtonNumber.innerText = lifelines;
+
   // If the stopwatch hasn't been started, start it
   if (!startTime) {
     startStopwatch();
   }
 
   if (lifelines > 0) {
-    lifelines--;
-
     input.innerHTML = song.lyrics[focusedBoxIndex].content;
     input.classList.add("lyricle-lyrics-input-correct");
     input.parentElement.classList.add("lyricle-lyrics-input-correct");
@@ -498,13 +510,6 @@ function useLifeline(song, button) {
     button.classList.add("disabled"); // Add disabled attribute to lifeline button
     completeGame(song); // call function that executes game completion code
   }
-
-  // Update the lifelines remaining text
-  // Get the lifelineButtonNumber element
-  var lifelineButtonNumber = document.getElementById("lifelineButtonNumber");
-
-  // Set the innerText to the number of lifelines remaining
-  lifelineButtonNumber.innerText = lifelines;
 }
 
 function getRandomSong() {
@@ -521,8 +526,16 @@ function getRandomSong() {
 }
 
 // Listeners
-function lyricBoxInputListener(song) { // Event listener function for lyric input boxes
+function lyricBoxKeyDownListener(event, song) {
+  // If the key pressed is not the backspace key and the length of the input is greater than or equal to the length of the secret word
+  if (event.key !== "Backspace" && event.srcElement.innerText.length >= song.lyrics[focusedBoxIndex].content.length) {
+    // Prevent the default action of the event, thusly preventing additional characters from being entered
+    console.log("Preventing default action")
+    event.preventDefault();
+  }
+}
 
+function lyricBoxInputListener(song) {
   // If the stopwatch hasn't been started, start it
   if (!startTime) {
     startStopwatch();
@@ -534,8 +547,9 @@ function lyricBoxInputListener(song) { // Event listener function for lyric inpu
   // Get lyricBox element using activeElement
   var lyricBox = document.activeElement;
 
+  console.log(`Checking for correctness of ${event.srcElement.innerText}`);
   // If the input value is greater than the length of the secret word, don't allow any more characters
-  checkCorrectness(lyricBox, song)
+  checkCorrectness(lyricBox, song);
 }
 
 function lyricBoxFocusListener (input) {
