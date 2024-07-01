@@ -72,11 +72,15 @@
     font-weight: bold;
     font-size: 3.5vh;
 }
+
+
 .lyricle-icon-button {
     font-size: 3vh;
     outline: none;
     border: none;
 }
+
+
 .lyricle-lyrics-grid {
     max-width: 600px; /* Prevents larger displays from oversizing divs */
     max-height: 766px; /* Prevents larger displays from oversizing divs  */
@@ -85,7 +89,6 @@
 }
 .lyricle-lyrics-row {
     max-width: 600px;
-    height: 7vh;
     margin-left: auto; /* margins left and right being auto center the element without needing to be a container (with bootstrap CSS flexing) */
     margin-right: auto;
 }
@@ -95,7 +98,7 @@
     background: transparent;
     border: none;
     border-bottom: 2px solid rgb(255, 255, 255);
-    font-size: 1.5em;
+    font-size: 1.3em;
     font-weight: bold;
     display: inline-block;
     justify-content: center;
@@ -103,7 +106,7 @@
     text-align: center;
     white-space: nowrap;
     overflow: hidden;
-    margin: 2px;
+    margin-left: 4px;
 }
 .lyricle-lyrics-input {
     width: 100%;
@@ -117,6 +120,8 @@
     color: green;
     border-bottom: none;
 }
+
+
 .lyricle-oskb-row {
     max-width: 484px; /* Prevents larger displays from creating unreasonably large OSKB */
     max-height: 66px; /* Prevents larger displays from creating unreasonably large OSKB  */
@@ -159,7 +164,6 @@
     font-size: calc(1.5em - (9 * 0.05em));
     white-space: nowrap;
 }
-
 .lyricle-songtitle-spacer {
     margin-left: 0.2vmax;
     margin-right: 0.2vmax;
