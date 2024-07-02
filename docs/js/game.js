@@ -88,6 +88,12 @@ function constructLyricObjects(chorus) {
         toGuess = false;
       }
 
+      // If the word originally had a space to the left of it, set spaceLeft to true
+      // else, set spaceLeft to false
+
+      // If the word originally had a space to the right of it, set spaceRight to true
+      // else, set spaceRight to false
+
       // Construct a Lyric object with the boxIndex, lineIndex, content, and contentComparable
       var lyric = new Lyric(boxIndex, lineIndex, words[j], word, toGuess);
 
