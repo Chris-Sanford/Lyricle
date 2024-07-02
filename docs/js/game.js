@@ -156,7 +156,15 @@ function constructLifelineButton(song) {
 }
 
 function constructStatsButton() {
-  var button = document.getElementById("statsButton");
+  var topBarLeftButtons = document.getElementById("topBarLeftButtons");
+
+  var button = document.createElement("button");
+  button.type = "button";
+  button.id = "statsButton";
+  button.classList.add("btn", "lyricle-icon-button");
+
+  topBarLeftButtons.appendChild(button);
+
   var icon = document.createElement("i");
   icon.classList.add("fa-solid", "fa-chart-column");
   button.appendChild(icon);
@@ -191,9 +199,6 @@ function calculateOptimizedLyricBoxWidth(lyricContent) {
 
   // Remove the div from the body
   div.remove();
-
-  // console.log(`Original Calculated Width: ${lyricContent}: ${width}`);
-  // console.log(`Width With Buffer: ${lyricContent}: ${width + widthBuffer}`);
 
   // Return the width
   return width + widthBuffer;
@@ -462,20 +467,15 @@ async function populateAlertsDiv() {
 }
 
 function useLifeline(song, button) {
-
-  console.log("FocusedBoxIndex: " + focusedBoxIndex);
-
   // If lifelines is 0, return/end the function
   // We shouldn't be able to hit this but it's just an extra layer of protection against bugs
   if (lifelines === 0) {
-    console.log("You have no lifelines remaining!");
     return;
   }
 
   // if the current focusedBoxIndex is already marked as correct or is disabled, return/end the function
   var input = document.getElementById("lyricInput" + focusedBoxIndex);
   if (input.classList.contains("lyricle-lyrics-input-correct") || input.disabled) {
-    console.log("You need to select a lyric input field to use your lifeline on before clicking the lifeline button!");
     populateAlertsDiv()
     return;
   }
@@ -538,7 +538,6 @@ function lyricBoxKeyDownListener(event, song) {
   // If the key pressed is not the backspace key and the length of the input is greater than or equal to the length of the secret word
   if (event.key !== "Backspace" && event.srcElement.innerText.length >= song.lyrics[focusedBoxIndex].content.length) {
     // Prevent the default action of the event, thusly preventing additional characters from being entered
-    console.log("Preventing default action")
     event.preventDefault();
   }
 }
@@ -555,7 +554,6 @@ function lyricBoxInputListener(song) {
   // Get lyricBox element using activeElement
   var lyricBox = document.activeElement;
 
-  console.log(`Checking for correctness of ${event.srcElement.innerText}`);
   // If the input value is greater than the length of the secret word, don't allow any more characters
   checkCorrectness(lyricBox, song);
 }
@@ -585,8 +583,13 @@ function startGame(songData) { // Loads main game with song lyrics to guess
   lyricsGridContainer.innerHTML = "";
   document.getElementById("songTitleName").innerHTML = "";
   document.getElementById("songTitleArtist").innerHTML = "";
-  document.getElementById("statsButton").innerHTML = "";
   document.getElementById("oskbRow1Col1").innerHTML = "";
+
+  // If statsButton exists, remove it
+  var statsButton = document.getElementById("statsButton");
+  if (statsButton) {
+    statsButton.remove();
+  }
 
   wordsCorrect = 0;
   wordsToGuess = 0;
@@ -596,7 +599,6 @@ function startGame(songData) { // Loads main game with song lyrics to guess
 
   // construct a new Song object using the songData object
   var song = constructSongObject(songData.title, songData.artist, songData.preview_url, songData.chorus);
-  console.log(song); // log the song object to the console
 
   wordsToGuess = song.lyrics.filter(lyric => lyric.toGuess).length;
 
@@ -623,8 +625,6 @@ function startGame(songData) { // Loads main game with song lyrics to guess
   constructLyricInputBoxes(song, lyricsGridContainer);
 
   constructLifelineButton(song);
-
-  //calculateProperties(song)
 
   resetStopwatch();
   
@@ -852,31 +852,6 @@ function completeGame(song) {
   }
 
   constructGameCompleteModal(song)
-}
-
-function calculateProperties(song) { // For Debugging: Calculate properties of song lyrics
-  // Output number of lines in song
-  console.log("LinesCount: " + song.lines.length);
-
-  // Output number of words in song excluding symbols
-  const wordsWithoutSymbols = song.lyrics.filter(word => /^[a-zA-Z]+$/.test(word));
-  console.log("WordsCount: " + wordsWithoutSymbols.length);
-
-  // Calculate and Output number of unique words in song
-  const uniqueWords = new Set(song.lyrics.split(" "));
-  console.log("UniqueWordsCount: " + uniqueWords.size);
-  
-  // Calculate number of censored words (indicated by sequence of *'s)
-  const censoredWords = song.lyrics.match(/\*+/g);
-
-  // if there are censored words in the lyrics, output the number of censored words
-  // else, output 0
-  if (censoredWords != null) {
-    console.log("CensoredWordsCount: " + censoredWords.length);
-  }
-  else {
-    console.log("CensoredWordsCount: 0");
-  }
 }
 
 function displayGameCompleteModal() {
