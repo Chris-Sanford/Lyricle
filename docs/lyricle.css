@@ -98,7 +98,7 @@
     background: transparent;
     border: none;
     border-bottom: 2px solid rgb(255, 255, 255);
-    font-size: 1.3em;
+    font-size: min(1.3em, 60px);
     font-weight: bold;
     display: inline-block;
     justify-content: center;
@@ -112,6 +112,9 @@
     width: 100%;
     height: 100%;
     color: rgb(209, 209, 209);
+}
+.lyricle-lyrics-input-focused {
+    border-bottom: 2px solid rgb(0, 115, 255);
 }
 .lyricle-lyrics-input-noguess {
     border-bottom: none;
@@ -161,12 +164,11 @@
 /* the algorithm written in CSS syntax will be: calc(1.5em - ((character length beyond 15) * 0.05em)) */
 /* In plain English, use 1.5em as the base font size and reduce font size by 0.05em for every character beyond a length of 15 */
 .lyricle-songtitle-text {
-    font-size: calc(1.5em - (9 * 0.05em));
     white-space: nowrap;
 }
 .lyricle-songtitle-spacer {
-    margin-left: 0.2vmax;
-    margin-right: 0.2vmax;
-    padding-left: 0.2vmax;
-    padding-right: 0.2vmax;
+    margin-left: 0.3vmax;
+    margin-right: 0.3vmax;
+    padding-left: 0.3vmax;
+    padding-right: 0.3vmax;
 }
