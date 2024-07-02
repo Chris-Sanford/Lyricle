@@ -17,11 +17,13 @@ let startTime, endTime, interval; // stopwatch variables
 // Construct the Lyric class
 class Lyric {
   constructor(boxIndex, lineIndex, content, contentComparable, toGuess) {
-    this.boxIndex = boxIndex;
-    this.lineIndex = lineIndex;
-    this.content = content;
-    this.contentComparable = contentComparable;
-    this.toGuess = toGuess;
+    this.boxIndex = boxIndex; // index of the lyric box, either word or puntuation
+    this.lineIndex = lineIndex; // index of the which line (or row) the lyric box is in
+    this.content = content; // the original content of the lyric
+    this.contentComparable = contentComparable; // the content of the lyric in a format that can be compared
+    this.toGuess = toGuess; // boolean value indicating whether the word should be guessed or not
+    //this.spaceLeft = spaceLeft; // boolean value indicating whether there is a space to the left of the word (for displaying punctuation well)
+    //this.spaceRight = spaceRight; // boolean value indicating whether there is a space to the right of the word (for displaying punctuation well)
   }
 }
 
@@ -54,7 +56,7 @@ function constructLyricObjects(chorus) {
   var lineIndex = 0;
   
   var maxLines = 5; // Maximum number of lines to display in the game
-  // If the total number of lines is less than 7, set maxLines to the total number of lines
+  // If the total number of lines is less than maxLines, set maxLines to the total number of lines
   if (lines.length < maxLines) {
     var maxLines = lines.length;
   }
@@ -85,6 +87,12 @@ function constructLyricObjects(chorus) {
       if (lineIndex === 0) {
         toGuess = false;
       }
+
+      // If the word originally had a space to the left of it, set spaceLeft to true
+      // else, set spaceLeft to false
+
+      // If the word originally had a space to the right of it, set spaceRight to true
+      // else, set spaceRight to false
 
       // Construct a Lyric object with the boxIndex, lineIndex, content, and contentComparable
       var lyric = new Lyric(boxIndex, lineIndex, words[j], word, toGuess);
@@ -655,7 +663,7 @@ function splitLengthyLyricLines(lines) {
 
   // For each line in the provided lines array
   for (let line of lines) {
-    splitLines = splitLineForDisplay(line, 40);
+    splitLines = splitLineForDisplay(line, 35); // Maximum allowed characters on 1 line is 40
 
     // For each split line in the splitLines array
     for (let splitLine of splitLines) {
