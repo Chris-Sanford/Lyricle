@@ -561,7 +561,20 @@ function lyricBoxInputListener(song) {
 }
 
 function lyricBoxFocusListener (input) {
-  focusedBoxIndex = parseInt(document.activeElement.id.replace("lyricInput", ""));
+  // Remove the focused class from the previously focused input
+  var previouslyFocusedInput = document.getElementById("lyricInput" + focusedBoxIndex);
+  if (previouslyFocusedInput) {
+    previouslyFocusedInput.parentElement.classList.remove("lyricle-lyrics-input-focused");
+  }
+
+  // Get the active element
+  var lyricBox = document.activeElement;
+
+  // Set the focusedBoxIndex value globally so all other functions can address it
+  focusedBoxIndex = parseInt(lyricBox.id.replace("lyricInput", ""));
+
+  // Add the focused class to the newly focused input
+  lyricBox.parentElement.classList.add("lyricle-lyrics-input-focused");
 }
 
 // Supporting Functions
