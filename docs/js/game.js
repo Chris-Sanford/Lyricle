@@ -592,6 +592,7 @@ function startGame(songData) { // Loads main game with song lyrics to guess
   wordsToGuess = 0;
   inputCounter = 0;
   lifelines = 3;
+  focusedBoxIndex = 0;
 
   // construct a new Song object using the songData object
   var song = constructSongObject(songData.title, songData.artist, songData.preview_url, songData.chorus);
@@ -605,7 +606,7 @@ function startGame(songData) { // Loads main game with song lyrics to guess
   var artistDiv = document.getElementById("songTitleArtist");
 
   // Calculate the font size to use based on character length
-  var songTitleFontSize = (1.5 - (((song.title.length + song.artist.length) - 15) * 0.02));
+  var songTitleFontSize = (1.3 - (((song.title.length + song.artist.length) - 15) * 0.015));
 
   // Set the font size of the songTitle div
   songTitleDiv.style.fontSize = songTitleFontSize + "em";
