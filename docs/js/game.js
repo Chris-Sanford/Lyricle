@@ -174,7 +174,7 @@ function constructStatsButton() {
 function calculateOptimizedLyricBoxWidth(lyricContent) {
   // Define the standard width buffer to add to each calculated width
   // I believe this is only necessary for input elements because their sizing is handled differently
-  var widthBuffer = 10;
+  var widthBuffer = 5;
 
   // Create a div
   var div = document.createElement("div");
@@ -182,8 +182,15 @@ function calculateOptimizedLyricBoxWidth(lyricContent) {
   // Hide the div so it's not displayed and doesn't interfere with the page layout
   div.style.visibility = "hidden";
 
+  // Get the font size of div element "lyrics"
+  //var lyricsDiv = document.getElementById("lyrics");
+  //var fontSize = window.getComputedStyle(lyricsDiv).getPropertyValue("font-size");
   // Set its font size to the same font size as the actual lyric boxes
-  div.style.fontSize = "1.5em";
+  //console.log(fontSize);
+  //div.style.fontSize = fontSize;
+
+  // Set the font size to the same as the lyric boxes
+  div.style.fontSize = "min(1.2em, 60px)";
 
   // Set its width to max-content, something not available in an input element
   div.style.width = "max-content";
@@ -608,7 +615,7 @@ function startGame(songData) { // Loads main game with song lyrics to guess
   var artistDiv = document.getElementById("songTitleArtist");
 
   // Calculate the font size to use based on character length
-  var songTitleFontSize = (1.3 - (((song.title.length + song.artist.length) - 15) * 0.015));
+  var songTitleFontSize = (1.2 - (((song.title.length + song.artist.length) - 20) * 0.015));
 
   // Set the font size of the songTitle div
   songTitleDiv.style.fontSize = songTitleFontSize + "em";
