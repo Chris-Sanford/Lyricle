@@ -10,6 +10,7 @@
 /* Apply to all classes containing the string container in the class name (helps with all the bootstrap classes */
 [class*="container"] { 
     text-align: center;
+    padding: 0; /* This might break a lot of things from Bootstrap but so far looks way better */
 }
 
 /* Center the element vertically and horizontally */
@@ -40,7 +41,7 @@
 .lyricle-topbar {
     max-width: 600px; /* Prevents larger displays from oversizing divs */
     max-height: 80px; /* Prevents larger displays from oversizing divs  */
-    height: 6vh; /* Dynamically calculates height based on viewport for mobile responsivenesss but is limited by aforementioned max values for large displays */
+    height: 5vh; /* Dynamically calculates height based on viewport for mobile responsivenesss but is limited by aforementioned max values for large displays */
     margin-left: auto; /* margins left and right being auto center the element without needing to be a container (with bootstrap CSS flexing) */
     margin-right: auto;
     border-bottom: 2px solid rgba(255, 255, 255, 0.177);
@@ -48,12 +49,13 @@
 .lyricle-songtitle {
     max-width: 600px; /* Prevents larger displays from oversizing divs */
     max-height: 80px; /* Prevents larger displays from oversizing divs  */
-    height: 6vh; /* Dynamically calculates height based on viewport for mobile responsivenesss but is limited by aforementioned max values for large displays */
+    height: 5vh; /* Dynamically calculates height based on viewport for mobile responsivenesss but is limited by aforementioned max values for large displays */
+    border-bottom: 2px solid rgba(255, 255, 255, 0.177);
 }
 .lyricle-lyrics {
     max-width: 600px; /* Prevents larger displays from oversizing divs */
     max-height: 766px; /* Prevents larger displays from oversizing divs  */
-    height: 58vh; /* Dynamically calculates height based on viewport for mobile responsivenesss but is limited by aforementioned max values for large displays */
+    height: 40vh; /* Dynamically calculates height based on viewport for mobile responsivenesss but is limited by aforementioned max values for large displays */
     margin-left: auto; /* margins left and right being auto center the element without needing to be a container (with bootstrap CSS flexing) */
     margin-right: auto;
 }
@@ -98,7 +100,7 @@
     background: transparent;
     border: none;
     border-bottom: 2px solid rgb(255, 255, 255);
-    font-size: min(1.3em, 60px);
+    font-size: min(1.2em, 60px);
     font-weight: bold;
     display: inline-block;
     justify-content: center;
