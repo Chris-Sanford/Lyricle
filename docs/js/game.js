@@ -241,6 +241,9 @@ function constructLyricInputBoxes(song, lyricsGridContainer) {
       // Add the lyricle-lyrics-div class
       div.classList.add("lyricle-lyrics-div");
 
+      // Add the default bottom border
+      div.style.borderBottom = "2px solid rgb(255, 255, 255, 0.99)";
+
       // Dynamically calculate the width of the div based on the content of the lyric
       var width = calculateOptimizedLyricBoxWidth(lyricsToDisplay[i].content)
       div.style.width = width + "px";
@@ -271,6 +274,8 @@ function constructLyricInputBoxes(song, lyricsGridContainer) {
       if (!lyricsToDisplay[i].toGuess) {
         input.innerHTML = lyricsToDisplay[i].content;
         div.classList.add("lyricle-lyrics-input-noguess");
+        // Remove bottom border from style
+        div.style.borderBottom = "none";
         input.disabled = true;
         input.contentEditable = false;
       }
@@ -505,6 +510,8 @@ function useLifeline(song, button) {
     input.innerHTML = song.lyrics[focusedBoxIndex].content;
     input.classList.add("lyricle-lyrics-input-correct");
     input.parentElement.classList.add("lyricle-lyrics-input-correct");
+    input.style.borderBottom = "none"; // Remove bottom border from style
+    input.parentElement.style.borderBottom = "none"; // Remove bottom border from style
     input.disabled = true;
     wordsCorrect++;
 
@@ -568,8 +575,12 @@ function lyricBoxInputListener(song) {
 function lyricBoxFocusListener (input) {
   // Remove the focused class from the previously focused input
   var previouslyFocusedInput = document.getElementById("lyricInput" + focusedBoxIndex);
-  if (previouslyFocusedInput) {
+  if (previouslyFocusedInput && !previouslyFocusedInput.parentElement.classList.contains("lyricle-lyrics-input-noguess") && !previouslyFocusedInput.parentElement.classList.contains("lyricle-lyrics-input-correct")) {
     previouslyFocusedInput.parentElement.classList.remove("lyricle-lyrics-input-focused");
+
+    // Change border bottom back to white while keeping current opacity
+    var currentOpacity = previouslyFocusedInput.parentElement.style.borderBottom.split(",")[3].replace(")", "");
+    previouslyFocusedInput.parentElement.style.borderBottom = "2px solid rgb(255, 255, 255, " + currentOpacity + ")"; // Set bottom border back to original style
   }
 
   // Get the active element
@@ -580,6 +591,9 @@ function lyricBoxFocusListener (input) {
 
   // Add the focused class to the newly focused input
   lyricBox.parentElement.classList.add("lyricle-lyrics-input-focused");
+
+  // Set the bottom border to be a different color
+  lyricBox.parentElement.style.borderBottom = "2px solid rgb(0, 115, 255, 0.99)";
 }
 
 // Supporting Functions
@@ -794,6 +808,34 @@ async function stopSongPreview() {
   }
 }
 
+function getPercentageCorrect(input, secret) {
+  // Create an array of characters from input and secret
+  var inputChars = input.split('');
+  var secretChars = secret.split('');
+
+  // Initialize a variable to store the number of correct characters
+  var correctChars = 0;
+
+  // For each character in inputChars
+  for (var i = 0; i < inputChars.length; i++) {
+    // If the currently-iterated character in the inputChars array is found anywhere in the secretChars array
+    if (secretChars.includes(inputChars[i])) {
+      // Remove the first instance of the character from the secretChars array
+      secretChars.splice(secretChars.indexOf(inputChars[i]), 1);
+      // Increment correctChars by 1
+      correctChars++;
+    }
+  }
+
+  // Calculate percentageCorrect based on the number of correct characters and the length of the secret word
+  var percentageCorrect = (correctChars / secret.length);
+
+  console.log("Percentage Correct: " + percentageCorrect + "");
+
+  // Return the percentage of correct characters
+  return percentageCorrect;
+}
+
 function checkCorrectness(lyricBox, song) {
   // Compare the lyricBox value to the contentComparable of the lyric object
   var comparableInput = lyricBox.innerHTML // for comparison
@@ -802,10 +844,21 @@ function checkCorrectness(lyricBox, song) {
   .normalize("NFD") // decompose letters and diatrics
   .replace(/\p{Diacritic}/gu, ''); // replace them with non-accented characters
 
-  if (comparableInput === song.lyrics[focusedBoxIndex].contentComparable) {
-    lyricBox.innerHTML = song.lyrics[focusedBoxIndex].content; // populate the lyricBox box with the unformatted secret word at boxIndex
+  // Define a variable containing the lyric object that the lyricBox corresponds to
+  var lyric = song.lyrics[focusedBoxIndex];
+
+  // Set the opacity of the div relative to the percentage of correct characters
+  var percentageCorrect = getPercentageCorrect(comparableInput, lyric.contentComparable);
+  var opacity = 1.00 - percentageCorrect;
+  console.log("Opacity: " + opacity + "");
+  lyricBox.parentElement.style.borderBottom = "2px solid rgba(255, 255, 255, " + opacity + ")";
+
+  if (comparableInput === lyric.contentComparable) {
+    lyricBox.innerHTML = lyric.content; // populate the lyricBox box with the unformatted secret word at boxIndex
     lyricBox.classList.add("lyricle-lyrics-input-correct");
     lyricBox.parentElement.classList.add("lyricle-lyrics-input-correct");
+    lyricBox.style.borderBottom = "none"; // Remove bottom border from style
+    lyricBox.parentElement.style.borderBottom = "none"; // Remove bottom border from style
     lyricBox.disabled = true;
     lyricBox.contentEditable = false;
     wordsCorrect++;
@@ -854,6 +907,7 @@ function completeGame(song) {
       if (!input.classList.contains("lyricle-lyrics-input-correct")) { // if the lyric isn't already correct
         input.innerHTML = song.lyrics[i].content; // populate the input box with the correct word
         input.parentElement.classList.add("lyricle-lyrics-input-noguess");
+        lyricBox.style.borderBottom = "none"; // Remove bottom border from style
       }
     }
   }

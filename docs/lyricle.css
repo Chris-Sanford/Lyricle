@@ -99,7 +99,7 @@
     border: 1px solid rgb(255, 255, 255);
     background: transparent;
     border: none;
-    border-bottom: 2px solid rgb(255, 255, 255);
+    /* border-bottom: 2px solid rgb(255, 255, 255); */
     font-size: min(1.2em, 60px);
     font-weight: bold;
     display: inline-block;
@@ -116,14 +116,14 @@
     color: rgb(209, 209, 209);
 }
 .lyricle-lyrics-input-focused {
-    border-bottom: 2px solid rgb(0, 115, 255);
+    /* border-bottom: 2px solid rgb(0, 115, 255); */
 }
 .lyricle-lyrics-input-noguess {
     border-bottom: none;
 }
 .lyricle-lyrics-input-correct {
     color: green;
-    border-bottom: none;
+    /* border-bottom: none; */
 }
 
 
