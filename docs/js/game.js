@@ -171,6 +171,23 @@ function constructStatsButton() {
   button.addEventListener("click", displayGameCompleteModal);
 }
 
+function constructRandomButton() {
+  var topBarLeftButtons = document.getElementById("topBarLeftButtons");
+
+  var button = document.createElement("button");
+  button.type = "button";
+  button.id = "randomButton";
+  button.classList.add("btn", "lyricle-icon-button");
+
+  topBarLeftButtons.appendChild(button);
+
+  var icon = document.createElement("i");
+  icon.id = "randomButtonIcon";
+  icon.classList.add("fa-solid", "fa-dice");
+  button.appendChild(icon);
+  button.addEventListener("click", getRandomSong);
+}
+
 function calculateOptimizedLyricBoxWidth(lyricContent) {
   // Define the standard width buffer to add to each calculated width
   // I believe this is only necessary for input elements because their sizing is handled differently
@@ -297,6 +314,7 @@ function constructLyricInputBoxes(song, lyricsGridContainer) {
 
 function constructGameCompleteModal(song) {
 
+  constructRandomButton();
   constructStatsButton();
 
   // Check if modal already exists
@@ -607,6 +625,12 @@ function startGame(songData) { // Loads main game with song lyrics to guess
   var statsButton = document.getElementById("statsButton");
   if (statsButton) {
     statsButton.remove();
+  }
+
+  // If randomButton exists, remove it
+  var randomButton = document.getElementById("randomButton");
+  if (randomButton) {
+    randomButton.remove();
   }
 
   wordsCorrect = 0;
@@ -940,7 +964,7 @@ function completeGame(song) {
       if (!input.classList.contains("lyricle-lyrics-input-correct")) { // if the lyric isn't already correct
         input.innerHTML = song.lyrics[i].content; // populate the input box with the correct word
         input.parentElement.classList.add("lyricle-lyrics-input-noguess");
-        lyricBox.style.borderBottom = "none"; // Remove bottom border from style
+        input.parentElement.style.borderBottom = "none"; // Remove bottom border from style
       }
     }
   }
