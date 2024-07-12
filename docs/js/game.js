@@ -573,14 +573,14 @@ function lyricBoxInputListener(song) {
 }
 
 function lyricBoxFocusListener (input) {
-  // Remove the focused class from the previously focused input
+  // Update the style of the previously-focused input box to signify that it is no longer focused
   var previouslyFocusedInput = document.getElementById("lyricInput" + focusedBoxIndex);
-  if (previouslyFocusedInput && !previouslyFocusedInput.parentElement.classList.contains("lyricle-lyrics-input-noguess") && !previouslyFocusedInput.parentElement.classList.contains("lyricle-lyrics-input-correct")) {
-    previouslyFocusedInput.parentElement.classList.remove("lyricle-lyrics-input-focused");
 
+  // If the previouslyFocusedInput exists and is not marked as correct or noguess
+  if (previouslyFocusedInput && !previouslyFocusedInput.parentElement.classList.contains("lyricle-lyrics-input-noguess") && !previouslyFocusedInput.parentElement.classList.contains("lyricle-lyrics-input-correct")) {
+    console.log("A new lyric box was focused, updating the border bottom style of the previously focused input box");
     // Change border bottom back to white while keeping current opacity
-    var currentOpacity = previouslyFocusedInput.parentElement.style.borderBottom.split(",")[3].replace(")", "");
-    previouslyFocusedInput.parentElement.style.borderBottom = "2px solid rgb(255, 255, 255, " + currentOpacity + ")"; // Set bottom border back to original style
+    setLyricBoxBorderBottomStyle(previouslyFocusedInput, 255, 255, 255, null);
   }
 
   // Get the active element
@@ -589,11 +589,8 @@ function lyricBoxFocusListener (input) {
   // Set the focusedBoxIndex value globally so all other functions can address it
   focusedBoxIndex = parseInt(lyricBox.id.replace("lyricInput", ""));
 
-  // Add the focused class to the newly focused input
-  lyricBox.parentElement.classList.add("lyricle-lyrics-input-focused");
-
-  // Set the bottom border to be a different color
-  lyricBox.parentElement.style.borderBottom = "2px solid rgb(0, 115, 255, 0.99)";
+  // Set the bottom border to be a blue, while maintaining opacity in case it was focused before, indicating active/focus
+  setLyricBoxBorderBottomStyle(lyricBox, 0, 115, 255, null);
 }
 
 // Supporting Functions
@@ -836,6 +833,42 @@ function getPercentageCorrect(input, secret) {
   return percentageCorrect;
 }
 
+function setLyricBoxBorderBottomStyle(lyricBox, color1, color2, color3, opacity) {
+  // Log the values provided by the parameters
+  console.log("Updating border bottom style of lyricBox " + focusedBoxIndex);
+  console.log("Color1: " + color1);
+  console.log("Color2: " + color2);
+  console.log("Color3: " + color3);
+  console.log("Opacity: " + opacity);
+
+  // Get the current values of the border bottom style of the lyricBox element
+  var currentBorderBottom = lyricBox.parentElement.style.borderBottom;
+  var currentValuesString = currentBorderBottom.match(/\(([^)]+)\)/)[1];
+  var currentValues = currentValuesString.split(", ");
+
+  // Log the current values of the border bottom style of the lyricBox element
+  console.log("Current border bottom style: " + currentValuesString);
+
+  // If opacity was provided, set opacity to the provided value
+  if (opacity) {
+    var setOpacity = opacity;
+  }
+  else { // if opacity was not provided as a param
+    if (currentValues[3]) {
+      var setOpacity = currentValues[3]; // set opacity to the current opacity value if it exists
+    }
+    else {
+      var setOpacity = 0.99; // otherwise, set it to the base default of 0.99
+    }
+  }
+  
+  // Update the color and opacity of the border bottom style
+  lyricBox.parentElement.style.borderBottom = "2px solid rgb(" + color1 + ", " + color2 + ", " + color3 + ", " + setOpacity + ")";
+
+  // Log the new border bottom style of the lyricBox element
+  console.log("New border bottom style: " + lyricBox.parentElement.style.borderBottom);
+}
+
 function checkCorrectness(lyricBox, song) {
   // Compare the lyricBox value to the contentComparable of the lyric object
   var comparableInput = lyricBox.innerHTML // for comparison
@@ -851,7 +884,7 @@ function checkCorrectness(lyricBox, song) {
   var percentageCorrect = getPercentageCorrect(comparableInput, lyric.contentComparable);
   var opacity = 1.00 - percentageCorrect;
   console.log("Opacity: " + opacity + "");
-  lyricBox.parentElement.style.borderBottom = "2px solid rgba(255, 255, 255, " + opacity + ")";
+  setLyricBoxBorderBottomStyle(lyricBox, 0, 115, 255, opacity)
 
   if (comparableInput === lyric.contentComparable) {
     lyricBox.innerHTML = lyric.content; // populate the lyricBox box with the unformatted secret word at boxIndex

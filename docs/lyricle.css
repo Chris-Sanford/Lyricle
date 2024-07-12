@@ -115,9 +115,6 @@
     height: 100%;
     color: rgb(209, 209, 209);
 }
-.lyricle-lyrics-input-focused {
-    /* border-bottom: 2px solid rgb(0, 115, 255); */
-}
 .lyricle-lyrics-input-noguess {
     border-bottom: none;
 }
