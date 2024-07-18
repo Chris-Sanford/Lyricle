@@ -10,6 +10,21 @@ var inputCounter = 0;
 var audio;
 var terminateAudio = false;
 
+// Would this be more optimal just to hard code it? Probably
+var sanitaryInput = ["'","Backspace","Delete"]; // array to store sanitized input for comparison
+
+// Populate the array with standard lowercase english characters
+for (var i = 97; i <= 122; i++) {
+  sanitaryInput.push(String.fromCharCode(i));
+}
+
+// Populate the array with numbers 0 - 9
+for (var i = 0; i <= 9; i++) {
+  sanitaryInput.push(i.toString());
+}
+
+console.log(sanitaryInput);
+
 // ... What does 'let' do differently from 'var' again?
 let startTime, endTime, interval; // stopwatch variables
 
@@ -203,7 +218,6 @@ function calculateOptimizedLyricBoxWidth(lyricContent) {
   //var lyricsDiv = document.getElementById("lyrics");
   //var fontSize = window.getComputedStyle(lyricsDiv).getPropertyValue("font-size");
   // Set its font size to the same font size as the actual lyric boxes
-  //console.log(fontSize);
   //div.style.fontSize = fontSize;
 
   // Set the font size to the same as the lyric boxes
@@ -567,8 +581,16 @@ function getRandomSong() {
 
 // Listeners
 function lyricBoxKeyDownListener(event, song) {
-  // If the key pressed is not the backspace key and the length of the input is greater than or equal to the length of the secret word
-  if (event.key !== "Backspace" && event.srcElement.innerText.length >= song.lyrics[focusedBoxIndex].content.length) {
+  // If we can't translate the key pressed to an approved sanitized input, don't allow the input at all
+  // This allows accented characters (due to sanitization of key) and any hardocded keys in the array
+  if ( (!sanitaryInput.includes(sanitizeInput(event.key)) && !sanitaryInput.includes(event.key))) {
+    event.preventDefault();
+  }
+
+  // If the key pressed is NOT Backspace or Delete, and the length of the input is greater than or equal to the length of the secret word, prevent the default action of the event
+  let notBackspaceOrDelete = event.key !== "Backspace" && event.key !== "Delete";
+  let inputAtMax = event.srcElement.innerText.length >= song.lyrics[focusedBoxIndex].content.length;
+  if (notBackspaceOrDelete && inputAtMax) {
     // Prevent the default action of the event, thusly preventing additional characters from being entered
     event.preventDefault();
   }
@@ -596,7 +618,6 @@ function lyricBoxFocusListener (input) {
 
   // If the previouslyFocusedInput exists and is not marked as correct or noguess
   if (previouslyFocusedInput && !previouslyFocusedInput.parentElement.classList.contains("lyricle-lyrics-input-noguess") && !previouslyFocusedInput.parentElement.classList.contains("lyricle-lyrics-input-correct")) {
-    console.log("A new lyric box was focused, updating the border bottom style of the previously focused input box");
     // Change border bottom back to white while keeping current opacity
     setLyricBoxBorderBottomStyle(previouslyFocusedInput, 255, 255, 255, null);
   }
@@ -851,27 +872,15 @@ function getPercentageCorrect(input, secret) {
   // Calculate percentageCorrect based on the number of correct characters and the length of the secret word
   var percentageCorrect = (correctChars / secret.length);
 
-  console.log("Percentage Correct: " + percentageCorrect + "");
-
   // Return the percentage of correct characters
   return percentageCorrect;
 }
 
 function setLyricBoxBorderBottomStyle(lyricBox, color1, color2, color3, opacity) {
-  // Log the values provided by the parameters
-  console.log("Updating border bottom style of lyricBox " + focusedBoxIndex);
-  console.log("Color1: " + color1);
-  console.log("Color2: " + color2);
-  console.log("Color3: " + color3);
-  console.log("Opacity: " + opacity);
-
   // Get the current values of the border bottom style of the lyricBox element
   var currentBorderBottom = lyricBox.parentElement.style.borderBottom;
   var currentValuesString = currentBorderBottom.match(/\(([^)]+)\)/)[1];
   var currentValues = currentValuesString.split(", ");
-
-  // Log the current values of the border bottom style of the lyricBox element
-  console.log("Current border bottom style: " + currentValuesString);
 
   // If opacity was provided, set opacity to the provided value
   if (opacity) {
@@ -888,9 +897,6 @@ function setLyricBoxBorderBottomStyle(lyricBox, color1, color2, color3, opacity)
   
   // Update the color and opacity of the border bottom style
   lyricBox.parentElement.style.borderBottom = "2px solid rgb(" + color1 + ", " + color2 + ", " + color3 + ", " + setOpacity + ")";
-
-  // Log the new border bottom style of the lyricBox element
-  console.log("New border bottom style: " + lyricBox.parentElement.style.borderBottom);
 }
 
 function checkCorrectness(lyricBox, song) {
@@ -907,7 +913,6 @@ function checkCorrectness(lyricBox, song) {
   // Set the opacity of the div relative to the percentage of correct characters
   var percentageCorrect = getPercentageCorrect(comparableInput, lyric.contentComparable);
   var opacity = 1.00 - percentageCorrect;
-  console.log("Opacity: " + opacity + "");
   setLyricBoxBorderBottomStyle(lyricBox, 0, 115, 255, opacity)
 
   if (comparableInput === lyric.contentComparable) {
@@ -976,6 +981,17 @@ function displayGameCompleteModal() {
   var modalElement = document.getElementById("gameCompleteModal");
   var modalInstance = new bootstrap.Modal(modalElement);
   modalInstance.show();
+}
+
+function sanitizeInput(input) {
+  // Sanitize the input to remove any special characters and diacritics for comparison
+  var sanitizedInput = input
+  .replace(/([^a-zA-Z0-9\s\u00C0-\u017F])/g, "") // disallow any input that isn't a standard English letter or number
+  .toLowerCase() // make all letters lowercase
+  .normalize("NFD") // decompose letters and diatrics
+  .replace(/\p{Diacritic}/gu, ''); // replace them with non-accented characters
+
+  return sanitizedInput;
 }
 
 function init() { // Initialize the game
