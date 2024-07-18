@@ -18,13 +18,6 @@ for (var i = 97; i <= 122; i++) {
   sanitaryInput.push(String.fromCharCode(i));
 }
 
-// Populate the array with numbers 0 - 9
-for (var i = 0; i <= 9; i++) {
-  sanitaryInput.push(i.toString());
-}
-
-console.log(sanitaryInput);
-
 // ... What does 'let' do differently from 'var' again?
 let startTime, endTime, interval; // stopwatch variables
 
@@ -56,28 +49,40 @@ class Song {
 
 // Define the function that creates Lyric objects from the chorus
 function constructLyricObjects(chorus) {
+  // Define the maximum number of lines to display in the game
+  var maxLines = 6; // This actually results in 5 lines due to how the logic is written with indices
+
+  // Define the maximum number of characters to display in the game
+  var maxChars = 120;
+
+  var lineCount = 0;
+  var charCount = 0;
+
   // Split the chorus into lines (split by newline)
   var lines = chorus.split("\n");
 
-  // Process the lyric lines to be Lyricle-friendly (not too long)
-  lines = splitLengthyLyricLines(lines);
-  
   // Initialize an empty array to store the lyric objects
   var lyrics = [];
 
   // Set boxIndex to 0
   var boxIndex = 0;
-  // Set lineIndex to 0
-  var lineIndex = 0;
-  
-  var maxLines = 5; // Maximum number of lines to display in the game
-  // If the total number of lines is less than maxLines, set maxLines to the total number of lines
-  if (lines.length < maxLines) {
-    var maxLines = lines.length;
-  }
 
-  // For each line in the chorus
-  for (var i = 0; i < maxLines; i++) {
+  // Loop through each line
+  for (var i = 0; i < lines.length; i++) {
+    lineCount++;
+
+    // If we've reached the maximum number of lines, break out of the loop
+    if (lineCount >= maxLines) {
+      console.log("Maximum Lines Reached: " + lineCount);
+      break;
+    }
+
+    // If we've reached the maximum number of characters, break out of the loop
+    if (charCount >= maxChars) {
+      console.log("Maximum Characters Reached: " + charCount);
+      break;
+    }
+
     // Split the line into words
     var words = lines[i]
       .replace(/([^a-zA-Z0-9\s\u00C0-\u017F'*])/g, ' $1 ') // add spaces around symbols excluding letters with accents, apostrophes, and asterisks
@@ -85,45 +90,48 @@ function constructLyricObjects(chorus) {
       .split(' ') // split raw lyrics by spaces into array of words, numbers, and symbols
       .filter(str => str !== ""); // removes empty strings from array, needed because index 1 seems to always be an empty string
 
-    // For each word in the line
+    // If the current character count plus the total combined length of all the words in the current line is greater than the maximum number of allowed characters, break out of the loop
+    if (charCount + words.join('').length >= maxChars) {
+      console.log("Not adding next line to prevent surpassing maximum allowed character count of " + maxChars);
+      console.log("Maximum Characters Reached:" + charCount);
+      break;
+    }
+
+    // Loop through each word
     for (var j = 0; j < words.length; j++) {
+      charCount += words[j].length;
+
       // Run RegExes against the word to make it comparable
       var word = words[j]
-      .toLowerCase() // make all letters lowercase
-      .normalize("NFD") // decompose letters and diatrics
-      .replace(/\p{Diacritic}/gu, '') // replace them with non-accented characters
-      .replace(/'/g, ''); // replace apostrophes with nothing
+        .toLowerCase() // make all letters lowercase
+        .normalize("NFD") // decompose letters and diatrics
+        .replace(/\p{Diacritic}/gu, '') // replace them with non-accented characters
+        .replace(/'/g, ''); // replace apostrophes with nothing
 
       // If 'word' (contentComparable) is anything other than standard english letters, set toGuess to false
       // else, set toGuess to true
       var toGuess = /^[a-zA-Z]+$/.test(word) ? true : false;
 
-      // if lineIndex is 0, set toGuess to false
-      if (lineIndex === 0) {
+      // if the line is 0, set toGuess to false regardless of content
+      if (i === 0) {
         toGuess = false;
       }
 
-      // If the word originally had a space to the left of it, set spaceLeft to true
-      // else, set spaceLeft to false
-
-      // If the word originally had a space to the right of it, set spaceRight to true
-      // else, set spaceRight to false
-
       // Construct a Lyric object with the boxIndex, lineIndex, content, and contentComparable
-      var lyric = new Lyric(boxIndex, lineIndex, words[j], word, toGuess);
+      var lyric = new Lyric(boxIndex, i, words[j], word, toGuess);
 
       // Add the Lyric object to the lyrics array
       lyrics.push(lyric);
-      
+
       // Increment the boxIndex
       boxIndex++;
     }
-
-    // Increment the lineIndex
-    lineIndex++;
   }
 
-  // Return the array of lyric objects
+  console.log("Total Line Count: " + lineCount);
+  console.log("Total Character Count: " + charCount);
+
+  // Outputs: An array of Lyric objects
   return lyrics;
 }
 
@@ -206,7 +214,7 @@ function constructRandomButton() {
 function calculateOptimizedLyricBoxWidth(lyricContent) {
   // Define the standard width buffer to add to each calculated width
   // I believe this is only necessary for input elements because their sizing is handled differently
-  var widthBuffer = 5;
+  var widthBuffer = 6;
 
   // Create a div
   var div = document.createElement("div");
@@ -731,27 +739,6 @@ function splitLineForDisplay(line, maxLineLength) {
   }
 
   // Return the newLines array
-  return newLines;
-}
-
-function splitLengthyLyricLines(lines) {
-  // Initialize newLines array
-  let newLines = [];
-
-  // For each line in the provided lines array
-  for (let line of lines) {
-    splitLines = splitLineForDisplay(line, 35); // Maximum allowed characters on 1 line is 40
-
-    // For each split line in the splitLines array
-    for (let splitLine of splitLines) {
-      newLines.push(splitLine);
-    }
-  }
-
-  // Remove any undefined values from the end of the array
-  newLines = newLines.filter(line => line !== undefined);
-
-  // return the new array of lines that have been split to not be too long for the game to display
   return newLines;
 }
 
