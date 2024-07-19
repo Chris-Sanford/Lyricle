@@ -11,7 +11,7 @@ var audio;
 var terminateAudio = false;
 
 // Would this be more optimal just to hard code it? Probably
-var sanitaryInput = ["'","Backspace","Delete"]; // array to store sanitized input for comparison
+var sanitaryInput = ["'","Backspace","Delete","Tab"]; // array to store sanitized input for comparison
 
 // Populate the array with standard lowercase english characters
 for (var i = 97; i <= 122; i++) {
