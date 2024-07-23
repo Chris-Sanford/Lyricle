@@ -24,14 +24,15 @@ let startTime, endTime, interval; // stopwatch variables
 // Class Constructors
 // Construct the Lyric class
 class Lyric {
-  constructor(boxIndex, lineIndex, content, contentComparable, toGuess) {
+  constructor(boxIndex, lineIndex, content, contentComparable, toGuess, spaceLeft, spaceRight, isSpecial) {
     this.boxIndex = boxIndex; // index of the lyric box, either word or puntuation
     this.lineIndex = lineIndex; // index of the which line (or row) the lyric box is in
     this.content = content; // the original content of the lyric
     this.contentComparable = contentComparable; // the content of the lyric in a format that can be compared
     this.toGuess = toGuess; // boolean value indicating whether the word should be guessed or not
-    //this.spaceLeft = spaceLeft; // boolean value indicating whether there is a space to the left of the word (for displaying punctuation well)
-    //this.spaceRight = spaceRight; // boolean value indicating whether there is a space to the right of the word (for displaying punctuation well)
+    this.spaceLeft = spaceLeft; // boolean value indicating whether there is a space to the left of the word (for displaying punctuation well)
+    this.spaceRight = spaceRight; // boolean value indicating whether there is a space to the right of the word (for displaying punctuation well)
+    this.isSpecial = isSpecial; // boolean value indicating whether the word is a special character (punctuation, etc.)
   }
 }
 
@@ -83,42 +84,83 @@ function constructLyricObjects(chorus) {
       break;
     }
 
-    // Split the line into words
-    var words = lines[i]
-      .replace(/([^a-zA-Z0-9\s\u00C0-\u017F'*])/g, ' $1 ') // add spaces around symbols excluding letters with accents, apostrophes, and asterisks
-      .replace(/\s{2,}/g, ' ') // remove extra spaces
-      .split(' ') // split raw lyrics by spaces into array of words, numbers, and symbols
-      .filter(str => str !== ""); // removes empty strings from array, needed because index 1 seems to always be an empty string
+    var lineCharacterCountNoSpaces = lines[i].replace(/\s/g, '');
 
     // If the current character count plus the total combined length of all the words in the current line is greater than the maximum number of allowed characters, break out of the loop
-    if (charCount + words.join('').length >= maxChars) {
+    if (charCount + lineCharacterCountNoSpaces.length >= maxChars) {
       console.log("Not adding next line to prevent surpassing maximum allowed character count of " + maxChars);
       console.log("Maximum Characters Reached:" + charCount);
       break;
     }
 
-    // Loop through each word
-    for (var j = 0; j < words.length; j++) {
-      charCount += words[j].length;
+    // Print the original line
+    console.log("Original Line: " + lines[i]);
 
-      // Run RegExes against the word to make it comparable
-      var word = words[j]
+    // Split the line by spaces
+    var splitBySpaces = lines[i].split(" ");
+
+    // Initialize an array to store "preformatWords"
+    var preformatWords = [];
+
+    // Loop through each string in splitBySpaces
+    for (var j = 0; j < splitBySpaces.length; j++) {
+      var word = splitBySpaces[j];
+      var spaceLeft = false;
+      var spaceRight = false;
+      var isSpecial = false;
+
+      // If the word starts with a special character, add ::SPACELEFT:: to the start of the string
+      if (/^[^a-zA-Z0-9\s\u00C0-\u017F'*]/.test(word)) {
+      spaceLeft = true;
+      }
+
+      // If the word ends with a special character, add ::SPACERIGHT:: to the end of the string
+      if (/[^a-zA-Z0-9\s\u00C0-\u017F'*]$/.test(word)) {
+      spaceRight = true;
+      }
+
+      // Split the word by special characters except ::SPACELEFT:: and ::SPACERIGHT::
+      var splitWords = word.split(/([^a-zA-Z0-9\s\u00C0-\u017F'*])/).filter(Boolean);
+
+      // Add the split words to the preformatWords array
+      preformatWords = preformatWords.concat(splitWords.map((splitWord) => {
+        // If the splitWord is a special character, set isSpecial to true
+        if (/^[^a-zA-Z0-9\s\u00C0-\u017F'*]/.test(splitWord)) {
+          isSpecial = true;
+        }
+      return {
+        word: splitWord,
+        spaceLeft: spaceLeft,
+        spaceRight: spaceRight,
+        isSpecial: isSpecial
+      };
+      }));
+    }
+
+    // Loop through each word
+    for (var j = 0; j < preformatWords.length; j++) {
+
+      // Increment the charCount by the length of the word
+      charCount += preformatWords[j].word.length;
+
+      // Run RegExes against the word to make it comparable (plus strip out spaces)
+      var word = preformatWords[j].word
         .toLowerCase() // make all letters lowercase
         .normalize("NFD") // decompose letters and diatrics
         .replace(/\p{Diacritic}/gu, '') // replace them with non-accented characters
-        .replace(/'/g, ''); // replace apostrophes with nothing
+        .replace(/'/g, '') // replace apostrophes with nothing
+        .replace(/\s/g, ''); // remove spaces
 
-      // If 'word' (contentComparable) is anything other than standard english letters, set toGuess to false
-      // else, set toGuess to true
+      // Set toGuess
       var toGuess = /^[a-zA-Z]+$/.test(word) ? true : false;
 
-      // if the line is 0, set toGuess to false regardless of content
+      // If the line index is 0, set toGuess to false always
       if (i === 0) {
         toGuess = false;
       }
 
-      // Construct a Lyric object with the boxIndex, lineIndex, content, and contentComparable
-      var lyric = new Lyric(boxIndex, i, words[j], word, toGuess);
+      // Construct a Lyric object with the boxIndex, lineIndex, content, contentComparable, toGuess, spaceLeft, and spaceRight
+      var lyric = new Lyric(boxIndex, i, preformatWords[j].word, word, toGuess, preformatWords[j].spaceLeft, preformatWords[j].spaceRight, preformatWords[j].isSpecial);
 
       // Add the Lyric object to the lyrics array
       lyrics.push(lyric);
@@ -279,6 +321,21 @@ function constructLyricInputBoxes(song, lyricsGridContainer) {
       
       // Add the lyricle-lyrics-div class
       div.classList.add("lyricle-lyrics-div");
+
+      // If the word is a special character, add the lyricle-lyrics-div-special class
+      if (lyricsToDisplay[i].isSpecial) {
+        div.classList.add("lyricle-lyrics-div-special");
+
+        // If the word has a space to the left, add the lyricle-lyrics-div-space-left class
+        if (lyricsToDisplay[i].spaceLeft) {
+          div.classList.add("lyricle-lyrics-div-space-left");
+        }
+
+        // If the word has a space to the right, add the lyricle-lyrics-div-space-right class
+        if (lyricsToDisplay[i].spaceRight) {
+          div.classList.add("lyricle-lyrics-div-space-right");
+        }
+      }
 
       // Add the default bottom border
       div.style.borderBottom = "2px solid rgb(255, 255, 255, 0.99)";
@@ -627,7 +684,7 @@ function lyricBoxFocusListener (input) {
   // If the previouslyFocusedInput exists and is not marked as correct or noguess
   if (previouslyFocusedInput && !previouslyFocusedInput.parentElement.classList.contains("lyricle-lyrics-input-noguess") && !previouslyFocusedInput.parentElement.classList.contains("lyricle-lyrics-input-correct")) {
     // Change border bottom back to white while keeping current opacity
-    setLyricBoxBorderBottomStyle(previouslyFocusedInput, 255, 255, 255, null);
+    setLyricBoxBorderBottomStyle(previouslyFocusedInput, 2, 255, 255, 255, null);
   }
 
   // Get the active element
@@ -637,7 +694,7 @@ function lyricBoxFocusListener (input) {
   focusedBoxIndex = parseInt(lyricBox.id.replace("lyricInput", ""));
 
   // Set the bottom border to be a blue, while maintaining opacity in case it was focused before, indicating active/focus
-  setLyricBoxBorderBottomStyle(lyricBox, 0, 115, 255, null);
+  setLyricBoxBorderBottomStyle(lyricBox, 4, 0, 115, 255, null);
 }
 
 // Supporting Functions
@@ -670,6 +727,7 @@ function startGame(songData) { // Loads main game with song lyrics to guess
 
   // construct a new Song object using the songData object
   var song = constructSongObject(songData.title, songData.artist, songData.preview_url, songData.chorus);
+  console.log(song);
 
   wordsToGuess = song.lyrics.filter(lyric => lyric.toGuess).length;
 
@@ -863,7 +921,7 @@ function getPercentageCorrect(input, secret) {
   return percentageCorrect;
 }
 
-function setLyricBoxBorderBottomStyle(lyricBox, color1, color2, color3, opacity) {
+function setLyricBoxBorderBottomStyle(lyricBox, width, color1, color2, color3, opacity) {
   // Get the current values of the border bottom style of the lyricBox element
   var currentBorderBottom = lyricBox.parentElement.style.borderBottom;
   var currentValuesString = currentBorderBottom.match(/\(([^)]+)\)/)[1];
@@ -883,7 +941,7 @@ function setLyricBoxBorderBottomStyle(lyricBox, color1, color2, color3, opacity)
   }
   
   // Update the color and opacity of the border bottom style
-  lyricBox.parentElement.style.borderBottom = "2px solid rgb(" + color1 + ", " + color2 + ", " + color3 + ", " + setOpacity + ")";
+  lyricBox.parentElement.style.borderBottom = width + "px solid rgb(" + color1 + ", " + color2 + ", " + color3 + ", " + setOpacity + ")";
 }
 
 function checkCorrectness(lyricBox, song) {
@@ -900,7 +958,7 @@ function checkCorrectness(lyricBox, song) {
   // Set the opacity of the div relative to the percentage of correct characters
   var percentageCorrect = getPercentageCorrect(comparableInput, lyric.contentComparable);
   var opacity = 1.00 - percentageCorrect;
-  setLyricBoxBorderBottomStyle(lyricBox, 0, 115, 255, opacity)
+  setLyricBoxBorderBottomStyle(lyricBox, 4, 0, 115, 255, opacity)
 
   if (comparableInput === lyric.contentComparable) {
     lyricBox.innerHTML = lyric.content; // populate the lyricBox box with the unformatted secret word at boxIndex
