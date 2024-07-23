@@ -325,16 +325,16 @@ function constructLyricInputBoxes(song, lyricsGridContainer) {
       // If the word is a special character, add the lyricle-lyrics-div-special class
       if (lyricsToDisplay[i].isSpecial) {
         div.classList.add("lyricle-lyrics-div-special");
-      }
 
-      // If the word has a space to the left, add the lyricle-lyrics-div-space-left class
-      if (lyricsToDisplay[i].spaceLeft) {
-        div.classList.add("lyricle-lyrics-div-space-left");
-      }
+        // If the word has a space to the left, add the lyricle-lyrics-div-space-left class
+        if (lyricsToDisplay[i].spaceLeft) {
+          div.classList.add("lyricle-lyrics-div-space-left");
+        }
 
-      // If the word has a space to the right, add the lyricle-lyrics-div-space-right class
-      if (lyricsToDisplay[i].spaceRight) {
-        div.classList.add("lyricle-lyrics-div-space-right");
+        // If the word has a space to the right, add the lyricle-lyrics-div-space-right class
+        if (lyricsToDisplay[i].spaceRight) {
+          div.classList.add("lyricle-lyrics-div-space-right");
+        }
       }
 
       // Add the default bottom border
