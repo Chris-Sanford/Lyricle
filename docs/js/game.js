@@ -11,7 +11,7 @@ var audio;
 var terminateAudio = false;
 
 // Would this be more optimal just to hard code it? Probably
-var sanitaryInput = ["'","Backspace","Delete","Tab"]; // array to store sanitized input for comparison
+var sanitaryInput = ["'","Backspace","Delete","Tab","ArrowLeft","ArrowRight"]; // array to store sanitized input for comparison
 
 // Populate the array with standard lowercase english characters
 for (var i = 97; i <= 122; i++) {
@@ -649,6 +649,7 @@ function lyricBoxKeyDownListener(event, song) {
   // If we can't translate the key pressed to an approved sanitized input, don't allow the input at all
   // This allows accented characters (due to sanitization of key) and any hardocded keys in the array
   if ( (!sanitaryInput.includes(sanitizeInput(event.key)) && !sanitaryInput.includes(event.key))) {
+    console.log("Key Entered: " + event.key);
     event.preventDefault();
   }
 
