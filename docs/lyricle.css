@@ -13,6 +13,10 @@
     padding: 0; /* This might break a lot of things from Bootstrap but so far looks way better */
 }
 
+body {
+    touch-action: manipulation; /* Prevents double tap zoom on mobile devices, helps for pressing Randoma and Lifeline */
+}
+
 /* Center the element vertically and horizontally */
 .center, .lyricle-lyrics-row {
     display: flex;
@@ -39,7 +43,7 @@
     padding-top: 5vh;
 }
 .lyricle-topbar {
-    max-width: 600px; /* Prevents larger displays from oversizing divs */
+    max-width: 800px; /* Prevents larger displays from oversizing divs */
     max-height: 80px; /* Prevents larger displays from oversizing divs  */
     height: 5vh; /* Dynamically calculates height based on viewport for mobile responsivenesss but is limited by aforementioned max values for large displays */
     margin-left: auto; /* margins left and right being auto center the element without needing to be a container (with bootstrap CSS flexing) */
@@ -47,15 +51,15 @@
     border-bottom: 2px solid rgba(255, 255, 255, 0.177);
 }
 .lyricle-songtitle {
-    max-width: 600px; /* Prevents larger displays from oversizing divs */
+    max-width: 800px; /* Prevents larger displays from oversizing divs */
     max-height: 80px; /* Prevents larger displays from oversizing divs  */
     height: 5vh; /* Dynamically calculates height based on viewport for mobile responsivenesss but is limited by aforementioned max values for large displays */
     border-bottom: 2px solid rgba(255, 255, 255, 0.177);
 }
 .lyricle-lyrics {
-    max-width: 600px; /* Prevents larger displays from oversizing divs */
+    max-width: 800px; /* Prevents larger displays from oversizing divs */
     max-height: 766px; /* Prevents larger displays from oversizing divs  */
-    height: 40vh; /* Dynamically calculates height based on viewport for mobile responsivenesss but is limited by aforementioned max values for large displays */
+    height: 35vh; /* Dynamically calculates height based on viewport for mobile responsivenesss but is limited by aforementioned max values for large displays */
     margin-left: auto; /* margins left and right being auto center the element without needing to be a container (with bootstrap CSS flexing) */
     margin-right: auto;
 }
@@ -84,23 +88,23 @@
 
 
 .lyricle-lyrics-grid {
-    max-width: 600px; /* Prevents larger displays from oversizing divs */
+    max-width: 800px; /* Prevents larger displays from oversizing divs */
     max-height: 766px; /* Prevents larger displays from oversizing divs  */
     margin-left: auto; /* margins left and right being auto center the element without needing to be a container (with bootstrap CSS flexing) */
     margin-right: auto;
 }
 .lyricle-lyrics-row {
-    max-width: 600px;
+    max-width: 800px;
     margin-left: auto; /* margins left and right being auto center the element without needing to be a container (with bootstrap CSS flexing) */
     margin-right: auto;
 }
 .lyricle-lyrics-div {
-    height: 1.5em;
+    height: 1.3em;
     border: 1px solid rgb(255, 255, 255);
     background: transparent;
     border: none;
     /* border-bottom: 2px solid rgb(255, 255, 255); */
-    font-size: min(1.2em, 60px);
+    font-size: min(1.3em, 60px);
     font-weight: bold;
     display: inline-block;
     justify-content: center;
