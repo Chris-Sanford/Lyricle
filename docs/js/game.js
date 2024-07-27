@@ -264,14 +264,8 @@ function calculateOptimizedLyricBoxWidth(lyricContent) {
   // Hide the div so it's not displayed and doesn't interfere with the page layout
   div.style.visibility = "hidden";
 
-  // Get the font size of div element "lyrics"
-  //var lyricsDiv = document.getElementById("lyrics");
-  //var fontSize = window.getComputedStyle(lyricsDiv).getPropertyValue("font-size");
-  // Set its font size to the same font size as the actual lyric boxes
-  //div.style.fontSize = fontSize;
-
   // Set the font size to the same as the lyric boxes
-  div.style.fontSize = "min(1.2em, 60px)";
+  div.style.fontSize = "min(1.3em, 60px)";
 
   // Set its width to max-content, something not available in an input element
   div.style.width = "max-content";
@@ -610,6 +604,7 @@ function useLifeline(song, button) {
     input.style.borderBottom = "none"; // Remove bottom border from style
     input.parentElement.style.borderBottom = "none"; // Remove bottom border from style
     input.disabled = true;
+    input.contentEditable = false;
     wordsCorrect++;
 
     if (wordsCorrect === wordsToGuess) {
@@ -925,7 +920,13 @@ function getPercentageCorrect(input, secret) {
 function setLyricBoxBorderBottomStyle(lyricBox, width, color1, color2, color3, opacity) {
   // Get the current values of the border bottom style of the lyricBox element
   var currentBorderBottom = lyricBox.parentElement.style.borderBottom;
-  var currentValuesString = currentBorderBottom.match(/\(([^)]+)\)/)[1];
+
+  try {
+    var currentValuesString = currentBorderBottom.match(/\(([^)]+)\)/)[1];
+  } catch (error) {
+    currentValuesString = "0, 0, 0, 0.99";
+  }
+
   var currentValues = currentValuesString.split(", ");
 
   // If opacity was provided, set opacity to the provided value
