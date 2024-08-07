@@ -605,6 +605,10 @@ function useLifeline(song, button) {
         // Set the innerText of the lyricInput element to the nth character of the secret lyric
         console.log("Modifying lyricInput" + i);
 
+        if (song.lyrics[i].content.length <= (startingLifelines - lifelines)) {
+          continue;
+        }
+
         // Build the string to populate based on the number of lifelines used/remaining
         // If this is the 2nd lifeline used, populate the first 2 characters of the secret lyric
         // Create a loop that runs from (startingLifelines - lifelines) down to 0 to determine how many characters to give
