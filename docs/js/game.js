@@ -4,6 +4,7 @@
 var wordsCorrect = 0; // initialize wordsCorrect score to 0, make variable global so it can be accessed by all functions
 var wordsToGuess = 0; // total number of words to have to guess correctly, used to determine if game is complete
 var lastLine = 0; // initialize lastLine to 0, make variable global so it can be accessed by all functions
+var startingLifelines = 3; // initialize starting lifelines to 3, make variable global so it can be accessed by all functions
 var lifelines = 0;
 var focusedBoxIndex = 0;
 var inputCounter = 0;
@@ -576,21 +577,12 @@ function useLifeline(song, button) {
     return;
   }
 
-  // if the current focusedBoxIndex is already marked as correct or is disabled, return/end the function
-  var input = document.getElementById("lyricInput" + focusedBoxIndex);
-  if (input.classList.contains("lyricle-lyrics-input-correct") || input.disabled) {
-    populateAlertsDiv()
-    return;
-  }
-
-  lifelines--;
-
   // Update the lifelines remaining text
   // Get the lifelineButtonNumber element
   var lifelineButtonNumber = document.getElementById("lifelineButtonNumber");
 
   // Set the innerText to the number of lifelines remaining
-  lifelineButtonNumber.innerText = lifelines;
+  lifelineButtonNumber.innerText = (lifelines - 1);
 
   // If the stopwatch hasn't been started, start it
   if (!startTime) {
@@ -598,23 +590,38 @@ function useLifeline(song, button) {
   }
 
   if (lifelines > 0) {
-    input.innerHTML = song.lyrics[focusedBoxIndex].content;
-    input.classList.add("lyricle-lyrics-input-correct");
-    input.parentElement.classList.add("lyricle-lyrics-input-correct");
-    input.style.borderBottom = "none"; // Remove bottom border from style
-    input.parentElement.style.borderBottom = "none"; // Remove bottom border from style
-    input.disabled = true;
-    input.contentEditable = false;
-    wordsCorrect++;
+    // Populate the nth character of the secret lyric for every incomplete lyric box
+    // nth being calculated by how many lifelines remaining. 1st lifeline reveals 1st character, 2nd lifeline reveals 2nd character, etc.
 
-    if (wordsCorrect === wordsToGuess) {
-      button.classList.remove("btn-danger");
-      button.classList.add("disabled"); // Add disabled attribute to lifeline button
-      completeGame(song); // call function that executes game completion code
-      return;
+    // Start a for loop from 0 to the length of the lyrics array
+    for (var i = 0; i < song.lyrics.length; i++) {
+      // Get the lyricInput element
+      var lyricInput = document.getElementById("lyricInput" + i);
+
+      // If the lyricInput element exists, is a span, and is still enabled
+      console.log("Checking " + lyricInput.id);
+      console.log("Content Editable: " + lyricInput.contentEditable);
+      if (lyricInput.contentEditable === "true") {
+        // Set the innerText of the lyricInput element to the nth character of the secret lyric
+        console.log("Modifying lyricInput" + i);
+
+        // Build the string to populate based on the number of lifelines used/remaining
+        // If this is the 2nd lifeline used, populate the first 2 characters of the secret lyric
+        // Create a loop that runs from (startingLifelines - lifelines) down to 0 to determine how many characters to give
+        var stringToPopulate = ""; // Initialize the string to populate
+
+        // Create a loop that runs from 0 to (startingLifelines - lifelines) to determine how many characters to give
+        for (var j = 0; j < startingLifelines - lifelines; j++) {
+          stringToPopulate += song.lyrics[i].content.charAt(j);
+        }
+
+        lyricInput.innerText = stringToPopulate;
+      }
     }
-    selectNextInput(input, focusedBoxIndex); // call function that selects the next input box
   }
+
+  lifelines--; // Decrement the lifelines remaining
+
   if(lifelines === 1) {
     button.classList.add("btn-danger");
   }
@@ -622,7 +629,6 @@ function useLifeline(song, button) {
   if (lifelines === 0) {
     button.classList.remove("btn-danger");
     button.classList.add("disabled"); // Add disabled attribute to lifeline button
-    completeGame(song); // call function that executes game completion code
   }
 }
 
@@ -718,7 +724,7 @@ function startGame(songData) { // Loads main game with song lyrics to guess
   wordsCorrect = 0;
   wordsToGuess = 0;
   inputCounter = 0;
-  lifelines = 3;
+  lifelines = startingLifelines;
   focusedBoxIndex = 0;
 
   // construct a new Song object using the songData object
