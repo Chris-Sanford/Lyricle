@@ -11,13 +11,14 @@ var inputCounter = 0;
 var audio;
 var terminateAudio = false;
 
-// Would this be more optimal just to hard code it? Probably
-var sanitaryInput = ["'","Backspace","Delete","Tab","ArrowLeft","ArrowRight"]; // array to store sanitized input for comparison
+var allowedKeys = ["Backspace","Delete","Tab","ArrowLeft","ArrowRight"]; // array to store sanitized input for comparison
 
 // Populate the array with standard lowercase english characters
+var allowedCharacters = [];
 for (var i = 97; i <= 122; i++) {
-  sanitaryInput.push(String.fromCharCode(i));
+  allowedCharacters.push(String.fromCharCode(i));
 }
+allowedCharacters.push("'"); // Allow apostrophes although they will be filtered out in the comparison
 
 // ... What does 'let' do differently from 'var' again?
 let startTime, endTime, interval; // stopwatch variables
@@ -651,19 +652,17 @@ function getRandomSong() {
 
 // Listeners
 function lyricBoxKeyDownListener(event, song) {
-  // If we can't translate the key pressed to an approved sanitized input, don't allow the input at all
-  // This allows accented characters (due to sanitization of key) and any hardocded keys in the array
-  if ( (!sanitaryInput.includes(sanitizeInput(event.key)) && !sanitaryInput.includes(event.key))) {
-    console.log("Key Entered: " + event.key);
+  // If the key or character isn't allowed, prevent the default action of the event and end the function
+  if (!allowedKeys.includes(event.key) && !allowedCharacters.includes(event.key)) {
     event.preventDefault();
+    return;
   }
 
-  // If the key pressed is NOT Backspace or Delete, and the length of the input is greater than or equal to the length of the secret word, prevent the default action of the event
-  let notBackspaceOrDelete = event.key !== "Backspace" && event.key !== "Delete";
+  // If the lyricBox is already at the max length and the key pressed is not in allowedKeys, prevent the default action of the event and end the function
   let inputAtMax = event.srcElement.innerText.length >= song.lyrics[focusedBoxIndex].content.length;
-  if (notBackspaceOrDelete && inputAtMax) {
-    // Prevent the default action of the event, thusly preventing additional characters from being entered
+  if (inputAtMax && !allowedKeys.includes(event.key)) {
     event.preventDefault();
+    return;
   }
 }
 
@@ -695,6 +694,10 @@ function lyricBoxFocusListener (input) {
 
   // Get the active element
   var lyricBox = document.activeElement;
+  console.log("Focused Element: " + lyricBox.id);
+
+  // Force the cursor to the end of the input box
+  moveCursorToEnd(lyricBox);
 
   // Set the focusedBoxIndex value globally so all other functions can address it
   focusedBoxIndex = parseInt(lyricBox.id.replace("lyricInput", ""));
@@ -765,6 +768,16 @@ function startGame(songData) { // Loads main game with song lyrics to guess
   
   // Create an audio element to play the song preview
   audio = new Audio(song.preview);
+}
+
+function moveCursorToEnd(lyricBox) {
+  var range = document.createRange();
+  var sel = window.getSelection();
+  range.setStart(lyricBox, 1);
+  range.collapse(true);
+  sel.removeAllRanges();
+  sel.addRange(range);
+  lyricBox.focus();
 }
 
 function splitLineForDisplay(line, maxLineLength) {
