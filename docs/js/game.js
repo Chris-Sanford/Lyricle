@@ -621,6 +621,11 @@ function useLifeline(song, button) {
         }
 
         lyricInput.innerText = stringToPopulate;
+
+        // Update the Opacity of the lyricInput
+        var percentageCorrect = getPercentageCorrect(stringToPopulate, song.lyrics[i].contentComparable);
+        var opacity = 1.00 - percentageCorrect;
+        setLyricBoxBorderBottomStyle(lyricInput, 2, 255, 255, 255, opacity)
       }
     }
   }
