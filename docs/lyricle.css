@@ -14,7 +14,7 @@
 }
 
 body {
-    touch-action: manipulation; /* Prevents double tap zoom on mobile devices, helps for pressing Randoma and Lifeline */
+    touch-action: manipulation; /* Prevents double tap zoom on mobile devices, helps for pressing Random and Lifeline */
 }
 
 /* Center the element vertically and horizontally */
