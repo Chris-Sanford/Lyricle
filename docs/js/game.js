@@ -660,6 +660,10 @@ function getRandomSong() {
     stopSongPreview();
   }
 
+  // To play a specific song:
+  // Get its index: console.log(allSongData.findIndex(song => song.title === "Song Title"));
+  // Set the songData variable: var songData = allSongData[index];
+  // Start the game: startGame(songData);
   startGame(songData);
 }
 
@@ -784,8 +788,8 @@ function startGame(songData) { // Loads main game with song lyrics to guess
 }
 
 function moveCursorToEnd(lyricBox, song) {
-  // If the length of the secret lyric is 1, return/end the function
-  if (song.lyrics[parseInt(lyricBox.id.replace("lyricInput", ""))].contentComparable.length === 1) {
+  // If the lyricBox is empty, no need to move cursor
+  if (lyricBox.innerText.length === 0) {
     return;
   }
 
