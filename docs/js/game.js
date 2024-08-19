@@ -359,7 +359,7 @@ function constructLyricInputBoxes(song, lyricsGridContainer) {
 
       // Add focus listener to the input box
       input.addEventListener("focus", function() {
-        lyricBoxFocusListener(input);
+        lyricBoxFocusListener(input, song);
       });
 
       // If the word is not to be guessed, populate the input box with the word and disable it
@@ -572,6 +572,7 @@ async function populateAlertsDiv() {
 }
 
 function useLifeline(song, button) {
+  console.log("Starting lifeline: " + lifelines);
   // If lifelines is 0, return/end the function
   // We shouldn't be able to hit this but it's just an extra layer of protection against bugs
   if (lifelines === 0) {
@@ -590,7 +591,9 @@ function useLifeline(song, button) {
     startStopwatch();
   }
 
-  if (lifelines > 0) {
+  lifelines--; // Decrement the lifelines remaining
+
+  if (lifelines >= 0) {
     // Populate the nth character of the secret lyric for every incomplete lyric box
     // nth being calculated by how many lifelines remaining. 1st lifeline reveals 1st character, 2nd lifeline reveals 2nd character, etc.
 
@@ -606,6 +609,7 @@ function useLifeline(song, button) {
         // Set the innerText of the lyricInput element to the nth character of the secret lyric
         console.log("Modifying lyricInput" + i);
 
+        // Don't give another letter if the length of the lyric is so short that it would reveal the entire lyric
         if (song.lyrics[i].content.length <= (startingLifelines - lifelines)) {
           continue;
         }
@@ -618,9 +622,11 @@ function useLifeline(song, button) {
         // Create a loop that runs from 0 to (startingLifelines - lifelines) to determine how many characters to give
         for (var j = 0; j < startingLifelines - lifelines; j++) {
           stringToPopulate += song.lyrics[i].content.charAt(j);
+          console.log("Checking index" + j);
         }
 
         lyricInput.innerText = stringToPopulate;
+        console.log("Populated " + lyricInput.id + " with " + stringToPopulate);
 
         // Update the Opacity of the lyricInput
         var percentageCorrect = getPercentageCorrect(stringToPopulate, song.lyrics[i].contentComparable);
@@ -630,7 +636,7 @@ function useLifeline(song, button) {
     }
   }
 
-  lifelines--; // Decrement the lifelines remaining
+  
 
   if(lifelines === 1) {
     button.classList.add("btn-danger");
@@ -640,6 +646,8 @@ function useLifeline(song, button) {
     button.classList.remove("btn-danger");
     button.classList.add("disabled"); // Add disabled attribute to lifeline button
   }
+
+  console.log("Ending lifeline: " + lifelines);
 }
 
 function getRandomSong() {
@@ -687,7 +695,7 @@ function lyricBoxInputListener(song) {
   checkCorrectness(lyricBox, song);
 }
 
-function lyricBoxFocusListener (input) {
+function lyricBoxFocusListener (input, song) {
   // Update the style of the previously-focused input box to signify that it is no longer focused
   var previouslyFocusedInput = document.getElementById("lyricInput" + focusedBoxIndex);
 
@@ -702,7 +710,7 @@ function lyricBoxFocusListener (input) {
   console.log("Focused Element: " + lyricBox.id);
 
   // Force the cursor to the end of the input box
-  moveCursorToEnd(lyricBox);
+  moveCursorToEnd(lyricBox, song);
 
   // Set the focusedBoxIndex value globally so all other functions can address it
   focusedBoxIndex = parseInt(lyricBox.id.replace("lyricInput", ""));
@@ -775,7 +783,12 @@ function startGame(songData) { // Loads main game with song lyrics to guess
   audio = new Audio(song.preview);
 }
 
-function moveCursorToEnd(lyricBox) {
+function moveCursorToEnd(lyricBox, song) {
+  // If the length of the secret lyric is 1, return/end the function
+  if (song.lyrics[parseInt(lyricBox.id.replace("lyricInput", ""))].contentComparable.length === 1) {
+    return;
+  }
+
   var range = document.createRange();
   var sel = window.getSelection();
   range.setStart(lyricBox, 1);
