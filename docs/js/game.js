@@ -364,7 +364,7 @@ function constructLyricInputBoxes(song, lyricsGridContainer) {
         input.innerHTML = lyricsToDisplay[i].content;
         div.classList.add("lyricle-lyrics-input-noguess");
         // Keep border bottom but make opacity very low for spacing purposes
-        div.style.borderBottom = "4px solid rgba(255, 255, 255, 0.20)";
+        div.style.borderBottom = "4px solid rgba(255, 255, 255, 0.01)";
         input.disabled = true;
         input.contentEditable = false;
       }
@@ -1052,7 +1052,7 @@ function checkCorrectness(lyricBox, song) {
       color1: 255,
       color2: 255,
       color3: 255,
-      opacity: 0.20
+      opacity: 0.01
     });
     lyricBox.disabled = true;
     lyricBox.contentEditable = false;
@@ -1107,7 +1107,7 @@ function completeGame(song) {
           color1: 255,
           color2: 255,
           color3: 255,
-          opacity: 0.20
+          opacity: 0.01
         });
       }
     }
