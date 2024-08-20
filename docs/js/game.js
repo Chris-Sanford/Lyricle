@@ -257,7 +257,6 @@ function constructRandomButton() {
 
 function calculateOptimizedLyricBoxWidth(lyricContent) {
   // Define the standard width buffer to add to each calculated width
-  // I believe this is only necessary for input elements because their sizing is handled differently
   var widthBuffer = 6;
 
   // Create a div
@@ -272,8 +271,8 @@ function calculateOptimizedLyricBoxWidth(lyricContent) {
   // Set its width to max-content, something not available in an input element
   div.style.width = "max-content";
 
-  // Set the inner HTML value to the lyric content
-  div.innerHTML = lyricContent;
+  // Set the inner Text value to the lyric content
+  div.innerText = lyricContent;
 
   // Append the div to the body so it's rendered and we can get the width
   document.body.appendChild(div);
@@ -361,10 +360,10 @@ function constructLyricInputBoxes(song, lyricsGridContainer) {
 
       // If the word is not to be guessed, populate the input box with the word and disable it
       if (!lyricsToDisplay[i].toGuess) {
-        input.innerHTML = lyricsToDisplay[i].content;
+        input.innerText = lyricsToDisplay[i].content;
         div.classList.add("lyricle-lyrics-input-noguess");
         // Keep border bottom but make opacity very low for spacing purposes
-        div.style.borderBottom = "4px solid rgba(255, 255, 255, 0.01)";
+        div.style.borderBottom = "4px solid rgba(255, 255, 255, 0.001)";
         input.disabled = true;
         input.contentEditable = false;
       }
@@ -377,6 +376,8 @@ function constructLyricInputBoxes(song, lyricsGridContainer) {
 
       // Add the div to the column
       col.appendChild(div);
+
+      input.scrollIntoView(alignToTop = true);
     }
 
     // Increment lineIndex by 1
@@ -630,6 +631,8 @@ function useLifeline(song, button) {
 
         // Update the Opacity of the lyricInput
         checkCorrectness(lyricInput, song);
+
+        lyricInput.scrollIntoView(alignToTop = true);
       }
     }
   }
@@ -1052,7 +1055,7 @@ function checkCorrectness(lyricBox, song) {
       color1: 255,
       color2: 255,
       color3: 255,
-      opacity: 0.01
+      opacity: 0.001
     });
     lyricBox.disabled = true;
     lyricBox.contentEditable = false;
@@ -1107,7 +1110,7 @@ function completeGame(song) {
           color1: 255,
           color2: 255,
           color3: 255,
-          opacity: 0.01
+          opacity: 0.001
         });
       }
     }
