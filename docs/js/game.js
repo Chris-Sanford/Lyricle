@@ -390,7 +390,7 @@ function constructLyricInputBoxes(song, lyricsGridContainer) {
 
 function constructGameCompleteModal(song) {
 
-  constructRandomButton();
+  //constructRandomButton();
   constructStatsButton();
 
   // Check if modal already exists
@@ -787,7 +787,9 @@ function startGame(songData) { // Loads main game with song lyrics to guess
 
   // Populate the How To Play text with the song title and artist
   var howToPlayObjectiveText = document.getElementById("objectiveText");
-  howToPlayObjectiveText.innerHTML = "Guess the hidden lyrics to today's song, <b>" + song.title + "</b> by <b>" + song.artist + "</b>!";
+  howToPlayObjectiveText.innerHTML = "Guess the lyrics to today's song, <b>" + song.title + "</b> by <b>" + song.artist + "</b>!";
+
+  displayHowToPlayModal();
 
   // construct the lyric input boxes to start the game
   constructLyricInputBoxes(song, lyricsGridContainer);
@@ -1048,6 +1050,7 @@ function checkCorrectness(lyricBox, song) {
 
   if (comparableInput === lyric.contentComparable) {
     lyricBox.innerHTML = lyric.content; // populate the lyricBox box with the unformatted secret word at boxIndex
+    lyricBox.scrollIntoView(alignToTop = true);
     lyricBox.classList.add("lyricle-lyrics-input-correct");
     lyricBox.parentElement.classList.add("lyricle-lyrics-input-correct");
     setLyricBoxBorderBottomStyle(lyricBox, {
@@ -1121,6 +1124,12 @@ function completeGame(song) {
 
 function displayGameCompleteModal() {
   var modalElement = document.getElementById("gameCompleteModal");
+  var modalInstance = new bootstrap.Modal(modalElement);
+  modalInstance.show();
+}
+
+function displayHowToPlayModal() {
+  var modalElement = document.getElementById("howToPlay");
   var modalInstance = new bootstrap.Modal(modalElement);
   modalInstance.show();
 }
