@@ -257,7 +257,6 @@ function constructRandomButton() {
 
 function calculateOptimizedLyricBoxWidth(lyricContent) {
   // Define the standard width buffer to add to each calculated width
-  // I believe this is only necessary for input elements because their sizing is handled differently
   var widthBuffer = 6;
 
   // Create a div
@@ -272,8 +271,8 @@ function calculateOptimizedLyricBoxWidth(lyricContent) {
   // Set its width to max-content, something not available in an input element
   div.style.width = "max-content";
 
-  // Set the inner HTML value to the lyric content
-  div.innerHTML = lyricContent;
+  // Set the inner Text value to the lyric content
+  div.innerText = lyricContent;
 
   // Append the div to the body so it's rendered and we can get the width
   document.body.appendChild(div);
@@ -333,9 +332,6 @@ function constructLyricInputBoxes(song, lyricsGridContainer) {
         }
       }
 
-      // Add the default bottom border
-      div.style.borderBottom = "2px solid rgb(255, 255, 255, 0.99)";
-
       // Dynamically calculate the width of the div based on the content of the lyric
       var width = calculateOptimizedLyricBoxWidth(lyricsToDisplay[i].content)
       div.style.width = width + "px";
@@ -364,12 +360,15 @@ function constructLyricInputBoxes(song, lyricsGridContainer) {
 
       // If the word is not to be guessed, populate the input box with the word and disable it
       if (!lyricsToDisplay[i].toGuess) {
-        input.innerHTML = lyricsToDisplay[i].content;
+        input.innerText = lyricsToDisplay[i].content;
         div.classList.add("lyricle-lyrics-input-noguess");
-        // Remove bottom border from style
-        div.style.borderBottom = "none";
+        // Keep border bottom but make opacity very low for spacing purposes
+        div.style.borderBottom = "4px solid rgba(255, 255, 255, 0.001)";
         input.disabled = true;
         input.contentEditable = false;
+      }
+      else {
+        div.style.borderBottom = "4px solid rgba(255, 255, 255, 0.99)";
       }
 
       // Add the input box to the div
@@ -377,6 +376,8 @@ function constructLyricInputBoxes(song, lyricsGridContainer) {
 
       // Add the div to the column
       col.appendChild(div);
+
+      input.scrollIntoView(alignToTop = true);
     }
 
     // Increment lineIndex by 1
@@ -629,9 +630,9 @@ function useLifeline(song, button) {
         console.log("Populated " + lyricInput.id + " with " + stringToPopulate);
 
         // Update the Opacity of the lyricInput
-        var percentageCorrect = getPercentageCorrect(stringToPopulate, song.lyrics[i].contentComparable);
-        var opacity = 1.00 - percentageCorrect;
-        setLyricBoxBorderBottomStyle(lyricInput, 2, 255, 255, 255, opacity)
+        checkCorrectness(lyricInput, song);
+
+        lyricInput.scrollIntoView(alignToTop = true);
       }
     }
   }
@@ -706,7 +707,13 @@ function lyricBoxFocusListener (input, song) {
   // If the previouslyFocusedInput exists and is not marked as correct or noguess
   if (previouslyFocusedInput && !previouslyFocusedInput.parentElement.classList.contains("lyricle-lyrics-input-noguess") && !previouslyFocusedInput.parentElement.classList.contains("lyricle-lyrics-input-correct")) {
     // Change border bottom back to white while keeping current opacity
-    setLyricBoxBorderBottomStyle(previouslyFocusedInput, 2, 255, 255, 255, null);
+    setLyricBoxBorderBottomStyle(previouslyFocusedInput, {
+      width: 4,
+      color1: 255,
+      color2: 255,
+      color3: 255,
+      opacity: ""
+    });
   }
 
   // Get the active element
@@ -720,7 +727,13 @@ function lyricBoxFocusListener (input, song) {
   focusedBoxIndex = parseInt(lyricBox.id.replace("lyricInput", ""));
 
   // Set the bottom border to be a blue, while maintaining opacity in case it was focused before, indicating active/focus
-  setLyricBoxBorderBottomStyle(lyricBox, 4, 0, 115, 255, null);
+  setLyricBoxBorderBottomStyle(lyricBox, {
+    width: 4,
+    color1: 0,
+    color2: 115,
+    color3: 255,
+    opacity: ""
+  });
 }
 
 // Supporting Functions
@@ -962,33 +975,53 @@ function getPercentageCorrect(input, secret) {
   return percentageCorrect;
 }
 
-function setLyricBoxBorderBottomStyle(lyricBox, width, color1, color2, color3, opacity) {
-  // Get the current values of the border bottom style of the lyricBox element
-  var currentBorderBottom = lyricBox.parentElement.style.borderBottom;
+function setLyricBoxBorderBottomStyle(lyricBox, params) {
+  console.log("From Passed Params:")
+  console.log("width: " + params.width);
+  console.log("color1: " + params.color1);
+  console.log("color2: " + params.color2);
+  console.log("color3: " + params.color3);
+  console.log("opacity: " + params.opacity);
 
+  // Get the current values of the border bottom style of the lyricBox element
   try {
+    var currentBorderBottom = lyricBox.parentElement.style.borderBottom;
     var currentValuesString = currentBorderBottom.match(/\(([^)]+)\)/)[1];
   } catch (error) {
     currentValuesString = "0, 0, 0, 0.99";
   }
 
+  try {
+    var currentWidth = currentBorderBottom.match(/(\d+)px/)[1];
+  } catch (error) {
+    currentWidth = 4;
+  }
+
   var currentValues = currentValuesString.split(", ");
 
-  // If opacity was provided, set opacity to the provided value
-  if (opacity) {
-    var setOpacity = opacity;
-  }
-  else { // if opacity was not provided as a param
-    if (currentValues[3]) {
-      var setOpacity = currentValues[3]; // set opacity to the current opacity value if it exists
-    }
-    else {
-      var setOpacity = 0.99; // otherwise, set it to the base default of 0.99
-    }
-  }
-  
+  console.log("Current Values:")
+  console.log("width: " + currentWidth);
+  console.log("color1: " + currentValues[0]);
+  console.log("color2: " + currentValues[1]);
+  console.log("color3: " + currentValues[2]);
+  console.log("opacity: " + currentValues[3]);
+
   // Update the color and opacity of the border bottom style
-  lyricBox.parentElement.style.borderBottom = width + "px solid rgb(" + color1 + ", " + color2 + ", " + color3 + ", " + setOpacity + ")";
+  var width = params.width !== "" ? params.width : currentWidth;
+  var color1 = params.color1 !== "" ? params.color1 : currentValues[0];
+  var color2 = params.color2 !== "" ? params.color2 : currentValues[1];
+  var color3 = params.color3 !== "" ? params.color3 : currentValues[2];
+  var opacity = params.opacity !== "" && params.opacity !== undefined ? params.opacity : 0.99;
+
+  console.log("To set (keeping values not set in params):")
+  console.log("width: " + width);
+  console.log("color1: " + color1);
+  console.log("color2: " + color2);
+  console.log("color3: " + color3);
+  console.log("opacity: " + opacity);
+
+  lyricBox.parentElement.style.borderBottom = width + "px solid rgba(" + color1 + ", " + color2 + ", " + color3 + ", " + opacity + ")";
+  console.log("Updated border-bottom style of " + lyricBox.id + " to " + lyricBox.parentElement.style.borderBottom);
 }
 
 function checkCorrectness(lyricBox, song) {
@@ -1005,14 +1038,25 @@ function checkCorrectness(lyricBox, song) {
   // Set the opacity of the div relative to the percentage of correct characters
   var percentageCorrect = getPercentageCorrect(comparableInput, lyric.contentComparable);
   var opacity = 1.00 - percentageCorrect;
-  setLyricBoxBorderBottomStyle(lyricBox, 4, 0, 115, 255, opacity)
+  setLyricBoxBorderBottomStyle(lyricBox, {
+    width: "",
+    color1: "",
+    color2: "",
+    color3: "",
+    opacity: opacity
+  });
 
   if (comparableInput === lyric.contentComparable) {
     lyricBox.innerHTML = lyric.content; // populate the lyricBox box with the unformatted secret word at boxIndex
     lyricBox.classList.add("lyricle-lyrics-input-correct");
     lyricBox.parentElement.classList.add("lyricle-lyrics-input-correct");
-    lyricBox.style.borderBottom = "none"; // Remove bottom border from style
-    lyricBox.parentElement.style.borderBottom = "none"; // Remove bottom border from style
+    setLyricBoxBorderBottomStyle(lyricBox, {
+      width: 4,
+      color1: 255,
+      color2: 255,
+      color3: 255,
+      opacity: 0.001
+    });
     lyricBox.disabled = true;
     lyricBox.contentEditable = false;
     wordsCorrect++;
@@ -1061,7 +1105,13 @@ function completeGame(song) {
       if (!input.classList.contains("lyricle-lyrics-input-correct")) { // if the lyric isn't already correct
         input.innerHTML = song.lyrics[i].content; // populate the input box with the correct word
         input.parentElement.classList.add("lyricle-lyrics-input-noguess");
-        input.parentElement.style.borderBottom = "none"; // Remove bottom border from style
+        setLyricBoxBorderBottomStyle(input, {
+          width: 4,
+          color1: 255,
+          color2: 255,
+          color3: 255,
+          opacity: 0.001
+        });
       }
     }
   }
