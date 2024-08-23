@@ -671,7 +671,7 @@ function getRandomSong() {
 // Listeners
 function lyricBoxKeyDownListener(event, song) {
   // If the key or character isn't allowed, prevent the default action of the event and end the function
-  if (!allowedKeys.includes(event.key) && !allowedCharacters.includes(event.key)) {
+  if (!allowedKeys.includes(event.key) && !allowedCharacters.includes((event.key).toLowerCase())) {
     event.preventDefault();
     return;
   }
