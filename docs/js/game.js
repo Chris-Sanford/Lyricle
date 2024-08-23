@@ -789,8 +789,6 @@ function startGame(songData) { // Loads main game with song lyrics to guess
   var howToPlayObjectiveText = document.getElementById("objectiveText");
   howToPlayObjectiveText.innerHTML = "Guess the lyrics to today's song, <b>" + song.title + "</b> by <b>" + song.artist + "</b>!";
 
-  displayHowToPlayModal();
-
   // construct the lyric input boxes to start the game
   constructLyricInputBoxes(song, lyricsGridContainer);
 
@@ -1162,6 +1160,7 @@ function init() { // Initialize the game
       songData = allSongData[Math.floor(Math.random() * allSongData.length)];
     }
     startGame(songData);
+    displayHowToPlayModal();
 });
 }
 window.onload = init; // upon loading the page, initialize the game
