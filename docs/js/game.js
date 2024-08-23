@@ -390,7 +390,7 @@ function constructLyricInputBoxes(song, lyricsGridContainer) {
 
 function constructGameCompleteModal(song) {
 
-  //constructRandomButton();
+  constructRandomButton();
   constructStatsButton();
 
   // Check if modal already exists
@@ -671,7 +671,7 @@ function getRandomSong() {
 // Listeners
 function lyricBoxKeyDownListener(event, song) {
   // If the key or character isn't allowed, prevent the default action of the event and end the function
-  if (!allowedKeys.includes(event.key) && !allowedCharacters.includes(event.key)) {
+  if (!allowedKeys.includes(event.key) && !allowedCharacters.includes((event.key).toLowerCase())) {
     event.preventDefault();
     return;
   }
@@ -788,8 +788,6 @@ function startGame(songData) { // Loads main game with song lyrics to guess
   // Populate the How To Play text with the song title and artist
   var howToPlayObjectiveText = document.getElementById("objectiveText");
   howToPlayObjectiveText.innerHTML = "Guess the lyrics to today's song, <b>" + song.title + "</b> by <b>" + song.artist + "</b>!";
-
-  displayHowToPlayModal();
 
   // construct the lyric input boxes to start the game
   constructLyricInputBoxes(song, lyricsGridContainer);
@@ -1162,6 +1160,7 @@ function init() { // Initialize the game
       songData = allSongData[Math.floor(Math.random() * allSongData.length)];
     }
     startGame(songData);
+    displayHowToPlayModal();
 });
 }
 window.onload = init; // upon loading the page, initialize the game
