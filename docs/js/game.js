@@ -376,8 +376,6 @@ function constructLyricInputBoxes(song, lyricsGridContainer) {
 
       // Add the div to the column
       col.appendChild(div);
-
-      input.scrollIntoView(alignToTop = true);
     }
 
     // Increment lineIndex by 1
@@ -631,8 +629,6 @@ function useLifeline(song, button) {
 
         // Update the Opacity of the lyricInput
         checkCorrectness(lyricInput, song);
-
-        lyricInput.scrollIntoView(alignToTop = true);
       }
     }
   }
@@ -1048,7 +1044,6 @@ function checkCorrectness(lyricBox, song) {
 
   if (comparableInput === lyric.contentComparable) {
     lyricBox.innerHTML = lyric.content; // populate the lyricBox box with the unformatted secret word at boxIndex
-    lyricBox.scrollIntoView(alignToTop = true);
     lyricBox.classList.add("lyricle-lyrics-input-correct");
     lyricBox.parentElement.classList.add("lyricle-lyrics-input-correct");
     setLyricBoxBorderBottomStyle(lyricBox, {
