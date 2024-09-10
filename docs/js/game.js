@@ -388,7 +388,7 @@ function constructLyricInputBoxes(song, lyricsGridContainer) {
 
 function constructGameCompleteModal(song) {
 
-  constructRandomButton();
+  //constructRandomButton();
   constructStatsButton();
 
   // Check if modal already exists
