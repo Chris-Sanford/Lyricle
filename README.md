@@ -28,14 +28,24 @@ brew install python
 
 ### Set API Secrets
 
+The .key files should be created for you by default when you run the respective scripts, they just need to be populated with their respective keys. You'd obtain these keys from the API services themselves, and the keys are specific to your account.
+
 ### Obtain Top Songs from Spotify
+
+`topSongs.py`
 
 ### Get the Lyrics from Genius
 
+`genius.py`
+
+Note: The last time I came back to this, I needed to update to the latest version of the lyricsgenius Python package/module and/or rotate my Genius API App Client Access Token. If you experience weird issues when trying to reach an API, make sure all your packages and libraries are up to date with the API itself and that you're not hitting authentication issues based on your tokens/keys.
+
 ### Filter Out Profanity
+
+`badWordFilter.py`
+
+At the time of writing this, this API is a paid service so instead I just use their portal manually to get all of the detected bad words and then do a manual find and replace for everything that's detected. We could possible replace this with a ChatGPT and OpenAI API call with a specific system prompt. I believe such instructions are also written in the comments of the Python script.
 
 ### Update CDN with New Data
 
-### (If Applicable) Update Javascript with Data Location
-
-Update the `jsonUrl` value in the `getAllSongData()` function within `game.js`.
+We officially host our latest data with CloudFlare's CDN service. You can host your own instance of Lyricle and use the data we host, or update the `jsonUrl` value in the `getAllSongData()` function within `game.js`.
