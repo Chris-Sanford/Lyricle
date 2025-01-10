@@ -10,13 +10,32 @@ Lyricle is fully HTML and JavaScript, and therefore doesn't require any special 
 
 With Lyricle being lightweight, complex server architecture is not necessary. Any modern cloud platform that supports serverless architecture for HTML/JS web applications will work! [lyricle.dev](https://lyricle.dev) is hosted fully in GitHub Pages, with the JSON data hosted in CloudFlare!
 
-## Refresh Data with Python
+## Update Song / Lyric Data
 
-To run the Python script responsible for obtaining the song data from the source API, you must install Python3.
-To install Python3 on Windows, run the following command in an administrative shell (assuming Windows 11):
+To update the song data, you must have Python3 and API keys for Spotify and Genius.
 
-`winget install Python.Python.3.12`
+### Install Python3
 
-To run the Python backend, open a terminal/shell and change directory to the root of the repository. Then, run the following:
+**Windows 11**
+```sh
+winget install Python.Python.3.12
+```
 
-`py api\genius.py`
+**macOS**
+```sh
+brew install python
+```
+
+### Set API Secrets
+
+### Obtain Top Songs from Spotify
+
+### Get the Lyrics from Genius
+
+### Filter Out Profanity
+
+### Update CDN with New Data
+
+### (If Applicable) Update Javascript with Data Location
+
+Update the `jsonUrl` value in the `getAllSongData()` function within `game.js`.
