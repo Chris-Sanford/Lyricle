@@ -26,11 +26,19 @@ winget install Python.Python.3.12
 brew install python
 ```
 
+### Install the Python Required Packages/Modules
+
+```sh
+pip install -r api/requirements.txt
+```
+
 ### Set API Secrets
 
 The .key files should be created for you by default when you run the respective scripts, they just need to be populated with their respective keys. You'd obtain these keys from the API services themselves, and the keys are specific to your account.
 
 ### Obtain Top Songs from Spotify
+
+UPDATE: We need to update this because Spotify has deprecated the preview_url property in their API.
 
 `topSongs.py`
 

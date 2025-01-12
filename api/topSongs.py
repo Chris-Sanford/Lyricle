@@ -10,6 +10,7 @@ import os
 import json
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
+import deezer
 
 #region Global Variable Declarations
 service = 'spotify'
@@ -40,6 +41,20 @@ def get_client_secret(keyFileName):
     except Exception as e:
         print("An error occurred while reading the access token file:", e)
         exit()
+
+def update_preview_urls_with_deezer(all_tracks):
+    client = deezer.Client()
+    for track in all_tracks:
+        try:
+            search_results = client.search(track['title'])
+            if search_results:
+                for result in search_results:
+                    if result.artist.name.lower() == track['artist'].lower():
+                        track['preview_url'] = result.preview
+                        print(f"Updated preview URL for {track['title']} by {track['artist']}")
+                        break
+        except Exception as e:
+            print(f"An error occurred while fetching preview URL for {track['title']} by {track['artist']}: {e}")
 #endregion Functions
         
 #region Execution
@@ -83,6 +98,8 @@ for i in range(pages):
 
     # Add the tracks to the all_tracks list
     all_tracks.extend(tracks)
+
+update_preview_urls_with_deezer(all_tracks)
 
 # Now all_tracks contains the first 365 songs from the playlist
 print(all_tracks)
