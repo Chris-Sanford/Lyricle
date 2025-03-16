@@ -74,6 +74,7 @@ logs
 
 # Cache
 .cache/
+.cache
 .parcel-cache/
 
 # Coverage directory

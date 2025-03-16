@@ -107,6 +107,12 @@ print(all_tracks)
 # Print number of tracks saved to all_tracks
 print(f"Total Tracks: {len(all_tracks)}")
 
+# Check if data directory exists, if not create it
+data_dir = os.path.dirname(jsonFileName)
+if not os.path.exists(data_dir):
+    os.makedirs(data_dir)
+    print(f"The {data_dir} directory has been created.")
+
 # Save track data to JSON file with indentation
 with open(jsonFileName, 'w') as f:
     json.dump(all_tracks, f, indent=4)

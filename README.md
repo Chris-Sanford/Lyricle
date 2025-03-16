@@ -39,13 +39,52 @@ pip install -r api/requirements.txt
 
 #### Set API Key for Spotify
 
-#### Set API Key for Deezer
+1. **Register Your Application**: 
+   - Go to the [Spotify Developer Dashboard](https://developer.spotify.com/dashboard/).
+   - Log in with your Spotify account.
+   - Click on "Create an App" and fill in the required details.
+
+2. **Obtain Your API Key**:
+   - Once your app is created, navigate to the app's settings.
+   - Copy the `Client ID` and `Client Secret`.
+
+3. **Set the API Key in Your Application**:
+   - Create a file named `spotify_client_secret.key` in the `secrets` directory in the root of the repo
+   - Open the file and paste your `Client Secret` value from Spotify
+   - The file should contain only the secret value, with no quotes or other characters
+   - Example contents of `spotify_client_secret.key`:
+     ```
+     1234567890abcdef1234567890abcdef
+     ```
 
 #### Set API Key for Genius
 
+1. **Register Your Application**:
+   - Go to the [Genius API Page](https://genius.com/api-clients).
+   - Log in or sign up for a Genius account.
+   - Click on "Create an API Client" and provide the required information.
+
+2. **Obtain Your API Key**:
+   - Once your API client is created, you will receive an `Access Token`.
+
+3. **Set the API Key in Your Application**:
+   - Create a file named `genius_client_access_token.key` in the `secrets` directory in the root of the repo
+   - Open the file and paste your `Access Token` value from Genius
+   - The file should contain only the token value, with no quotes or other characters
+   - Example contents of `genius_client_access_token.key`:
+     ```
+     1234567890abcdef1234567890abcdef
+     ```
+
 #### Get Song Data from Spotify and Deezer
 
+< Instructions here >
+
 #### Get Lyric Data from Genius
+
+< Instructions here > 
+
+Note that the Genius API actually denies connections made from known cloud public IP addresses, so this script tends to only work when running off your local machine.
 
 #### Filter Out Profanity
 
