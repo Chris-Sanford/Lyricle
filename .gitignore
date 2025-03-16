@@ -1,6 +1,7 @@
 # Project specific
 secrets/
 *.key
+data/
 
 # macOS
 .DS_Store
