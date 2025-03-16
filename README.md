@@ -18,7 +18,7 @@ Lyricle pulls data from my personal CloudFlare R2 bucket by default. However, yo
 
 ### Curating the Data
 
-The .key files should be created for you by default when you run the respective scripts, they just need to be populated with their respective keys. You'd obtain these keys from the API services themselves, and the keys are specific to your account.
+The `.key` files should be created for you by default when you run the respective scripts, they just need to be populated with their respective keys. You'd obtain these keys from the API services themselves, and the keys are specific to your account.
 
 **Install Python and Requirements**
 
