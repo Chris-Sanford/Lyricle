@@ -3,6 +3,25 @@ secrets/
 *.key
 data/
 
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+*.so
+.Python
+.coverage
+htmlcov/
+
+# Virtual Environments
+venv/
+env/
+.env/
+.venv/
+ENV/
+pythonenv*/
+pyvenv.cfg
+
 # macOS
 .DS_Store
 .AppleDouble

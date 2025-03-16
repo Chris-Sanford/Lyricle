@@ -1,54 +1,61 @@
 # Lyricle
 
-Lyricle is a web-based lyric guessing game. Play the daily challenge and put your knowledge to the test!
+Lyricle is a lyric guessing game. Play the daily challenge at [lyricle.dev](https://lyricle.dev) and put your knowledge to the test!
 
-## Run Lyricle Locally
+# Hosting
 
-Lyricle is fully HTML and JavaScript, and therefore doesn't require any special software and doesn't need to be compiled. Install the web server of your choice (Live Server extension for VSCode perhaps?), launch in a web browser, and play!
+## The Game
 
-## Host Lyricle
+With Lyricle being fully client-side HTML / CSS / JavaScript, you can host it on any platform that supports static web pages.
 
-With Lyricle being lightweight, complex server architecture is not necessary. Any modern cloud platform that supports serverless architecture for HTML/JS web applications will work! [lyricle.dev](https://lyricle.dev) is hosted fully in GitHub Pages, with the JSON data hosted in CloudFlare!
+## The Data
 
-## Update Song / Lyric Data
+Lyricle relies on JSON data that contains the song title, artist, and lyrics. If you're looking to curate and host your own data, follow the instructions below.
 
-To update the song data, you must have Python3 and API keys for Spotify and Genius.
+### Hosting the Data
 
-### Install Python3
+Lyricle pulls data from my personal CloudFlare R2 bucket by default. However, you can modify this in your instance to pull from wherever you'd like.
 
-**Windows 11**
+### Curating the Data
+
+The .key files should be created for you by default when you run the respective scripts, they just need to be populated with their respective keys. You'd obtain these keys from the API services themselves, and the keys are specific to your account.
+
+**Install Python and Requirements**
+
+Windows 11
 ```sh
 winget install Python.Python.3.12
 ```
 
-**macOS**
+macOS
 ```sh
 brew install python
 ```
 
-### Install the Python Required Packages/Modules
-
+Install Required Python Packages
 ```sh
 pip install -r api/requirements.txt
 ```
 
-### Set API Secrets
+#### Set API Key for Spotify
 
-The .key files should be created for you by default when you run the respective scripts, they just need to be populated with their respective keys. You'd obtain these keys from the API services themselves, and the keys are specific to your account.
+#### Set API Key for Deezer
 
-### Obtain Top Songs from Spotify
+#### Set API Key for Genius
+
+#### Obtain Top Songs from Spotify
 
 UPDATE: We need to update this because Spotify has deprecated the preview_url property in their API.
 
 `topSongs.py`
 
-### Get the Lyrics from Genius
+#### Get the Lyrics from Genius
 
 `genius.py`
 
 Note: The last time I came back to this, I needed to update to the latest version of the lyricsgenius Python package/module and/or rotate my Genius API App Client Access Token. If you experience weird issues when trying to reach an API, make sure all your packages and libraries are up to date with the API itself and that you're not hitting authentication issues based on your tokens/keys.
 
-### Filter Out Profanity
+#### Filter Out Profanity
 
 `badWordFilter.py`
 
@@ -70,6 +77,6 @@ Also it doesn't seem to properly interpret the \\n in the JSON so we might have 
 
 Unfortunately, it seems like ChatGPT doesn't want or like to work with profanity in this way so it makes it really challenging to automate otherwise.
 
-### Update CDN with New Data
+#### Update CDN with New Data
 
 We officially host our latest data with CloudFlare's CDN service. You can host your own instance of Lyricle and use the data we host, or update the `jsonUrl` value in the `getAllSongData()` function within `game.js`.
