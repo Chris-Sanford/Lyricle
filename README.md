@@ -78,11 +78,22 @@ pip install -r api/requirements.txt
 
 #### Get Song Data from Spotify and Deezer
 
-< Instructions here >
+Run the following from the root directory of the repository:
+
+```
+pip install -r api/requirements.txt
+python api/topSongs.py
+```
+
+The script will create a file named `topSongs.json` in the `data` directory.
 
 #### Get Lyric Data from Genius
 
-< Instructions here > 
+```
+python api/genius.py
+```
+
+The script will create a file named `uncensoredGameData.json` in the `data directory.
 
 Note that the Genius API actually denies connections made from known cloud public IP addresses, so this script tends to only work when running off your local machine.
 
