@@ -1001,8 +1001,11 @@ function checkCorrectness(lyricBox, song) {
   .normalize("NFD") // decompose letters and diatrics
   .replace(/\p{Diacritic}/gu, ''); // replace them with non-accented characters
 
+  // Get the index of the lyric from the input element ID
+  var lyricIndex = parseInt(lyricBox.id.replace("lyricInput", ""));
+  
   // Define a variable containing the lyric object that the lyricBox corresponds to
-  var lyric = song.lyrics[focusedBoxIndex];
+  var lyric = song.lyrics[lyricIndex];
 
   // Set the opacity of the div relative to the percentage of correct characters
   var percentageCorrect = getPercentageCorrect(comparableInput, lyric.contentComparable);
@@ -1032,7 +1035,7 @@ function checkCorrectness(lyricBox, song) {
     if (wordsCorrect === wordsToGuess) { // if the wordsCorrect score equals the number of words in the song
       completeGame(song); // call function that executes game completion code
     }
-    selectNextInput(lyricBox, (focusedBoxIndex)); // call function that selects the next lyricBox box
+    selectNextInput(lyricBox, (lyricIndex)); // call function that selects the next lyricBox box - updated parameter
   }
 }
 
