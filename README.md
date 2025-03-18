@@ -37,21 +37,25 @@ Install Required Python Packages
 pip install -r api/requirements.txt
 ```
 
-#### Set API Key for Spotify
+#### Set API Keys for Spotify
 
 1. **Register Your Application**: 
    - Go to the [Spotify Developer Dashboard](https://developer.spotify.com/dashboard/).
    - Log in with your Spotify account.
    - Click on "Create an App" and fill in the required details.
 
-2. **Obtain Your API Key**:
+2. **Obtain Your API Keys**:
    - Once your app is created, navigate to the app's settings.
    - Copy the `Client ID` and `Client Secret`.
 
-3. **Set the API Key in Your Application**:
-   - Create a file named `spotify_client_secret.key` in the `secrets` directory in the root of the repo
-   - Open the file and paste your `Client Secret` value from Spotify
-   - The file should contain only the secret value, with no quotes or other characters
+3. **Set the API Keys in Your Application**:
+   - Create a file named `spotify_client_id.key` in the `secrets` directory and paste your `Client ID`
+   - Create a file named `spotify_client_secret.key` in the `secrets` directory and paste your `Client Secret`
+   - Each file should contain only the respective value, with no quotes or other characters
+   - Example contents of `spotify_client_id.key`:
+     ```
+     1234567890abcdef1234567890abcdef
+     ```
    - Example contents of `spotify_client_secret.key`:
      ```
      1234567890abcdef1234567890abcdef
@@ -76,24 +80,36 @@ pip install -r api/requirements.txt
      1234567890abcdef1234567890abcdef
      ```
 
-#### Get Song Data from Spotify and Deezer
+#### Install spotify-preview-finder
+
+The spotify-preview-finder npm package is used to fetch preview URLs for songs from Spotify.
+
+```sh
+npm install -g spotify-preview-finder
+```
+
+#### Get Song Data from Spotify with Preview URLs
 
 Run the following from the root directory of the repository:
 
-```
+```sh
 pip install -r api/requirements.txt
-python api/spotify_deezer.py
+python api/spotify_preview.py
 ```
 
-The script will create a file named `topSongs.json` in the `data` directory.
+The script will:
+1. Install the spotify-preview-finder package if it's not already installed
+2. Fetch top songs from Spotify
+3. Use spotify-preview-finder to get preview URLs for each song
+4. Create a file named `topSongs.json` in the `data` directory
 
 #### Get Lyric Data from Genius
 
-```
+```sh
 python api/genius.py
 ```
 
-The script will create a file named `uncensoredGameData.json` in the `data directory.
+The script will create a file named `uncensoredGameData.json` in the `data` directory.
 
 Note that the Genius API actually denies connections made from known cloud public IP addresses, so this script tends to only work when running off your local machine.
 
