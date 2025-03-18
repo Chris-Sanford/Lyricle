@@ -627,6 +627,19 @@ function useLifeline(song, button) {
   if (lifelines === 0) {
     button.classList.remove("btn-danger");
     button.classList.add("disabled"); // Add disabled attribute to lifeline button
+    
+    // Change heart icon to broken heart when lifelines reach zero
+    var lifelineIcon = button.querySelector("i");
+    if (lifelineIcon) {
+      lifelineIcon.classList.remove("fa-heart");
+      lifelineIcon.classList.add("fa-heart-crack");
+    }
+    
+    // Remove the lifeline number since the cracked heart already indicates no lifelines
+    var lifelineNumber = document.getElementById("lifelineButtonNumber");
+    if (lifelineNumber) {
+      lifelineNumber.style.display = "none";
+    }
   }
 }
 
