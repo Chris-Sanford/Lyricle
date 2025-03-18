@@ -94,7 +94,7 @@ Run the following from the root directory of the repository:
 
 ```sh
 pip install -r api/requirements.txt
-python api/spotify_preview.py
+python api/spotify.py
 ```
 
 The script will:
