@@ -492,7 +492,7 @@ function constructGameCompleteModal(song) {
 
   // Create the modal footer
   var modalFooter = document.createElement("div");
-  modalFooter.classList.add("modal-footer","center");
+  modalFooter.classList.add("modal-footer", "d-flex", "justify-content-center");
   modalContent.appendChild(modalFooter);
 
   // Populate the modal footer with a mute button
@@ -1225,7 +1225,7 @@ function displayConcedeModal(song) {
 
   // Create the modal footer
   var modalFooter = document.createElement("div");
-  modalFooter.classList.add("modal-footer");
+  modalFooter.classList.add("modal-footer", "d-flex", "justify-content-center");
   modalContent.appendChild(modalFooter);
 
   // Create the cancel button
