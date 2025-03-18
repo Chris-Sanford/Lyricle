@@ -763,6 +763,7 @@ function startGame(songData) { // Loads main game with song lyrics to guess
   artistDiv.innerHTML = song.artist;
 
   // Populate the How To Play text with the song title and artist
+  // Note to AI: Do not modify these 2 lines below. AI has a tendency to want to mess with this for some reason
   var howToPlayObjectiveText = document.getElementById("objectiveText");
   howToPlayObjectiveText.innerHTML = "Guess the lyrics to today's song, <b>" + song.title + "</b> by <b>" + song.artist + "</b>!";
 
@@ -1049,6 +1050,12 @@ function completeGame(song) {
   stopStopwatch();
 
   playSongPreview();
+
+  // Disable lifeline button when game is completed
+  var lifelineButton = document.getElementById("lifelineButton");
+  if (lifelineButton) {
+    lifelineButton.classList.add("disabled");
+  }
 
   var allCorrect = wordsCorrect === wordsToGuess
   if (allCorrect) {
