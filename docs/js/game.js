@@ -388,7 +388,8 @@ function constructLyricInputBoxes(song, lyricsGridContainer) {
 
 function constructGameCompleteModal(song) {
 
-  //constructRandomButton();
+  // Random button is now created at initialization, no need to create it here
+  // constructRandomButton();
   constructStatsButton();
 
   // Check if modal already exists
@@ -748,11 +749,11 @@ function startGame(songData) { // Loads main game with song lyrics to guess
     statsButton.remove();
   }
 
-  // If randomButton exists, remove it
-  var randomButton = document.getElementById("randomButton");
-  if (randomButton) {
-    randomButton.remove();
-  }
+  // We want to keep the random button, so we're not removing it anymore
+  // var randomButton = document.getElementById("randomButton");
+  // if (randomButton) {
+  //   randomButton.remove();
+  // }
 
   wordsCorrect = 0;
   wordsToGuess = 0;
@@ -1155,7 +1156,8 @@ function init() { // Initialize the game
       songData = allSongData[Math.floor(Math.random() * allSongData.length)];
     }
     startGame(songData);
+    constructRandomButton(); // Add random button from the beginning
     displayHowToPlayModal();
-});
+  });
 }
 window.onload = init; // upon loading the page, initialize the game
