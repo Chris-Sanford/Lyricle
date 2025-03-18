@@ -125,6 +125,8 @@ In theory, instead of leveraging an API and doing the above manual process, you 
 
 Upload the `gameData.json` content to the CDN of your choice (with CORS configured as needed for your domain). Then, update the `jsonUrl` value in the `getAllSongData()` function within `game.js`.
 
-#### Troubleshooting
+#### Debugging & Troubleshooting
 
 If you experience any issues with the API scripts, try updating the Python packages and rotating your API keys.
+
+During development, you can open the web console and execute `getRandomSong()` to get a random song to test against rather than un-commenting the random button from the JavaScript code.
