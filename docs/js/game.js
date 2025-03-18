@@ -562,9 +562,9 @@ async function populateAlertsDiv() {
 }
 
 function useLifeline(song, button) {
-  // If lifelines is 0, return/end the function
-  // We shouldn't be able to hit this but it's just an extra layer of protection against bugs
+  // If lifelines is 0, show concede modal
   if (lifelines === 0) {
+    displayConcedeModal(song);
     return;
   }
 
@@ -626,7 +626,7 @@ function useLifeline(song, button) {
 
   if (lifelines === 0) {
     button.classList.remove("btn-danger");
-    button.classList.add("disabled"); // Add disabled attribute to lifeline button
+    // Keep button clickable, don't add disabled class
     
     // Change heart icon to broken heart when lifelines reach zero
     var lifelineIcon = button.querySelector("i");
@@ -1167,4 +1167,133 @@ function init() { // Initialize the game
     displayHowToPlayModal();
   });
 }
+
+function displayConcedeModal(song) {
+  // Check if modal already exists
+  var existingModal = document.getElementById("concedeModal");
+  if (existingModal) {
+    existingModal.remove();
+  }
+
+  // Create the modal element
+  var modal = document.createElement("div");
+  modal.classList.add("modal", "fade");
+  modal.id = "concedeModal";
+  modal.tabIndex = "-1";
+  modal.setAttribute("aria-labelledby", "concedeModalLabel");
+  modal.setAttribute("aria-hidden", "true");
+
+  // Create the modal dialog
+  var modalDialog = document.createElement("div");
+  modalDialog.classList.add("modal-dialog");
+  modal.appendChild(modalDialog);
+
+  // Create the modal content
+  var modalContent = document.createElement("div");
+  modalContent.classList.add("modal-content");
+  modalDialog.appendChild(modalContent);
+
+  // Create the modal header
+  var modalHeader = document.createElement("div");
+  modalHeader.classList.add("modal-header");
+  modalContent.appendChild(modalHeader);
+
+  // Create the modal title
+  var modalTitle = document.createElement("h1");
+  modalTitle.classList.add("modal-title", "fs-5");
+  modalTitle.id = "concedeModalLabel";
+  modalTitle.innerText = "Concede Game?";
+  modalHeader.appendChild(modalTitle);
+
+  // Create the close button
+  var closeButton = document.createElement("button");
+  closeButton.type = "button";
+  closeButton.classList.add("btn-close");
+  closeButton.setAttribute("data-bs-dismiss", "modal");
+  closeButton.setAttribute("aria-label", "Close");
+  modalHeader.appendChild(closeButton);
+
+  // Create the modal body
+  var modalBody = document.createElement("div");
+  modalBody.classList.add("modal-body");
+  modalContent.appendChild(modalBody);
+
+  // Create the modal body content
+  var modalBodyContent = document.createElement("p");
+  modalBodyContent.innerText = "Are you sure you want to concede? This will end the game and reveal all the lyrics.";
+  modalBody.appendChild(modalBodyContent);
+
+  // Create the modal footer
+  var modalFooter = document.createElement("div");
+  modalFooter.classList.add("modal-footer");
+  modalContent.appendChild(modalFooter);
+
+  // Create the cancel button
+  var cancelButton = document.createElement("button");
+  cancelButton.type = "button";
+  cancelButton.classList.add("btn", "btn-secondary");
+  cancelButton.setAttribute("data-bs-dismiss", "modal");
+  cancelButton.innerText = "Cancel";
+  modalFooter.appendChild(cancelButton);
+
+  // Create the concede button
+  var concedeButton = document.createElement("button");
+  concedeButton.type = "button";
+  concedeButton.classList.add("btn", "btn-danger");
+  concedeButton.innerText = "Concede";
+  concedeButton.addEventListener("click", function() {
+    // Close the modal
+    var concedeModalElement = document.getElementById("concedeModal");
+    var concedeModalInstance = bootstrap.Modal.getInstance(concedeModalElement);
+    concedeModalInstance.hide();
+    
+    // End the game
+    concede(song);
+  });
+  modalFooter.appendChild(concedeButton);
+
+  // Append the modal to the document body
+  document.body.appendChild(modal);
+
+  // Display the modal
+  var modalElement = document.getElementById("concedeModal");
+  var modalInstance = new bootstrap.Modal(modalElement);
+  modalInstance.show();
+}
+
+function concede(song) {
+  // Stop the stopwatch if it's running
+  stopStopwatch();
+  
+  // Play the song preview
+  playSongPreview();
+  
+  // Disable the lifeline button
+  var lifelineButton = document.getElementById("lifelineButton");
+  if (lifelineButton) {
+    lifelineButton.classList.add("disabled");
+  }
+
+  // Reveal all lyrics
+  for (var i = 0; i < song.lyrics.length; i++) {
+    var input = document.getElementById("lyricInput" + i);
+    if (input && !input.classList.contains("lyricle-lyrics-input-correct")) {
+      input.innerHTML = song.lyrics[i].content;
+      input.parentElement.classList.add("lyricle-lyrics-input-noguess");
+      setLyricBoxBorderBottomStyle(input, {
+        width: 4,
+        color1: 255,
+        color2: 255,
+        color3: 255,
+        opacity: 0.001
+      });
+      input.disabled = true;
+      input.contentEditable = false;
+    }
+  }
+  
+  // Show the game complete modal
+  constructGameCompleteModal(song);
+}
+
 window.onload = init; // upon loading the page, initialize the game
