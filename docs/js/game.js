@@ -1156,7 +1156,7 @@ function init() { // Initialize the game
       songData = allSongData[Math.floor(Math.random() * allSongData.length)];
     }
     startGame(songData);
-    constructRandomButton(); // Add random button from the beginning
+    //constructRandomButton(); // Add random button from the beginning
     displayHowToPlayModal();
   });
 }
