@@ -698,13 +698,26 @@ function lyricBoxFocusListener (input, song) {
 
   // If the previouslyFocusedInput exists and is not marked as correct or noguess
   if (previouslyFocusedInput && !previouslyFocusedInput.parentElement.classList.contains("lyricle-lyrics-input-noguess") && !previouslyFocusedInput.parentElement.classList.contains("lyricle-lyrics-input-correct")) {
-    // Change border bottom back to white while keeping current opacity
+    // Calculate the correct opacity for the previously focused box
+    var prevLyricIndex = focusedBoxIndex;
+    var prevLyric = song.lyrics[prevLyricIndex];
+    var prevComparableInput = previouslyFocusedInput.innerHTML
+      .replace(/([^a-zA-Z0-9\s\u00C0-\u017F])/g, "")
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/\p{Diacritic}/gu, '');
+    
+    // Calculate opacity based on correctness for previous box
+    var prevPercentageCorrect = getPercentageCorrect(prevComparableInput, prevLyric.contentComparable);
+    var prevOpacity = 1.00 - prevPercentageCorrect;
+    
+    // Change border bottom back to white while keeping calculated opacity
     setLyricBoxBorderBottomStyle(previouslyFocusedInput, {
       width: 4,
       color1: 255,
       color2: 255,
       color3: 255,
-      opacity: ""
+      opacity: prevOpacity
     });
   }
 
@@ -716,14 +729,27 @@ function lyricBoxFocusListener (input, song) {
 
   // Set the focusedBoxIndex value globally so all other functions can address it
   focusedBoxIndex = parseInt(lyricBox.id.replace("lyricInput", ""));
+  
+  // Get the current lyric object and input value to calculate correct opacity
+  var lyricIndex = focusedBoxIndex;
+  var lyric = song.lyrics[lyricIndex];
+  var comparableInput = lyricBox.innerHTML
+    .replace(/([^a-zA-Z0-9\s\u00C0-\u017F])/g, "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, '');
+  
+  // Calculate opacity based on correctness
+  var percentageCorrect = getPercentageCorrect(comparableInput, lyric.contentComparable);
+  var opacity = 1.00 - percentageCorrect;
 
-  // Set the bottom border to be a blue, while maintaining opacity in case it was focused before, indicating active/focus
+  // Set the bottom border to be blue while maintaining the correct opacity
   setLyricBoxBorderBottomStyle(lyricBox, {
     width: 4,
     color1: 0,
     color2: 115,
     color3: 255,
-    opacity: ""
+    opacity: opacity
   });
 }
 
