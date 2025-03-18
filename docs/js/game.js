@@ -76,13 +76,11 @@ function constructLyricObjects(chorus) {
 
     // If we've reached the maximum number of lines, break out of the loop
     if (lineCount >= maxLines) {
-      console.log("Maximum Lines Reached: " + lineCount);
       break;
     }
 
     // If we've reached the maximum number of characters, break out of the loop
     if (charCount >= maxChars) {
-      console.log("Maximum Characters Reached: " + charCount);
       break;
     }
 
@@ -90,13 +88,8 @@ function constructLyricObjects(chorus) {
 
     // If the current character count plus the total combined length of all the words in the current line is greater than the maximum number of allowed characters, break out of the loop
     if (charCount + lineCharacterCountNoSpaces.length >= maxChars) {
-      console.log("Not adding next line to prevent surpassing maximum allowed character count of " + maxChars);
-      console.log("Maximum Characters Reached:" + charCount);
       break;
     }
-
-    // Print the original line
-    console.log("Original Line: " + lines[i]);
 
     // Split the line by spaces
     var splitBySpaces = lines[i].split(" ");
@@ -171,9 +164,6 @@ function constructLyricObjects(chorus) {
       boxIndex++;
     }
   }
-
-  console.log("Total Line Count: " + lineCount);
-  console.log("Total Character Count: " + charCount);
 
   // Outputs: An array of Lyric objects
   return lyrics;
@@ -572,7 +562,6 @@ async function populateAlertsDiv() {
 }
 
 function useLifeline(song, button) {
-  console.log("Starting lifeline: " + lifelines);
   // If lifelines is 0, return/end the function
   // We shouldn't be able to hit this but it's just an extra layer of protection against bugs
   if (lifelines === 0) {
@@ -603,11 +592,8 @@ function useLifeline(song, button) {
       var lyricInput = document.getElementById("lyricInput" + i);
 
       // If the lyricInput element exists, is a span, and is still enabled
-      console.log("Checking " + lyricInput.id);
-      console.log("Content Editable: " + lyricInput.contentEditable);
       if (lyricInput.contentEditable === "true") {
         // Set the innerText of the lyricInput element to the nth character of the secret lyric
-        console.log("Modifying lyricInput" + i);
 
         // Don't give another letter if the length of the lyric is so short that it would reveal the entire lyric
         if (song.lyrics[i].content.length <= (startingLifelines - lifelines)) {
@@ -622,11 +608,9 @@ function useLifeline(song, button) {
         // Create a loop that runs from 0 to (startingLifelines - lifelines) to determine how many characters to give
         for (var j = 0; j < startingLifelines - lifelines; j++) {
           stringToPopulate += song.lyrics[i].content.charAt(j);
-          console.log("Checking index" + j);
         }
 
         lyricInput.innerText = stringToPopulate;
-        console.log("Populated " + lyricInput.id + " with " + stringToPopulate);
 
         // Update the Opacity of the lyricInput
         checkCorrectness(lyricInput, song);
@@ -644,8 +628,6 @@ function useLifeline(song, button) {
     button.classList.remove("btn-danger");
     button.classList.add("disabled"); // Add disabled attribute to lifeline button
   }
-
-  console.log("Ending lifeline: " + lifelines);
 }
 
 function getRandomSong() {
@@ -715,7 +697,6 @@ function lyricBoxFocusListener (input, song) {
 
   // Get the active element
   var lyricBox = document.activeElement;
-  console.log("Focused Element: " + lyricBox.id);
 
   // Force the cursor to the end of the input box
   moveCursorToEnd(lyricBox, song);
@@ -763,7 +744,6 @@ function startGame(songData) { // Loads main game with song lyrics to guess
 
   // construct a new Song object using the songData object
   var song = constructSongObject(songData.title, songData.artist, songData.preview_url, songData.chorus);
-  console.log(song);
 
   wordsToGuess = song.lyrics.filter(lyric => lyric.toGuess).length;
 
@@ -973,13 +953,6 @@ function getPercentageCorrect(input, secret) {
 }
 
 function setLyricBoxBorderBottomStyle(lyricBox, params) {
-  console.log("From Passed Params:")
-  console.log("width: " + params.width);
-  console.log("color1: " + params.color1);
-  console.log("color2: " + params.color2);
-  console.log("color3: " + params.color3);
-  console.log("opacity: " + params.opacity);
-
   // Get the current values of the border bottom style of the lyricBox element
   try {
     var currentBorderBottom = lyricBox.parentElement.style.borderBottom;
@@ -996,13 +969,6 @@ function setLyricBoxBorderBottomStyle(lyricBox, params) {
 
   var currentValues = currentValuesString.split(", ");
 
-  console.log("Current Values:")
-  console.log("width: " + currentWidth);
-  console.log("color1: " + currentValues[0]);
-  console.log("color2: " + currentValues[1]);
-  console.log("color3: " + currentValues[2]);
-  console.log("opacity: " + currentValues[3]);
-
   // Update the color and opacity of the border bottom style
   var width = params.width !== "" ? params.width : currentWidth;
   var color1 = params.color1 !== "" ? params.color1 : currentValues[0];
@@ -1010,15 +976,7 @@ function setLyricBoxBorderBottomStyle(lyricBox, params) {
   var color3 = params.color3 !== "" ? params.color3 : currentValues[2];
   var opacity = params.opacity !== "" && params.opacity !== undefined ? params.opacity : 0.99;
 
-  console.log("To set (keeping values not set in params):")
-  console.log("width: " + width);
-  console.log("color1: " + color1);
-  console.log("color2: " + color2);
-  console.log("color3: " + color3);
-  console.log("opacity: " + opacity);
-
   lyricBox.parentElement.style.borderBottom = width + "px solid rgba(" + color1 + ", " + color2 + ", " + color3 + ", " + opacity + ")";
-  console.log("Updated border-bottom style of " + lyricBox.id + " to " + lyricBox.parentElement.style.borderBottom);
 }
 
 function checkCorrectness(lyricBox, song) {
