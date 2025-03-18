@@ -111,8 +111,11 @@ body {
     align-items: center;
     text-align: center;
     white-space: nowrap;
-    overflow: hidden;
+    overflow: visible; /* Changed from hidden to visible to prevent clipping of characters */
     margin-left: 4px;
+    margin-right: 2px; /* Add right margin to prevent apostrophes from being clipped */
+    /* Remove letter-spacing that caused issues */
+    /* Remove padding that caused issues */
 }
 .lyricle-lyrics-div-special {
     margin-left: 0px;
@@ -129,6 +132,8 @@ body {
     width: 100%;
     height: 100%;
     color: rgb(209, 209, 209);
+    /* Remove font-family that caused issues */
+    /* Remove letter-spacing that caused issues */
 }
 .lyricle-lyrics-input-noguess {
     /* border-bottom: none; */
