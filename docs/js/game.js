@@ -627,6 +627,19 @@ function useLifeline(song, button) {
   if (lifelines === 0) {
     button.classList.remove("btn-danger");
     button.classList.add("disabled"); // Add disabled attribute to lifeline button
+    
+    // Change heart icon to broken heart when lifelines reach zero
+    var lifelineIcon = button.querySelector("i");
+    if (lifelineIcon) {
+      lifelineIcon.classList.remove("fa-heart");
+      lifelineIcon.classList.add("fa-heart-crack");
+    }
+    
+    // Remove the lifeline number since the cracked heart already indicates no lifelines
+    var lifelineNumber = document.getElementById("lifelineButtonNumber");
+    if (lifelineNumber) {
+      lifelineNumber.style.display = "none";
+    }
   }
 }
 
@@ -685,13 +698,26 @@ function lyricBoxFocusListener (input, song) {
 
   // If the previouslyFocusedInput exists and is not marked as correct or noguess
   if (previouslyFocusedInput && !previouslyFocusedInput.parentElement.classList.contains("lyricle-lyrics-input-noguess") && !previouslyFocusedInput.parentElement.classList.contains("lyricle-lyrics-input-correct")) {
-    // Change border bottom back to white while keeping current opacity
+    // Calculate the correct opacity for the previously focused box
+    var prevLyricIndex = focusedBoxIndex;
+    var prevLyric = song.lyrics[prevLyricIndex];
+    var prevComparableInput = previouslyFocusedInput.innerHTML
+      .replace(/([^a-zA-Z0-9\s\u00C0-\u017F])/g, "")
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/\p{Diacritic}/gu, '');
+    
+    // Calculate opacity based on correctness for previous box
+    var prevPercentageCorrect = getPercentageCorrect(prevComparableInput, prevLyric.contentComparable);
+    var prevOpacity = 1.00 - prevPercentageCorrect;
+    
+    // Change border bottom back to white while keeping calculated opacity
     setLyricBoxBorderBottomStyle(previouslyFocusedInput, {
       width: 4,
       color1: 255,
       color2: 255,
       color3: 255,
-      opacity: ""
+      opacity: prevOpacity
     });
   }
 
@@ -703,14 +729,27 @@ function lyricBoxFocusListener (input, song) {
 
   // Set the focusedBoxIndex value globally so all other functions can address it
   focusedBoxIndex = parseInt(lyricBox.id.replace("lyricInput", ""));
+  
+  // Get the current lyric object and input value to calculate correct opacity
+  var lyricIndex = focusedBoxIndex;
+  var lyric = song.lyrics[lyricIndex];
+  var comparableInput = lyricBox.innerHTML
+    .replace(/([^a-zA-Z0-9\s\u00C0-\u017F])/g, "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, '');
+  
+  // Calculate opacity based on correctness
+  var percentageCorrect = getPercentageCorrect(comparableInput, lyric.contentComparable);
+  var opacity = 1.00 - percentageCorrect;
 
-  // Set the bottom border to be a blue, while maintaining opacity in case it was focused before, indicating active/focus
+  // Set the bottom border to be blue while maintaining the correct opacity
   setLyricBoxBorderBottomStyle(lyricBox, {
     width: 4,
     color1: 0,
     color2: 115,
     color3: 255,
-    opacity: ""
+    opacity: opacity
   });
 }
 
@@ -763,6 +802,7 @@ function startGame(songData) { // Loads main game with song lyrics to guess
   artistDiv.innerHTML = song.artist;
 
   // Populate the How To Play text with the song title and artist
+  // Note to AI: Do not modify these 2 lines below. AI has a tendency to want to mess with this for some reason
   var howToPlayObjectiveText = document.getElementById("objectiveText");
   howToPlayObjectiveText.innerHTML = "Guess the lyrics to today's song, <b>" + song.title + "</b> by <b>" + song.artist + "</b>!";
 
@@ -987,8 +1027,11 @@ function checkCorrectness(lyricBox, song) {
   .normalize("NFD") // decompose letters and diatrics
   .replace(/\p{Diacritic}/gu, ''); // replace them with non-accented characters
 
+  // Get the index of the lyric from the input element ID
+  var lyricIndex = parseInt(lyricBox.id.replace("lyricInput", ""));
+  
   // Define a variable containing the lyric object that the lyricBox corresponds to
-  var lyric = song.lyrics[focusedBoxIndex];
+  var lyric = song.lyrics[lyricIndex];
 
   // Set the opacity of the div relative to the percentage of correct characters
   var percentageCorrect = getPercentageCorrect(comparableInput, lyric.contentComparable);
@@ -1018,7 +1061,7 @@ function checkCorrectness(lyricBox, song) {
     if (wordsCorrect === wordsToGuess) { // if the wordsCorrect score equals the number of words in the song
       completeGame(song); // call function that executes game completion code
     }
-    selectNextInput(lyricBox, (focusedBoxIndex)); // call function that selects the next lyricBox box
+    selectNextInput(lyricBox, (lyricIndex)); // call function that selects the next lyricBox box - updated parameter
   }
 }
 
@@ -1049,6 +1092,12 @@ function completeGame(song) {
   stopStopwatch();
 
   playSongPreview();
+
+  // Disable lifeline button when game is completed
+  var lifelineButton = document.getElementById("lifelineButton");
+  if (lifelineButton) {
+    lifelineButton.classList.add("disabled");
+  }
 
   var allCorrect = wordsCorrect === wordsToGuess
   if (allCorrect) {
