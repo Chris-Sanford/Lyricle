@@ -412,11 +412,14 @@ function toggleMuteSongPreview() {
     audio.muted = true;
     muteButton.className = "fa-solid fa-volume-xmark"; // change icon to show that volume is off
   } else if (muteButton.className === "fa-solid fa-volume-xmark") { // if the icon indicates audio is muted
-    // User wants to unmute and play
+    // User wants to unmute 
     audio.muted = false;
     
-    // This is the perfect time to play on iOS - direct user interaction
-    playAudioWithUserInteraction();
+    // Only play audio if the game is completed (endTime is set)
+    if (endTime) {
+      // This is the perfect time to play on iOS - direct user interaction
+      playAudioWithUserInteraction();
+    }
     
     muteButton.className = "fas fa-volume-up"; // change icon back to show that volume is on
   }
@@ -556,7 +559,7 @@ function constructGameCompleteModal(song) {
   muteButton.addEventListener("click", function() {
     toggleMuteSongPreview();
     // Try to directly play after user interaction on iOS
-    if (!audio.muted) {
+    if (!audio.muted && endTime) {
       playAudioWithUserInteraction();
     }
   });
