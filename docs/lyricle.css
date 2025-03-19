@@ -99,8 +99,9 @@ body {
     margin-left: auto; /* margins left and right being auto center the element without needing to be a container (with bootstrap CSS flexing) */
     margin-right: auto;
     position: relative; /* Keep the row position stable */
-    min-height: 1.8em; /* Ensure minimum height for rows */
-    height: 1.8em; /* Fixed height for rows */
+    min-height: 2.2em; /* Increased from 1.8em to 2.2em */
+    height: 2.2em; /* Increased from 1.8em to 2.2em */
+    margin-top: 0.2em; /* Added small top margin for additional spacing */
     overflow: visible; /* Allow content to overflow without breaking layout */
 }
 .lyricle-lyrics-div {
