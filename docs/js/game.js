@@ -622,6 +622,30 @@ function lyricBoxInputListener(song) {
   // If the stopwatch hasn't been started, start it
   if (!startTime) {
     startStopwatch();
+    
+    // First user interaction - perfect time to "unlock" audio on iOS
+    // This creates a user gesture chain that iOS can use later
+    if (audio) {
+      // Touch the audio element without actually playing
+      // This helps "unlock" the audio context on iOS
+      audio.volume = 0;
+      audio.muted = true;
+      
+      const touchPromise = audio.play();
+      if (touchPromise !== undefined) {
+        touchPromise.then(() => {
+          // Immediately pause and reset
+          audio.pause();
+          audio.currentTime = 0;
+          
+          // Reset to normal settings but keep muted
+          audio.volume = 0.2;
+        }).catch(e => {
+          // Silently fail - we'll try again at completion
+          console.log("Initial audio touch failed:", e);
+        });
+      }
+    }
   }
 
   // Increment the input counter
@@ -1037,11 +1061,27 @@ function selectNextInput(input, boxIndex) {
 function completeGame(song) {
   stopStopwatch();
 
-  // Don't automatically play the preview - requires user interaction on iOS
-  // Instead, update UI to encourage user to tap the play button
+  // Try to play the audio automatically when game completes
+  // The user has definitely interacted with the page by now
   var muteButton = document.getElementById("muteButtonIcon");
   if (muteButton.className !== "fa-solid fa-volume-xmark") {
     muteButton.className = "fas fa-volume-up";
+    
+    // Enable audio and try to play it
+    audio.muted = false;
+    
+    // Attempt to play - this should work on iOS since user has interacted with the page
+    try {
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(error => {
+          console.log("Autoplay on completion failed:", error);
+          // We won't change the UI here since the button already shows play is available
+        });
+      }
+    } catch (e) {
+      console.log("Exception during autoplay on completion:", e);
+    }
   }
 
   // Disable lifeline button when game is completed
@@ -1216,10 +1256,25 @@ function concede(song) {
   // Stop the stopwatch if it's running
   stopStopwatch();
   
-  // Don't auto-play - use the same approach as completeGame
+  // Try to play the audio automatically, similar to completeGame
   var muteButton = document.getElementById("muteButtonIcon");
   if (muteButton.className !== "fa-solid fa-volume-xmark") {
     muteButton.className = "fas fa-volume-up";
+    
+    // Enable audio and try to play it
+    audio.muted = false;
+    
+    // Attempt to play - this should work on iOS since user has interacted with the page
+    try {
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(error => {
+          console.log("Autoplay on concede failed:", error);
+        });
+      }
+    } catch (e) {
+      console.log("Exception during autoplay on concede:", e);
+    }
   }
   
   // Disable the lifeline button

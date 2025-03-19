@@ -41,6 +41,35 @@ integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEw
 
   <!-- Import Game JS -->
   <script src="./js/game.js"></script>
+  
+  <!-- iOS Audio Unlock Script -->
+  <script>
+    // Add a document-wide touch/click handler to help unlock audio on iOS
+    function unlockAudio() {
+      if (window.audio && window.audioLoaded) {
+        // Create a short silent sound and play it
+        const silentPlay = window.audio.play();
+        if (silentPlay !== undefined) {
+          silentPlay.then(() => {
+            // Immediately stop it
+            window.audio.pause();
+            window.audio.currentTime = 0;
+          }).catch(e => {
+            // Silent failure is OK
+            console.log("Audio unlock attempt:", e);
+          });
+        }
+      }
+      
+      // Remove the event listener after first interaction
+      document.removeEventListener('touchstart', unlockAudio);
+      document.removeEventListener('click', unlockAudio);
+    }
+    
+    // Add listeners for both touch and click events
+    document.addEventListener('touchstart', unlockAudio, false);
+    document.addEventListener('click', unlockAudio, false);
+  </script>
 
   <!-- How To Play Modal -->
   <div class="modal fade modal-lg" id="howToPlay">
