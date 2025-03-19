@@ -394,10 +394,13 @@ function playAudioWithUserInteraction() {
   audio.volume = 0.2;
   debugLog("Setting volume to 0.2");
 
-  // Ensure playback position is at beginning unless already playing
-  if (audio.paused || audio.currentTime === 0) {
+  // Ensure playback position is at beginning only if currentTime is 0 or near the end
+  // This allows resuming from where it was paused
+  if (audio.currentTime === 0 || audio.currentTime >= audio.duration - 1) {
     audio.currentTime = 0;
     debugLog("Reset currentTime to beginning for clean playback");
+  } else if (audio.paused) {
+    debugLog("Resuming from position: " + audio.currentTime.toFixed(2) + "s");
   }
   
   // Play with error handling for iOS
@@ -428,7 +431,7 @@ function toggleMuteSongPreview() {
   // Important: This is a direct user interaction, the perfect time to play on iOS
   if (muteButton.className === "fas fa-volume-up") { // If the button currently shows that volume is on
     // User wants to mute
-    debugLog("User muting audio");
+    debugLog("User muting audio, current position: " + audio.currentTime.toFixed(2) + "s");
     audio.pause();
     audio.muted = true;
     muteButton.className = "fa-solid fa-volume-xmark"; // change icon to show that volume is off
@@ -440,7 +443,7 @@ function toggleMuteSongPreview() {
     // Only play audio if the game is completed (endTime is set)
     if (endTime) {
       // This is the perfect time to play on iOS - direct user interaction
-      debugLog("Game completed, attempting playback");
+      debugLog("Game completed, attempting playback from position: " + audio.currentTime.toFixed(2) + "s");
       playAudioWithUserInteraction();
     } else {
       debugLog("Game not completed, not playing audio despite unmute");
@@ -587,7 +590,7 @@ function constructGameCompleteModal(song) {
     toggleMuteSongPreview();
     // Try to directly play after user interaction on iOS
     if (!audio.muted && endTime) {
-      debugLog("Modal: Playing audio after user interaction");
+      debugLog("Modal: Playing audio after user interaction from position: " + audio.currentTime.toFixed(2) + "s");
       playAudioWithUserInteraction();
     } else {
       debugLog("Modal: Not playing audio - muted: " + audio.muted + ", game completed: " + (endTime ? "yes" : "no"));
