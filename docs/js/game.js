@@ -547,13 +547,12 @@ function constructGameCompleteModal(song) {
   modalFooter.classList.add("modal-footer", "d-flex", "justify-content-center");
   modalContent.appendChild(modalFooter);
 
-  // Populate the modal footer with a play/mute button with clearer labeling for iOS users
+  // Populate the modal footer with a mute button - reverted to simple icon style
   var muteButton = document.createElement("button");
   muteButton.type = "button";
-  muteButton.classList.add("btn", "btn-primary");
+  muteButton.classList.add("btn", "btn-secondary", "lyricle-icon-button");
   muteButton.id = "muteButton2";
-  muteButton.style.minWidth = "120px"; // Make button larger for easier tapping on mobile
-  muteButton.innerHTML = "<span>Play Preview</span> ";
+  muteButton.setAttribute("aria-label", "Toggle song preview");
   muteButton.addEventListener("click", function() {
     toggleMuteSongPreview();
     // Try to directly play after user interaction on iOS
