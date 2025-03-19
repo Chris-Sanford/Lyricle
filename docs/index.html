@@ -44,21 +44,43 @@ integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEw
   
   <!-- iOS Audio Unlock Script -->
   <script>
+    // Debug logging
+    function debugLog(message) {
+      if (window.debugMode) {
+        console.log("AUDIO DEBUG: " + message);
+      }
+    }
+    
     // Add a document-wide touch/click handler to help unlock audio on iOS
     function unlockAudio() {
+      debugLog("unlockAudio called from document event");
+      
       if (window.audio && window.audioLoaded) {
-        // Create a short silent sound and play it
-        const silentPlay = window.audio.play();
-        if (silentPlay !== undefined) {
-          silentPlay.then(() => {
-            // Immediately stop it
-            window.audio.pause();
-            window.audio.currentTime = 0;
-          }).catch(e => {
-            // Silent failure is OK
-            console.log("Audio unlock attempt:", e);
-          });
+        debugLog("Audio exists and is loaded, attempting silent play");
+        
+        try {
+          // Make sure audio is silent and muted
+          window.audio.volume = 0;
+          window.audio.muted = true;
+          
+          // Create a short silent sound and play it
+          const silentPlay = window.audio.play();
+          if (silentPlay !== undefined) {
+            silentPlay.then(() => {
+              // Immediately stop it
+              debugLog("Silent play succeeded, pausing immediately");
+              window.audio.pause();
+              window.audio.currentTime = 0;
+            }).catch(e => {
+              // Silent failure is OK
+              debugLog("Audio unlock attempt failed: " + e);
+            });
+          }
+        } catch (e) {
+          debugLog("Exception in unlockAudio: " + e);
         }
+      } else {
+        debugLog("Audio not available for unlocking: exists=" + !!window.audio + ", loaded=" + !!window.audioLoaded);
       }
       
       // Remove the event listener after first interaction
@@ -95,7 +117,7 @@ integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEw
           <p>To get a high score, save your lifelines and guess the lyrics as quickly and accurately as you can!</p>
         </div>
         <div class="modal-footer d-flex justify-content-center">
-          <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Play</button>
+          <button type="button" class="btn btn-primary" data-bs-dismiss="modal" onclick="if(window.debugLog) window.debugLog('Play button clicked in How To Play modal');">Play</button>
         </div>
       </div>
     </div>
