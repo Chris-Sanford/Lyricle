@@ -9,6 +9,7 @@ var lifelines = 0;
 var focusedBoxIndex = 0;
 var inputCounter = 0;
 var audio;
+var audioLoaded = false;
 var terminateAudio = false;
 
 var allowedKeys = ["Backspace","Delete","Tab","ArrowLeft","ArrowRight"]; // array to store sanitized input for comparison
@@ -376,8 +377,59 @@ function constructLyricInputBoxes(song, lyricsGridContainer) {
   }
 }
 
-function constructGameCompleteModal(song) {
+// Add a new function for explicit user-triggered playback
+function playAudioWithUserInteraction() {
+  if (!audio || audio.muted) return;
+  
+  // Set volume directly - no fading on iOS
+  audio.volume = 0.2;
+  
+  // Play with error handling for iOS
+  try {
+    const playPromise = audio.play();
+    if (playPromise !== undefined) {
+      playPromise.catch(error => {
+        console.log("Playback error:", error);
+        // Update UI to indicate playback failed
+        var muteButton = document.getElementById("muteButtonIcon");
+        if (muteButton) {
+          muteButton.className = "fa-solid fa-volume-xmark";
+        }
+      });
+    }
+  } catch (e) {
+    console.log("Exception during playback:", e);
+  }
+}
 
+function toggleMuteSongPreview() {
+  var muteButton = document.getElementById("muteButtonIcon"); // Get the Mute button by id
+  
+  // Important: This is a direct user interaction, the perfect time to play on iOS
+  if (muteButton.className === "fas fa-volume-up") { // If the button currently shows that volume is on
+    // User wants to mute
+    audio.pause();
+    audio.muted = true;
+    muteButton.className = "fa-solid fa-volume-xmark"; // change icon to show that volume is off
+  } else if (muteButton.className === "fa-solid fa-volume-xmark") { // if the icon indicates audio is muted
+    // User wants to unmute and play
+    audio.muted = false;
+    
+    // This is the perfect time to play on iOS - direct user interaction
+    playAudioWithUserInteraction();
+    
+    muteButton.className = "fas fa-volume-up"; // change icon back to show that volume is on
+  }
+
+  // Get the mute button in the modal footer if it exists
+  var muteButton2 = document.getElementById("muteButtonIcon2");
+  if (muteButton2) {
+    // Set the className to be the same as the original muteButton
+    muteButton2.className = muteButton.className;
+  }
+}
+
+function constructGameCompleteModal(song) {
   // Random button is now created at initialization, no need to create it here
   // constructRandomButton();
   constructStatsButton();
@@ -495,12 +547,21 @@ function constructGameCompleteModal(song) {
   modalFooter.classList.add("modal-footer", "d-flex", "justify-content-center");
   modalContent.appendChild(modalFooter);
 
-  // Populate the modal footer with a mute button
+  // Populate the modal footer with a play/mute button with clearer labeling for iOS users
   var muteButton = document.createElement("button");
   muteButton.type = "button";
-  muteButton.classList.add("btn", "btn-secondary");
+  muteButton.classList.add("btn", "btn-primary");
   muteButton.id = "muteButton2";
-  muteButton.addEventListener("click", toggleMuteSongPreview);
+  muteButton.style.minWidth = "120px"; // Make button larger for easier tapping on mobile
+  muteButton.innerHTML = "<span>Play Preview</span> ";
+  muteButton.addEventListener("click", function() {
+    toggleMuteSongPreview();
+    // Try to directly play after user interaction on iOS
+    if (!audio.muted) {
+      playAudioWithUserInteraction();
+    }
+  });
+  
   var muteButtonIcon = document.createElement("i");
   muteButtonIcon.id = "muteButtonIcon2";
   var originalMuteButtonIcon = document.getElementById("muteButtonIcon"); // Get the original mute button icon element
@@ -524,125 +585,6 @@ function constructGameCompleteModal(song) {
 }
 
 // Button Functions
-function toggleMuteSongPreview() {
-  var muteButton = document.getElementById("muteButtonIcon"); // Get the Mute button by id
-  if (muteButton.className === "fas fa-volume-up") { // If the button currently shows that volume is on
-    audio.pause();
-    audio.muted = true;
-    muteButton.className = "fa-solid fa-volume-xmark"; // change icon to show that volume is off
-  } else if (muteButton.className === "fa-solid fa-volume-xmark") { // if the icon indicates audio is muted
-    if (audio.currentTime > 0) { // if the audio has already started playing after game completion
-      audio.play(); // Resume playback
-    }
-    audio.muted = false;
-    muteButton.className = "fas fa-volume-up"; // change icon back to show that volume is on
-  }
-
-  // Get the mute button in the modal footer if it exists
-  var muteButton2 = document.getElementById("muteButtonIcon2");
-  if (muteButton2) {
-    // Set the className to be the same as the original muteButton
-    muteButton2.className = muteButton.className;
-  }
-}
-
-async function populateAlertsDiv() {
-  const alertsDiv = document.getElementById("alerts");
-  const alertHTML = `
-    <div class="alert alert-warning" role="alert">
-      <span id="alertText">Select a lyric before using a lifeline!</span>
-    </div>
-  `;
-  alertsDiv.innerHTML = alertHTML;
-
-  // Remove the alert after 3 seconds
-  setTimeout(() => {
-    alertsDiv.innerHTML = '';
-  }, 3000);
-}
-
-function useLifeline(song, button) {
-  // If lifelines is 0, show concede modal
-  if (lifelines === 0) {
-    displayConcedeModal(song);
-    return;
-  }
-
-  // Update the lifelines remaining text
-  // Get the lifelineButtonNumber element
-  var lifelineButtonNumber = document.getElementById("lifelineButtonNumber");
-
-  // Set the innerText to the number of lifelines remaining
-  lifelineButtonNumber.innerText = (lifelines - 1);
-
-  // If the stopwatch hasn't been started, start it
-  if (!startTime) {
-    startStopwatch();
-  }
-
-  lifelines--; // Decrement the lifelines remaining
-
-  if (lifelines >= 0) {
-    // Populate the nth character of the secret lyric for every incomplete lyric box
-    // nth being calculated by how many lifelines remaining. 1st lifeline reveals 1st character, 2nd lifeline reveals 2nd character, etc.
-
-    // Start a for loop from 0 to the length of the lyrics array
-    for (var i = 0; i < song.lyrics.length; i++) {
-      // Get the lyricInput element
-      var lyricInput = document.getElementById("lyricInput" + i);
-
-      // If the lyricInput element exists, is a span, and is still enabled
-      if (lyricInput.contentEditable === "true") {
-        // Set the innerText of the lyricInput element to the nth character of the secret lyric
-
-        // Don't give another letter if the length of the lyric is so short that it would reveal the entire lyric
-        if (song.lyrics[i].content.length <= (startingLifelines - lifelines)) {
-          continue;
-        }
-
-        // Build the string to populate based on the number of lifelines used/remaining
-        // If this is the 2nd lifeline used, populate the first 2 characters of the secret lyric
-        // Create a loop that runs from (startingLifelines - lifelines) down to 0 to determine how many characters to give
-        var stringToPopulate = ""; // Initialize the string to populate
-
-        // Create a loop that runs from 0 to (startingLifelines - lifelines) to determine how many characters to give
-        for (var j = 0; j < startingLifelines - lifelines; j++) {
-          stringToPopulate += song.lyrics[i].content.charAt(j);
-        }
-
-        lyricInput.innerText = stringToPopulate;
-
-        // Update the Opacity of the lyricInput
-        checkCorrectness(lyricInput, song);
-      }
-    }
-  }
-
-  
-
-  if(lifelines === 1) {
-    button.classList.add("btn-danger");
-  }
-
-  if (lifelines === 0) {
-    button.classList.remove("btn-danger");
-    // Keep button clickable, don't add disabled class
-    
-    // Change heart icon to broken heart when lifelines reach zero
-    var lifelineIcon = button.querySelector("i");
-    if (lifelineIcon) {
-      lifelineIcon.classList.remove("fa-heart");
-      lifelineIcon.classList.add("fa-heart-crack");
-    }
-    
-    // Remove the lifeline number since the cracked heart already indicates no lifelines
-    var lifelineNumber = document.getElementById("lifelineButtonNumber");
-    if (lifelineNumber) {
-      lifelineNumber.style.display = "none";
-    }
-  }
-}
-
 function getRandomSong() {
   // Select a random song from the song data and start the game
   var seed = Math.floor(Math.random() * allSongData.length)
@@ -813,8 +755,16 @@ function startGame(songData) { // Loads main game with song lyrics to guess
 
   resetStopwatch();
   
-  // Create an audio element to play the song preview
-  audio = new Audio(song.preview);
+  // Create an audio element to play the song preview - use the hidden one in HTML
+  var hiddenAudio = document.getElementById("hiddenAudio");
+  hiddenAudio.src = song.preview;
+  hiddenAudio.preload = "auto";
+  audio = hiddenAudio;
+  
+  // Add event listener to track when audio is loaded
+  audio.addEventListener('canplaythrough', function() {
+    audioLoaded = true;
+  });
 }
 
 function moveCursorToEnd(lyricBox, song) {
@@ -908,62 +858,58 @@ function resetStopwatch() {
 }
 
 async function playSongPreview() {
-
-  // While the user has the audio muted, wait for the user to unmute the audio
-  while (document.getElementById("muteButtonIcon").className === "fa-solid fa-volume-xmark") {
-    await new Promise(resolve => setTimeout(resolve, 100)); // Wait for 100 milliseconds before checking again
+  // iOS requires user interaction to play audio
+  if (!audioLoaded) {
+    // Wait for audio to load before attempting to play
+    await new Promise(resolve => {
+      if (audio.readyState >= 3) { // HAVE_FUTURE_DATA or higher
+        audioLoaded = true;
+        resolve();
+      } else {
+        audio.addEventListener('canplaythrough', function onCanPlay() {
+          audioLoaded = true;
+          audio.removeEventListener('canplaythrough', onCanPlay);
+          resolve();
+        });
+      }
+    });
   }
 
-  var maxVolume = 0.2 // Set maximum allowable volume
-  audio.volume = 0; // Set initial volume to 0
-  audio.play();
+  // While the user has the audio muted, do nothing
+  if (document.getElementById("muteButtonIcon").className === "fa-solid fa-volume-xmark") {
+    return; // Don't try to play if muted
+  }
 
-  var fadeDuration = 5; // Duration of fade in and fade out in seconds
-  while (!audio.ended && !terminateAudio) {
-    // Check if audio is muted
-    // if it is, restart while loop
-    if (audio.muted) {
-      await new Promise(resolve => setTimeout(resolve, 100)); // Wait for 100 milliseconds before checking again
-      continue;
+  // Set a moderate volume that works well across devices
+  audio.volume = 0.2;
+  
+  try {
+    // iOS requires play() to be called directly from a user interaction
+    const playPromise = audio.play();
+    
+    // Handle the play promise to catch any errors
+    if (playPromise !== undefined) {
+      playPromise.catch(error => {
+        console.log("Playback error:", error);
+        // If autoplay fails, we'll rely on the user pressing the play button
+      });
     }
-
-    // Fade in the audio in the first 5 seconds
-    var fadeInInterval = setInterval(function() {
-      if (audio.currentTime < fadeDuration) {
-        audio.volume = audio.currentTime / fadeDuration * maxVolume;
-      } else {
-        clearInterval(fadeInInterval);
-      }
-    }, 100); // Check every 100 milliseconds
-
-    // Fade out the audio in the last 5 seconds
-    var fadeOutInterval = setInterval(function() {
-      if (audio.currentTime >= audio.duration - fadeDuration) {
-        audio.volume = (audio.duration - audio.currentTime) / fadeDuration * maxVolume;
-      } else {
-        clearInterval(fadeOutInterval);
-      }
-    }, 100); // Check every 100 milliseconds
-
-    await new Promise(resolve => setTimeout(resolve, 100)); // Wait for 100 milliseconds before checking again
+  } catch (e) {
+    console.log("Exception during playback:", e);
   }
-
-  terminateAudio = false; // Reset the terminateAudio variable
 }
 
 async function stopSongPreview() {
   terminateAudio = true;
-  while (terminateAudio) {
-    // while we wait for the async audio player/fader to terminate
-    if (audio != null) { // if the audio object exists
-      audio.pause();
-      audio.ended = true;
+  if (audio != null) {
+    audio.pause();
+    try {
+      audio.currentTime = 0;
+    } catch (e) {
+      console.log("Error resetting audio:", e);
     }
-    else { // if the audio object doesn't exist
-      terminateAudio = false; // terminate the loop and async function
-    }
-    await new Promise(resolve => setTimeout(resolve, 100));
   }
+  terminateAudio = false;
 }
 
 function getPercentageCorrect(input, secret) {
@@ -1091,7 +1037,12 @@ function selectNextInput(input, boxIndex) {
 function completeGame(song) {
   stopStopwatch();
 
-  playSongPreview();
+  // Don't automatically play the preview - requires user interaction on iOS
+  // Instead, update UI to encourage user to tap the play button
+  var muteButton = document.getElementById("muteButtonIcon");
+  if (muteButton.className !== "fa-solid fa-volume-xmark") {
+    muteButton.className = "fas fa-volume-up";
+  }
 
   // Disable lifeline button when game is completed
   var lifelineButton = document.getElementById("lifelineButton");
@@ -1265,8 +1216,11 @@ function concede(song) {
   // Stop the stopwatch if it's running
   stopStopwatch();
   
-  // Play the song preview
-  playSongPreview();
+  // Don't auto-play - use the same approach as completeGame
+  var muteButton = document.getElementById("muteButtonIcon");
+  if (muteButton.className !== "fa-solid fa-volume-xmark") {
+    muteButton.className = "fas fa-volume-up";
+  }
   
   // Disable the lifeline button
   var lifelineButton = document.getElementById("lifelineButton");
@@ -1294,6 +1248,101 @@ function concede(song) {
   
   // Show the game complete modal
   constructGameCompleteModal(song);
+}
+
+async function populateAlertsDiv() {
+  const alertsDiv = document.getElementById("alerts");
+  const alertHTML = `
+    <div class="alert alert-warning" role="alert">
+      <span id="alertText">Select a lyric before using a lifeline!</span>
+    </div>
+  `;
+  alertsDiv.innerHTML = alertHTML;
+
+  // Remove the alert after 3 seconds
+  setTimeout(() => {
+    alertsDiv.innerHTML = '';
+  }, 3000);
+}
+
+function useLifeline(song, button) {
+  // If lifelines is 0, show concede modal
+  if (lifelines === 0) {
+    displayConcedeModal(song);
+    return;
+  }
+
+  // Update the lifelines remaining text
+  // Get the lifelineButtonNumber element
+  var lifelineButtonNumber = document.getElementById("lifelineButtonNumber");
+
+  // Set the innerText to the number of lifelines remaining
+  lifelineButtonNumber.innerText = (lifelines - 1);
+
+  // If the stopwatch hasn't been started, start it
+  if (!startTime) {
+    startStopwatch();
+  }
+
+  lifelines--; // Decrement the lifelines remaining
+
+  if (lifelines >= 0) {
+    // Populate the nth character of the secret lyric for every incomplete lyric box
+    // nth being calculated by how many lifelines remaining. 1st lifeline reveals 1st character, 2nd lifeline reveals 2nd character, etc.
+
+    // Start a for loop from 0 to the length of the lyrics array
+    for (var i = 0; i < song.lyrics.length; i++) {
+      // Get the lyricInput element
+      var lyricInput = document.getElementById("lyricInput" + i);
+
+      // If the lyricInput element exists, is a span, and is still enabled
+      if (lyricInput.contentEditable === "true") {
+        // Set the innerText of the lyricInput element to the nth character of the secret lyric
+
+        // Don't give another letter if the length of the lyric is so short that it would reveal the entire lyric
+        if (song.lyrics[i].content.length <= (startingLifelines - lifelines)) {
+          continue;
+        }
+
+        // Build the string to populate based on the number of lifelines used/remaining
+        // If this is the 2nd lifeline used, populate the first 2 characters of the secret lyric
+        // Create a loop that runs from (startingLifelines - lifelines) down to 0 to determine how many characters to give
+        var stringToPopulate = ""; // Initialize the string to populate
+
+        // Create a loop that runs from 0 to (startingLifelines - lifelines) to determine how many characters to give
+        for (var j = 0; j < startingLifelines - lifelines; j++) {
+          stringToPopulate += song.lyrics[i].content.charAt(j);
+        }
+
+        lyricInput.innerText = stringToPopulate;
+
+        // Update the Opacity of the lyricInput
+        checkCorrectness(lyricInput, song);
+      }
+    }
+  }
+
+  if(lifelines === 1) {
+    button.classList.add("btn-danger");
+  }
+
+  if (lifelines === 0) {
+    button.classList.remove("btn-danger");
+    // Keep button clickable, don't add disabled class
+    
+    // Change heart icon to broken heart when lifelines reach zero
+    var lifelineIcon = button.querySelector("i");
+    if (lifelineIcon) {
+      lifelineIcon.classList.remove("fa-heart");
+      lifelineIcon.classList.add("fa-heart-crack");
+    }
+    
+    // Remove the lifeline number since the cracked heart already indicates no lifelines
+    var lifelineNumber = document.getElementById("lifelineButtonNumber");
+    if (lifelineNumber) {
+      lifelineNumber.style.display = "none";
+    }
+  }
 }
 
 window.onload = init; // upon loading the page, initialize the game
