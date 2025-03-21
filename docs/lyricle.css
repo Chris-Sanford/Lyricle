@@ -274,7 +274,7 @@ html, body {
 
 /* Keyboard key styles - adjusted for better fit */
 .lyricle-key {
-  background-color: rgba(50, 50, 50, 0.8); /* Darker, more consistent background */
+  background-color: rgba(80, 80, 80, 0.95); /* Lighter gray with higher opacity */
   border-radius: 6px;
   margin: 0.12em;
   display: flex;
@@ -290,6 +290,8 @@ html, body {
   /* Fixed width and height for desktop */
   height: 40px;
   width: 40px;
+  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.3); /* Subtle shadow for depth */
+  border: 1px solid rgba(100, 100, 100, 0.5); /* Subtle border for definition */
 }
 
 /* Desktop-specific adjustments */
@@ -350,28 +352,31 @@ html, body {
   }
 }
 
-/* Special keys styling */
+/* Special keys styling with enhanced contrast */
 .lyricle-keyboard-lifeline {
   position: relative;
-  background-color: rgba(60, 60, 60, 0.8);
+  background-color: rgba(90, 90, 90, 0.95); /* Slightly lighter than regular keys */
   display: flex;
   justify-content: center;
   align-items: center;
+  border: 1px solid rgba(120, 120, 120, 0.5); /* Slightly more visible border */
 }
 
 .backspace-key {
-  background-color: rgba(60, 60, 60, 0.8);
+  background-color: rgba(90, 90, 90, 0.95); /* Match lifeline key color */
+  border: 1px solid rgba(120, 120, 120, 0.5); /* Match lifeline key border */
 }
 
-/* Heart icon and number */
+/* Heart icon with better contrast */
 .lyricle-keyboard-lifeline i {
   font-size: 1.5em;
+  color: rgba(255, 255, 255, 0.9); /* Brighter icon */
 }
 
 .lyricle-keyboard-lifeline-number {
   position: absolute;
   font-size: 1em;
-  color: rgb(100, 100, 100);
+  color: rgba(180, 180, 180, 0.9); /* Lighter color for better visibility */
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
@@ -403,17 +408,19 @@ html, body {
   }
 }
 
-/* Active state for all devices */
+/* Active state with better contrast */
 .lyricle-key:active {
-  background-color: rgba(100, 100, 100, 0.8);
+  background-color: rgba(120, 120, 120, 0.95); /* Much lighter when pressed */
   transform: scale(0.95);
+  box-shadow: 0px 0px 1px rgba(0, 0, 0, 0.2); /* Reduced shadow when pressed */
 }
 
-/* Hover effects only for devices with hover capability */
+/* Hover effects with better contrast */
 @media (hover: hover) {
   .lyricle-key:hover {
-    background-color: rgba(80, 80, 80, 0.9);
+    background-color: rgba(100, 100, 100, 0.95); /* Lighter on hover */
     transform: scale(1.05);
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.4); /* Enhanced shadow on hover */
   }
 }
 
