@@ -81,10 +81,9 @@ body {
     padding: 0; /* Ensure no extra padding */
 }
 .lyricle-oskb {
-    max-width: 100%;
     width: 100%;
     height: auto;
-    padding: 0.6em 0;
+    padding: 0.3em 0; /* Minimal padding */
     background-color: rgba(30, 30, 30, 0.95);
     position: fixed;
     bottom: 0;
@@ -199,13 +198,13 @@ body {
 }
 
 .lyricle-oskb-row {
-    max-width: 100%;
-    width: 100%;
+    width: 98%; /* Use nearly full width */
+    max-width: 600px; /* Prevent excessive stretching on wide screens */
     height: auto;
-    margin: 0.2em 0;
+    margin: 0.15em auto; /* Center horizontally with minimal vertical margin */
     display: flex;
     justify-content: center;
-    padding: 0 0.5em;
+    padding: 0; /* Remove padding */
     box-sizing: border-box;
 }
 .lyricle-oskb-col {
@@ -273,18 +272,19 @@ html, body {
   padding: 0;
 }
 
-/* Keyboard key styles */
+/* Keyboard key styles - adjusted for better fit */
 .lyricle-key {
   background-color: rgba(255, 255, 255, 0.15);
   border-radius: 6px;
-  min-width: 2em;
-  height: 2.5em;
-  margin: 0.2em;
+  flex: 1; /* Allow keys to grow */
+  min-width: 0; /* Enable flex shrinking */
+  aspect-ratio: 1 / 1; /* Square keys */
+  margin: 0.15em; /* Consistent spacing */
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 1em;
-  font-weight: 500;
+  font-size: 1.1em; /* Larger text */
+  font-weight: 600; /* Bolder text */
   color: white;
   cursor: pointer;
   user-select: none;
@@ -303,75 +303,66 @@ html, body {
   transform: scale(0.95);
 }
 
-/* Media query for larger screens */
+/* Media queries with balanced key sizes */
 @media (max-width: 767px) {
   /* Mobile devices */
   .lyricle-oskb {
-    max-height: 35vh; /* Increased significantly */
-    min-height: 160px; /* Ensure minimum height */
+    max-height: 33vh;
+    min-height: 150px;
   }
   
   .lyricle-key {
-    min-width: 2em;
-    height: 2.5em;
-    margin: 0.12em;
-    font-size: 0.9em;
-  }
-}
-
-@media (min-width: 768px) and (max-width: 1199px) {
-  /* Medium screens */
-  .lyricle-oskb {
-    max-height: 25vh; /* Increased */
-    min-height: 170px; /* Ensure minimum height */
-    padding: 0.5em 0;
-  }
-  
-  .lyricle-key {
-    min-width: 2.3em;
-    height: 2.6em;
-    margin: 0.15em;
+    min-height: 2.8em; /* Set minimum height */
     font-size: 1em;
+    margin: 0.1em;
+  }
+  
+  /* Adjust row sizing */
+  .lyricle-oskb-row {
+    width: 98%; /* Use nearly full width */
+    margin: 0.1em auto;
   }
 }
 
-@media (min-width: 1200px) {
-  /* Large screens */
+@media (min-width: 768px) {
+  /* Larger screens */
   .lyricle-oskb {
-    max-height: 22vh; /* Increased */
-    min-height: 180px; /* Ensure minimum height */
-    padding: 0.5em 0;
+    max-height: 25vh;
+    min-height: 170px;
   }
   
   .lyricle-key {
-    min-width: 2.5em;
-    height: 2.8em;
-    margin: 0.2em;
+    min-height: 3em; /* Larger keys on bigger screens */
     font-size: 1.1em;
+    margin: 0.15em;
   }
 }
 
-/* Keyboard lifeline button styling */
+/* Special keys - override flexible sizing for specific keys */
 .lyricle-keyboard-lifeline {
   position: relative;
-  min-width: 4em;
+  flex: 1.2; /* Make lifeline button slightly wider */
+  min-width: 0;
+  background-color: rgba(60, 60, 60, 0.8);
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: rgba(60, 60, 60, 0.8);
 }
 
-.btn-danger.lyricle-keyboard-lifeline {
-  background-color: rgba(220, 53, 69, 0.4);
+/* Backspace key */
+.backspace-key {
+  flex: 1.2; /* Make backspace slightly wider */
+  min-width: 0;
 }
 
+/* Improved heart icon and number */
 .lyricle-keyboard-lifeline i {
-  font-size: 1.3em;
+  font-size: 1.5em;
 }
 
 .lyricle-keyboard-lifeline-number {
   position: absolute;
-  font-size: 0.9em;
+  font-size: 1em;
   color: rgb(65, 65, 65);
   top: 50%;
   left: 50%;
@@ -379,27 +370,19 @@ html, body {
   font-weight: bold;
 }
 
-/* Add disabled state styling for the keyboard lifeline button */
-.lyricle-keyboard-lifeline.disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  pointer-events: none;
-  background-color: rgba(50, 50, 50, 0.5);
-}
-
-/* Ensure the third row is visible */
-#oskbRow3 {
+/* Ensure rows are fully visible */
+#oskbRow1, #oskbRow2, #oskbRow3 {
   display: flex !important;
   visibility: visible !important;
   opacity: 1 !important;
   height: auto !important;
-  min-height: 2.5em !important;
-  margin-bottom: 0.3em !important;
 }
 
-/* Special styling for the bottom row to ensure it's fully visible */
-#oskbRow3Col1 {
+/* The row containers need to also use full width */
+#oskbRow1Col1, #oskbRow2Col1, #oskbRow3Col1 {
   display: flex !important;
   visibility: visible !important;
   opacity: 1 !important;
+  width: 100% !important;
+  justify-content: center !important;
 }
