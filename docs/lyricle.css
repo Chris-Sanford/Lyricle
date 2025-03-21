@@ -83,19 +83,19 @@ body {
 .lyricle-oskb {
     width: 100%;
     height: auto;
-    padding: 0.3em 0; /* Minimal padding */
-    background-color: rgba(30, 30, 30, 0.95);
+    padding: 0.3em 0;
+    background-color: transparent; /* Remove background for all devices */
     position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
     z-index: 1000;
     overflow: visible;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
     justify-content: space-around;
+    padding-bottom: 10px; /* Add padding at bottom to prevent cutoff */
 }
 
 /* Children Elements (Elements contained within the aforementioned Parents) */
@@ -198,13 +198,13 @@ body {
 }
 
 .lyricle-oskb-row {
-    width: 98%; /* Use nearly full width */
-    max-width: 600px; /* Prevent excessive stretching on wide screens */
+    width: 98%;
+    max-width: 600px;
     height: auto;
-    margin: 0.15em auto; /* Center horizontally with minimal vertical margin */
+    margin: 0.1em auto;
     display: flex;
     justify-content: center;
-    padding: 0; /* Remove padding */
+    padding: 0;
     box-sizing: border-box;
 }
 .lyricle-oskb-col {
@@ -274,88 +274,96 @@ html, body {
 
 /* Keyboard key styles - adjusted for better fit */
 .lyricle-key {
-  background-color: rgba(255, 255, 255, 0.15);
+  background-color: rgba(50, 50, 50, 0.8); /* Darker, more consistent background */
   border-radius: 6px;
-  flex: 1; /* Allow keys to grow */
-  min-width: 0; /* Enable flex shrinking */
-  aspect-ratio: 1 / 1; /* Square keys */
-  margin: 0.15em; /* Consistent spacing */
+  margin: 0.12em;
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 1.1em; /* Larger text */
-  font-weight: 600; /* Bolder text */
+  font-size: 1.1em;
+  font-weight: 600;
   color: white;
   cursor: pointer;
   user-select: none;
   transition: background-color 0.1s, transform 0.1s;
   text-transform: uppercase;
+  /* Fixed width and height for desktop */
+  height: 40px;
+  width: 40px;
 }
 
-/* Add hover effect for desktop */
-.lyricle-key:hover {
-  background-color: rgba(255, 255, 255, 0.25);
-  transform: scale(1.05);
+/* Desktop-specific adjustments */
+@media (min-width: 768px) {
+  .lyricle-oskb {
+    max-height: 22vh;
+    min-height: 170px;
+    bottom: 15px; /* Shift up on desktop */
+    padding-bottom: 15px; /* More padding on desktop */
+  }
+  
+  .lyricle-key {
+    height: 45px; /* Larger fixed height */
+    width: 45px; /* Larger fixed width */
+    margin: 0.15em;
+    font-size: 1.2em;
+  }
+  
+  /* Special keys on desktop */
+  .lyricle-keyboard-lifeline, .backspace-key {
+    width: 60px; /* Wider special keys */
+  }
 }
 
-.lyricle-key:active {
-  background-color: rgba(255, 255, 255, 0.3);
-  transform: scale(0.95);
-}
-
-/* Media queries with balanced key sizes */
+/* Mobile-specific styles - keep flexible layout */
 @media (max-width: 767px) {
-  /* Mobile devices */
   .lyricle-oskb {
     max-height: 33vh;
     min-height: 150px;
+    padding-bottom: 5px; /* Less padding on mobile */
   }
   
+  /* Use fixed sizes for consistency on mobile */
   .lyricle-key {
-    min-height: 2.8em; /* Set minimum height */
-    font-size: 1em;
+    height: 42px; /* Fixed height */
+    width: 9.5%; /* Percentage width to fill available space */
+    min-width: 30px; /* Minimum width */
+    max-width: 45px; /* Maximum width */
     margin: 0.1em;
+    font-size: 1em;
   }
   
-  /* Adjust row sizing */
+  /* Row adjustments for mobile */
   .lyricle-oskb-row {
-    width: 98%; /* Use nearly full width */
-    margin: 0.1em auto;
-  }
-}
-
-@media (min-width: 768px) {
-  /* Larger screens */
-  .lyricle-oskb {
-    max-height: 25vh;
-    min-height: 170px;
+    width: 100%;
+    margin: 0.05em auto;
   }
   
-  .lyricle-key {
-    min-height: 3em; /* Larger keys on bigger screens */
-    font-size: 1.1em;
-    margin: 0.15em;
+  /* Special keys sizing on mobile */
+  .lyricle-keyboard-lifeline {
+    width: 11%; /* Slightly wider */
+    min-width: 36px;
+  }
+  
+  .backspace-key {
+    width: 11%; /* Slightly wider */
+    min-width: 36px;
   }
 }
 
-/* Special keys - override flexible sizing for specific keys */
+/* Special keys styling */
 .lyricle-keyboard-lifeline {
   position: relative;
-  flex: 1.2; /* Make lifeline button slightly wider */
-  min-width: 0;
   background-color: rgba(60, 60, 60, 0.8);
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
-/* Backspace key */
 .backspace-key {
-  flex: 1.2; /* Make backspace slightly wider */
-  min-width: 0;
+  background-color: rgba(60, 60, 60, 0.8);
 }
 
-/* Improved heart icon and number */
+/* Heart icon and number */
 .lyricle-keyboard-lifeline i {
   font-size: 1.5em;
 }
@@ -363,14 +371,53 @@ html, body {
 .lyricle-keyboard-lifeline-number {
   position: absolute;
   font-size: 1em;
-  color: rgb(65, 65, 65);
+  color: rgb(100, 100, 100);
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   font-weight: bold;
 }
 
-/* Ensure rows are fully visible */
+/* Remove any max-width constraints on rows for mobile */
+@media (max-width: 767px) {
+  #oskbRow1Col1, #oskbRow2Col1, #oskbRow3Col1 {
+    width: 100% !important;
+    max-width: 100% !important;
+    display: flex !important;
+    justify-content: center !important;
+  }
+}
+
+/* Row containers need width adjustments on desktop */
+@media (min-width: 768px) {
+  #oskbRow1Col1 {
+    width: 535px !important; /* Fixed width for desktop */
+  }
+  
+  #oskbRow2Col1 {
+    width: 480px !important; /* Fixed width for desktop */
+  }
+  
+  #oskbRow3Col1 {
+    width: 425px !important; /* Fixed width for desktop */
+  }
+}
+
+/* Active state for all devices */
+.lyricle-key:active {
+  background-color: rgba(100, 100, 100, 0.8);
+  transform: scale(0.95);
+}
+
+/* Hover effects only for devices with hover capability */
+@media (hover: hover) {
+  .lyricle-key:hover {
+    background-color: rgba(80, 80, 80, 0.9);
+    transform: scale(1.05);
+  }
+}
+
+/* Force visibility of all rows */
 #oskbRow1, #oskbRow2, #oskbRow3 {
   display: flex !important;
   visibility: visible !important;
@@ -378,11 +425,11 @@ html, body {
   height: auto !important;
 }
 
-/* The row containers need to also use full width */
+/* Ensure all rows are visible and properly spaced */
 #oskbRow1Col1, #oskbRow2Col1, #oskbRow3Col1 {
   display: flex !important;
   visibility: visible !important;
   opacity: 1 !important;
-  width: 100% !important;
   justify-content: center !important;
+  flex-wrap: nowrap !important;
 }
