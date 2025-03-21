@@ -15,6 +15,10 @@
 
 body {
     touch-action: manipulation; /* Prevents double tap zoom on mobile devices, helps for pressing Random and Lifeline */
+    overflow: hidden; /* Prevent scrolling on the entire page */
+    position: fixed; 
+    width: 100%;
+    height: 100%;
 }
 
 /* Center the element vertically and horizontally */
@@ -49,21 +53,27 @@ body {
     margin-left: auto; /* margins left and right being auto center the element without needing to be a container (with bootstrap CSS flexing) */
     margin-right: auto;
     border-bottom: 2px solid rgba(255, 255, 255, 0.177);
+    position: relative;
+    z-index: 10; /* Ensure these appear above the lyrics */
 }
 .lyricle-songtitle {
     max-width: 800px; /* Prevents larger displays from oversizing divs */
     max-height: 80px; /* Prevents larger displays from oversizing divs  */
     height: 5vh; /* Dynamically calculates height based on viewport for mobile responsivenesss but is limited by aforementioned max values for large displays */
     border-bottom: 2px solid rgba(255, 255, 255, 0.177);
+    position: relative;
+    z-index: 10; /* Ensure these appear above the lyrics */
 }
 .lyricle-lyrics {
     max-width: 800px;
-    min-height: 35vh; /* Change to min-height instead of fixed height */
-    height: auto;
+    /* Fixed position between title and oskb */
+    position: relative;
     margin-left: auto;
     margin-right: auto;
-    overflow-y: auto; /* Allow scrolling if needed */
-    padding-bottom: 20px; /* Add padding at the bottom */
+    overflow-y: hidden; /* No scrolling within lyrics area */
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 .lyricle-oskb {
     max-width: 484px; /* Prevents larger displays from creating unreasonably large OSKB */
@@ -72,6 +82,9 @@ body {
     margin-left: auto; /* margins left and right being auto center the element without needing to be a container (with bootstrap CSS flexing) */
     margin-right: auto;
     text-align: center;
+    position: relative;
+    z-index: 10;
+    margin-top: auto;
 }
 
 /* Children Elements (Elements contained within the aforementioned Parents) */
@@ -91,10 +104,12 @@ body {
 
 .lyricle-lyrics-grid {
     max-width: 800px;
-    height: auto;
+    width: 100%;
     margin-left: auto;
     margin-right: auto;
     position: relative;
+    /* Remove transform that might be causing issues */
+    transform: none;
 }
 .lyricle-lyrics-row {
     max-width: 800px;
@@ -102,10 +117,10 @@ body {
     margin-right: auto;
     position: relative;
     min-height: 2.2em;
-    height: auto; /* Change from fixed height to auto */
-    margin-top: 0.2em;
-    margin-bottom: 0.2em; /* Add bottom margin for wrapped content */
-    padding: 5px 0;
+    height: auto;
+    margin-top: 0.4em; /* Increased spacing between rows */
+    margin-bottom: 0.4em;
+    padding: 0;
     overflow: visible;
 }
 .lyricle-lyrics-div {
@@ -214,9 +229,17 @@ body {
   align-items: center;
   justify-content: center;
   width: 100%;
-  padding: 5px;
+  padding: 0 5px;
+  gap: 4px; /* Add gap for better spacing between items */
 }
 
 .lyricle-lyrics-flex-wrap {
   flex-wrap: wrap;
+}
+
+/* Make sure the entire content fits in the viewport */
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
 }

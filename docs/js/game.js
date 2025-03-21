@@ -280,6 +280,10 @@ function calculateOptimizedLyricBoxWidth(lyricContent) {
 }
 
 function constructLyricInputBoxes(song, lyricsGridContainer) {
+  // Reset the container's position and style first
+  lyricsGridContainer.innerHTML = '';
+  lyricsGridContainer.style.marginTop = "10px"; // Add margin at top to ensure it starts below the title bar
+  
   // Set lineIndex to 0
   var lineIndex = 0;
 
@@ -383,10 +387,16 @@ function constructLyricInputBoxes(song, lyricsGridContainer) {
   }
 
   // NEW: Add responsive resize handler
-  window.addEventListener('resize', adjustLyricLineHeights);
+  window.addEventListener('resize', function() {
+    adjustLyricLineHeights();
+    adjustLyricContentPosition();
+  });
   
   // Initial adjustment
-  setTimeout(adjustLyricLineHeights, 100);
+  setTimeout(function() {
+    adjustLyricLineHeights();
+    adjustLyricContentPosition();
+  }, 100);
 }
 
 // NEW: Function to adjust lyric line heights based on content wrapping
@@ -409,6 +419,46 @@ function adjustLyricLineHeights() {
     row.style.height = newHeight;
     row.style.minHeight = newHeight;
   });
+}
+
+// NEW: Function to adjust the vertical positioning of the lyrics content
+function adjustLyricContentPosition() {
+  // Get key elements
+  const songTitle = document.getElementById('songTitle');
+  const lyricsContainer = document.getElementById('lyrics');
+  const lyricsGrid = document.getElementById('lyricsGrid');
+  const oskbContainer = document.getElementById('oskb');
+  
+  if (!songTitle || !lyricsContainer || !lyricsGrid || !oskbContainer) return;
+  
+  // Calculate available height between song title and oskb
+  const viewportHeight = window.innerHeight;
+  const songTitleBottom = songTitle.getBoundingClientRect().bottom;
+  const oskbTop = oskbContainer.getBoundingClientRect().top;
+  
+  // Calculate the available space
+  const availableHeight = oskbTop - songTitleBottom;
+  
+  // Set the lyrics container to this height
+  lyricsContainer.style.height = availableHeight + 'px';
+  
+  // Position the grid in the middle of the available space
+  const lyricsGridHeight = lyricsGrid.getBoundingClientRect().height;
+  
+  // If the lyrics content fits within the available space, center it
+  if (lyricsGridHeight < availableHeight) {
+    const topMargin = Math.max(10, (availableHeight - lyricsGridHeight) / 2);
+    lyricsGrid.style.marginTop = topMargin + 'px';
+    lyricsGrid.style.position = 'relative';
+    lyricsGrid.style.top = '0';
+    lyricsGrid.style.transform = 'none';
+  } else {
+    // If content is too tall, just position it at the top with a small margin
+    lyricsGrid.style.marginTop = '10px';
+    lyricsGrid.style.position = 'relative';
+    lyricsGrid.style.top = '0';
+    lyricsGrid.style.transform = 'none';
+  }
 }
 
 // Debug logging function
