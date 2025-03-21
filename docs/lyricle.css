@@ -78,6 +78,7 @@ body {
     justify-content: center;
     left: 0;
     right: 0;
+    padding: 0; /* Ensure no extra padding */
 }
 .lyricle-oskb {
     max-width: 484px; /* Prevents larger displays from creating unreasonably large OSKB */
@@ -115,10 +116,10 @@ body {
     transform: none;
     left: 0;
     right: 0;
-    /* Center content */
     display: flex;
     flex-direction: column;
     align-items: center;
+    gap: 0; /* Ensure no extra gap between rows */
 }
 .lyricle-lyrics-row {
     width: 100%;
@@ -126,13 +127,12 @@ body {
     margin-left: auto;
     margin-right: auto;
     position: relative;
-    min-height: 2.2em;
+    min-height: 1.8em; /* Reduced from 2.2em */
     height: auto;
-    margin-top: 0.4em;
-    margin-bottom: 0.4em;
+    margin-top: 0.15em; /* Reduced from 0.4em */
+    margin-bottom: 0.15em; /* Reduced from 0.4em */
     padding: 0;
     overflow: visible;
-    /* Center content */
     justify-content: center;
 }
 .lyricle-lyrics-div {
@@ -146,12 +146,12 @@ body {
     text-align: center;
     white-space: nowrap;
     overflow: visible;
-    margin: 2px 4px;
+    margin: 1px 4px; /* Reduced top/bottom margin from 2px to 1px */
     vertical-align: baseline;
     line-height: 1.6em;
     position: relative;
     box-sizing: border-box;
-    max-width: calc(100vw - 30px); /* Slightly more restrictive */
+    max-width: calc(100vw - 30px);
 }
 .lyricle-lyrics-div-special {
     margin-left: 0px;
@@ -243,7 +243,7 @@ body {
   width: 100%;
   max-width: 100%;
   padding: 0 5px;
-  gap: 4px;
+  gap: 2px; /* Reduced from 4px */
   margin: 0 auto;
 }
 

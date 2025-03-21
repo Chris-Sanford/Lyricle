@@ -282,7 +282,7 @@ function calculateOptimizedLyricBoxWidth(lyricContent) {
 function constructLyricInputBoxes(song, lyricsGridContainer) {
   // Reset the container's position and style first
   lyricsGridContainer.innerHTML = '';
-  lyricsGridContainer.style.marginTop = "10px"; // Add margin at top to ensure it starts below the title bar
+  lyricsGridContainer.style.marginTop = "5px"; // Reduced from 10px to 5px
   
   // NEW: Ensure the grid is centered horizontally
   lyricsGridContainer.style.width = "100%";
@@ -298,12 +298,15 @@ function constructLyricInputBoxes(song, lyricsGridContainer) {
 
   // while there are still lyrics to display
   while (lyricsToDisplay != null && lyricsToDisplay.length > 0) {
-    // Create a row within the lyrics container
+    // Create a row with reduced vertical margins
     var row = document.createElement("div");
     row.classList.add("row");
     row.classList.add("lyricle-lyrics-row");
-    row.style.maxWidth = "100%"; // NEW: Ensure the row doesn't exceed viewport width
-    row.style.width = "100%";    // NEW: Take up full width of container
+    row.style.maxWidth = "100%";
+    row.style.width = "100%";
+    // NEW: Reduce vertical margins
+    row.style.marginTop = "0.15em";    // Reduced from 0.4em
+    row.style.marginBottom = "0.15em"; // Reduced from 0.4em
     lyricsGridContainer.appendChild(row);
 
     // Create a column within the row to store all lyrics
@@ -402,11 +405,11 @@ function constructLyricInputBoxes(song, lyricsGridContainer) {
     adjustLyricContentPosition();
   });
   
-  // Initial adjustment
+  // Initial adjustment with a shorter delay
   setTimeout(function() {
     adjustLyricLineHeights();
     adjustLyricContentPosition();
-  }, 100);
+  }, 50); // Reduced from 100ms to 50ms for faster initial rendering
 }
 
 // NEW: Function to adjust lyric line heights based on content wrapping
@@ -421,9 +424,10 @@ function adjustLyricLineHeights() {
     row.style.height = 'auto';
     row.style.minHeight = 'auto';
     
-    // Get actual content height plus some padding
+    // Get actual content height with minimal padding
     const contentHeight = col.offsetHeight;
-    const newHeight = contentHeight + 10 + 'px';
+    // Reduce padding from 10px to just 2px
+    const newHeight = contentHeight + 2 + 'px';
     
     // Set the new height
     row.style.height = newHeight;
@@ -452,35 +456,33 @@ function adjustLyricContentPosition() {
   // Set the lyrics container to this height
   lyricsContainer.style.height = availableHeight + 'px';
   
-  // Position the grid in the middle of the available space
-  const lyricsGridHeight = lyricsGrid.getBoundingClientRect().height;
-  
   // Ensure the lyrics container is centered horizontally
   lyricsContainer.style.left = "0";
   lyricsContainer.style.right = "0";
   lyricsContainer.style.width = "100%";
   
+  // Position the grid in the middle of the available space
+  const lyricsGridHeight = lyricsGrid.getBoundingClientRect().height;
+  
   // If the lyrics content fits within the available space, center it vertically
   if (lyricsGridHeight < availableHeight) {
-    const topMargin = Math.max(10, (availableHeight - lyricsGridHeight) / 2);
+    const topMargin = Math.max(5, (availableHeight - lyricsGridHeight) / 2); // Reduced min from 10px to 5px
     lyricsGrid.style.marginTop = topMargin + 'px';
     lyricsGrid.style.position = 'relative';
     lyricsGrid.style.top = '0';
     lyricsGrid.style.transform = 'none';
-    // NEW: Ensure horizontal centering
     lyricsGrid.style.left = "0";
     lyricsGrid.style.right = "0";
     lyricsGrid.style.margin = topMargin + "px auto 0 auto";
   } else {
-    // If content is too tall, just position it at the top with a small margin
-    lyricsGrid.style.marginTop = '10px';
+    // If content is too tall, position it at the top with minimal margin
+    lyricsGrid.style.marginTop = '5px'; // Reduced from 10px to 5px
     lyricsGrid.style.position = 'relative';
     lyricsGrid.style.top = '0';
     lyricsGrid.style.transform = 'none';
-    // NEW: Ensure horizontal centering
     lyricsGrid.style.left = "0";
     lyricsGrid.style.right = "0";
-    lyricsGrid.style.margin = "10px auto 0 auto";
+    lyricsGrid.style.margin = "5px auto 0 auto"; // Reduced from 10px to 5px
   }
   
   // NEW: Ensure no horizontal overflow
