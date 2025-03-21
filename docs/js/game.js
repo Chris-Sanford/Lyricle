@@ -283,8 +283,9 @@ function calculateOptimizedLyricBoxWidth(lyricContent, customBuffer) {
   return width + widthBuffer;
 }
 
+// Update the constructLyricInputBoxes function to properly handle both desktop and mobile input
 function constructLyricInputBoxes(song, lyricsGridContainer) {
-  // Reset and initialization code
+  // Existing reset and initialization code remains the same
   lyricsGridContainer.innerHTML = '';
   lyricsGridContainer.style.marginTop = "5px";
   
@@ -298,14 +299,14 @@ function constructLyricInputBoxes(song, lyricsGridContainer) {
   var lyricsToDisplay = song.lyrics.filter(lyric => lyric.lineIndex === lineIndex);
 
   while (lyricsToDisplay != null && lyricsToDisplay.length > 0) {
-    // Row creation with balanced margins
+    // Row creation with balanced margins remains the same
     var row = document.createElement("div");
     row.classList.add("row");
     row.classList.add("lyricle-lyrics-row");
     row.style.maxWidth = "100%";
     row.style.width = "100%";
-    row.style.marginTop = "0.15em";    // Keep this reduced value
-    row.style.marginBottom = "0.15em"; // Keep this reduced value
+    row.style.marginTop = "0.15em";
+    row.style.marginBottom = "0.15em";
     lyricsGridContainer.appendChild(row);
 
     // Column with slightly increased padding
@@ -323,7 +324,7 @@ function constructLyricInputBoxes(song, lyricsGridContainer) {
       div.id = "lyricInputDiv" + lyricsToDisplay[i].boxIndex;
       div.classList.add("lyricle-lyrics-div");
 
-      // Special character handling 
+      // Special character handling remains the same
       if (lyricsToDisplay[i].isSpecial) {
         div.classList.add("lyricle-lyrics-div-special");
         if (lyricsToDisplay[i].spaceLeft) {
@@ -334,53 +335,61 @@ function constructLyricInputBoxes(song, lyricsGridContainer) {
         }
       }
 
-      // Slightly increased buffer
-      var widthBuffer = 5; // Increased from 4 to 5 for better separation
+      // Width calculation remains the same
+      var widthBuffer = 5;
       var width = calculateOptimizedLyricBoxWidth(lyricsToDisplay[i].content, widthBuffer);
       div.style.width = width + "px";
       
       // Keep max-width constraint
       div.style.maxWidth = "calc(100vw - 25px)";
       
-      // Slightly increased margins
-      div.style.marginLeft = "3px";  // Increased from 2px to 3px
-      div.style.marginRight = "3px"; // Increased from 2px to 3px
+      // Margins remain the same
+      div.style.marginLeft = "3px";
+      div.style.marginRight = "3px";
 
       // Create input and event listeners
       var input = document.createElement("span");
       input.classList.add("input", "lyricle-lyrics-input");
-      input.role = "textbox"
-      input.contentEditable = false; // Set to false to avoid native keyboard
+      input.role = "textbox";
       input.id = "lyricInput" + lyricsToDisplay[i].boxIndex;
+      
+      // Make the content editable for hardware keyboard input, but handle mobile differently
+      input.contentEditable = "true"; // Enable for hardware keyboard
 
       // Use a modified click event instead of focus for mobile
       input.addEventListener("click", function(event) {
-        event.preventDefault();
-        if (customKeyboardEnabled) {
-          // Update the active input element
-          activeInputElement = this;
+        // Update the active input element
+        activeInputElement = this;
+        
+        // Call the focus listener to handle visual styling
+        lyricBoxFocusListener(this, song);
+        
+        // If on mobile, prevent default behavior
+        if (isMobileDevice()) {
+          event.preventDefault();
           
-          // Call the focus listener to handle visual styling
-          lyricBoxFocusListener(this, song);
+          // For mobile, blur to prevent on-screen keyboard
+          if (customKeyboardEnabled) {
+            this.blur();
+          }
         }
       });
       
-      // Keep other listeners for non-mobile use
+      // Hardware keyboard input listeners - keep these active for all devices
       input.addEventListener("keydown", function(event) {
-        if (!customKeyboardEnabled) {
-          lyricBoxKeyDownListener(event, song);
-        }
+        lyricBoxKeyDownListener(event, song);
       });
       
       input.addEventListener("input", function() {
-        if (!customKeyboardEnabled) {
-          lyricBoxInputListener(song);
-        }
+        lyricBoxInputListener(song);
       });
       
       input.addEventListener("focus", function() {
-        if (!customKeyboardEnabled) {
-          lyricBoxFocusListener(input, song);
+        lyricBoxFocusListener(this, song);
+        
+        // For mobile devices, blur to prevent on-screen keyboard
+        if (isMobileDevice() && customKeyboardEnabled) {
+          setTimeout(() => this.blur(), 0);
         }
       });
 
@@ -414,6 +423,65 @@ function constructLyricInputBoxes(song, lyricsGridContainer) {
     adjustLyricLineHeights();
     adjustLyricContentPosition();
   }, 50);
+}
+
+// Add a helper function to detect mobile devices
+function isMobileDevice() {
+  const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+  
+  // Regular expression for detecting mobile devices
+  const mobileRegex = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i;
+  
+  // Check if the device has touch capabilities and a mobile user agent
+  return mobileRegex.test(userAgent) || 
+         (navigator.maxTouchPoints && navigator.maxTouchPoints > 2);
+}
+
+// Modify the preventNativeKeyboard function to only apply to mobile devices
+function preventNativeKeyboard(event) {
+  // Only prevent the native keyboard on mobile devices
+  if (customKeyboardEnabled && event.target.classList.contains('lyricle-lyrics-input')) {
+    // Save reference to the active input
+    activeInputElement = event.target;
+    
+    // Prevent default behavior to avoid showing native keyboard
+    event.preventDefault();
+    event.stopPropagation();
+    
+    // Blur the input to ensure native keyboard doesn't appear
+    setTimeout(() => event.target.blur(), 0);
+    
+    // Set the focused box index
+    focusedBoxIndex = parseInt(event.target.id.replace("lyricInput", ""));
+    
+    // Apply the focused styling
+    if (window.currentSong) {
+      const lyric = window.currentSong.lyrics[focusedBoxIndex];
+      const comparableInput = event.target.innerHTML
+        .replace(/([^a-zA-Z0-9\s\u00C0-\u017F])/g, "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/\p{Diacritic}/gu, '');
+      
+      // Calculate opacity based on correctness
+      const percentageCorrect = getPercentageCorrect(comparableInput, lyric.contentComparable);
+      const opacity = 1.00 - percentageCorrect;
+
+      // Set the bottom border
+      setLyricBoxBorderBottomStyle(event.target, {
+        width: 4,
+        color1: 0,
+        color2: 115,
+        color3: 255,
+        opacity: opacity
+      });
+    }
+    
+    return false;
+  }
+  
+  // Allow default behavior for desktop
+  return true;
 }
 
 // NEW: Function to adjust lyric line heights based on content wrapping
@@ -903,9 +971,10 @@ function lyricBoxFocusListener(input, song) {
     opacity: opacity
   });
   
-  // If custom keyboard is enabled, prevent native keyboard
+  // Only for mobile: blur to prevent native keyboard
   if (customKeyboardEnabled) {
-    input.blur();
+    // Use setTimeout to avoid conflicts with other events
+    setTimeout(() => input.blur(), 10);
   }
 }
 
@@ -1442,7 +1511,7 @@ function sanitizeInput(input) {
 }
 
 function init() { // Initialize the game
-  //Dark Mode Implementation 
+  // Dark Mode Implementation 
   if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
     // Apply dark theme
     document.documentElement.setAttribute('data-bs-theme', 'dark');
@@ -1452,6 +1521,10 @@ function init() { // Initialize the game
   // Make debugMode available to window/global scope for the HTML script
   window.debugMode = debugMode;
   
+  // Detect if user is on mobile and set customKeyboardEnabled accordingly
+  customKeyboardEnabled = isMobileDevice();
+  debugLog("Device detection: " + (customKeyboardEnabled ? "Mobile device - using custom keyboard" : "Desktop device - using hardware keyboard"));
+  
   // Initialize audio state to prevent autoplay
   var hiddenAudio = document.getElementById("hiddenAudio");
   if (hiddenAudio) {
@@ -1459,11 +1532,11 @@ function init() { // Initialize the game
     hiddenAudio.muted = true;
     hiddenAudio.volume = 0;
     hiddenAudio.pause();
-    // Explicitly prevent any potential autoplay
     hiddenAudio.autoplay = false;
   }
 
-  day = getDayInt(); // Get the integer value of the day of the year
+  // Get day int and load song data
+  day = getDayInt();
 
   getAllSongData().then(() => {
     songData = allSongData[day]; // Get the song data for the day
@@ -1476,8 +1549,18 @@ function init() { // Initialize the game
     displayHowToPlayModal();
   });
 
-  // Construct the custom keyboard
-  constructCustomKeyboard();
+  // Handle on-screen keyboard visibility
+  const oskbElement = document.getElementById('oskb');
+  if (oskbElement) {
+    if (customKeyboardEnabled) {
+      // Show custom keyboard for mobile
+      oskbElement.style.display = 'block';
+      constructCustomKeyboard();
+    } else {
+      // Hide custom keyboard for desktop
+      oskbElement.style.display = 'none';
+    }
+  }
 }
 
 function displayConcedeModal(song) {
@@ -1932,48 +2015,6 @@ function focusFirstUnfilledLyric() {
         break;
       }
     }
-  }
-}
-
-// Prevent the native keyboard from showing
-function preventNativeKeyboard(event) {
-  if (customKeyboardEnabled && event.target.classList.contains('lyricle-lyrics-input')) {
-    // Save reference to the active input element
-    activeInputElement = event.target;
-    
-    // Prevent native keyboard
-    event.preventDefault();
-    event.stopPropagation();
-    
-    // Make the input lose focus immediately after gaining it
-    // This keeps the visual focus indicator but prevents keyboard
-    document.activeElement.blur();
-    
-    // Set the focused box index
-    focusedBoxIndex = parseInt(activeInputElement.id.replace("lyricInput", ""));
-    
-    // Apply the focused styling
-    const lyric = window.currentSong.lyrics[focusedBoxIndex];
-    const comparableInput = activeInputElement.innerHTML
-      .replace(/([^a-zA-Z0-9\s\u00C0-\u017F])/g, "")
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/\p{Diacritic}/gu, '');
-    
-    // Calculate opacity based on correctness
-    const percentageCorrect = getPercentageCorrect(comparableInput, lyric.contentComparable);
-    const opacity = 1.00 - percentageCorrect;
-
-    // Set the bottom border to be blue
-    setLyricBoxBorderBottomStyle(activeInputElement, {
-      width: 4,
-      color1: 0,
-      color2: 115,
-      color3: 255,
-      opacity: opacity
-    });
-    
-    return false;
   }
 }
 
