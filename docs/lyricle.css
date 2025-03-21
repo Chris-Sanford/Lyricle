@@ -84,8 +84,7 @@ body {
     max-width: 100%;
     width: 100%;
     height: auto;
-    max-height: 30vh;
-    padding: 0.5em 0;
+    padding: 0.6em 0;
     background-color: rgba(30, 30, 30, 0.95);
     position: fixed;
     bottom: 0;
@@ -93,6 +92,11 @@ body {
     right: 0;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
     z-index: 1000;
+    overflow: visible;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
 }
 
 /* Children Elements (Elements contained within the aforementioned Parents) */
@@ -198,9 +202,11 @@ body {
     max-width: 100%;
     width: 100%;
     height: auto;
-    margin: 0.15em 0;
+    margin: 0.2em 0;
     display: flex;
     justify-content: center;
+    padding: 0 0.5em;
+    box-sizing: border-box;
 }
 .lyricle-oskb-col {
     margin: 0px;
@@ -282,24 +288,67 @@ html, body {
   color: white;
   cursor: pointer;
   user-select: none;
-  transition: background-color 0.1s;
+  transition: background-color 0.1s, transform 0.1s;
   text-transform: uppercase;
 }
 
-.lyricle-key.wide-key {
-  min-width: 4em;
-}
-
-.lyricle-key.backspace-key {
-  min-width: 3em;
+/* Add hover effect for desktop */
+.lyricle-key:hover {
+  background-color: rgba(255, 255, 255, 0.25);
+  transform: scale(1.05);
 }
 
 .lyricle-key:active {
   background-color: rgba(255, 255, 255, 0.3);
+  transform: scale(0.95);
 }
 
-.lyricle-key.special-key {
-  background-color: rgba(100, 100, 100, 0.4);
+/* Media query for larger screens */
+@media (max-width: 767px) {
+  /* Mobile devices */
+  .lyricle-oskb {
+    max-height: 35vh; /* Increased significantly */
+    min-height: 160px; /* Ensure minimum height */
+  }
+  
+  .lyricle-key {
+    min-width: 2em;
+    height: 2.5em;
+    margin: 0.12em;
+    font-size: 0.9em;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1199px) {
+  /* Medium screens */
+  .lyricle-oskb {
+    max-height: 25vh; /* Increased */
+    min-height: 170px; /* Ensure minimum height */
+    padding: 0.5em 0;
+  }
+  
+  .lyricle-key {
+    min-width: 2.3em;
+    height: 2.6em;
+    margin: 0.15em;
+    font-size: 1em;
+  }
+}
+
+@media (min-width: 1200px) {
+  /* Large screens */
+  .lyricle-oskb {
+    max-height: 22vh; /* Increased */
+    min-height: 180px; /* Ensure minimum height */
+    padding: 0.5em 0;
+  }
+  
+  .lyricle-key {
+    min-width: 2.5em;
+    height: 2.8em;
+    margin: 0.2em;
+    font-size: 1.1em;
+  }
 }
 
 /* Keyboard lifeline button styling */
@@ -336,4 +385,21 @@ html, body {
   cursor: not-allowed;
   pointer-events: none;
   background-color: rgba(50, 50, 50, 0.5);
+}
+
+/* Ensure the third row is visible */
+#oskbRow3 {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  height: auto !important;
+  min-height: 2.5em !important;
+  margin-bottom: 0.3em !important;
+}
+
+/* Special styling for the bottom row to ensure it's fully visible */
+#oskbRow3Col1 {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
 }
