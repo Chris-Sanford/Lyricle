@@ -120,6 +120,7 @@ body {
     flex-direction: column;
     align-items: center;
     gap: 0; /* Ensure no extra gap between rows */
+    padding: 0;
 }
 .lyricle-lyrics-row {
     width: 100%;
@@ -127,10 +128,10 @@ body {
     margin-left: auto;
     margin-right: auto;
     position: relative;
-    min-height: 1.8em; /* Reduced from 2.2em */
+    min-height: 1.8em;
     height: auto;
-    margin-top: 0.15em; /* Reduced from 0.4em */
-    margin-bottom: 0.15em; /* Reduced from 0.4em */
+    margin-top: 0.15em;
+    margin-bottom: 0.15em;
     padding: 0;
     overflow: visible;
     justify-content: center;
@@ -146,23 +147,23 @@ body {
     text-align: center;
     white-space: nowrap;
     overflow: visible;
-    margin: 1px 4px; /* Reduced top/bottom margin from 2px to 1px */
+    margin: 1px 2px; /* Increased horizontal margin from 1px to 2px */
     vertical-align: baseline;
     line-height: 1.6em;
     position: relative;
     box-sizing: border-box;
-    max-width: calc(100vw - 30px);
+    max-width: calc(100vw - 25px);
 }
 .lyricle-lyrics-div-special {
     margin-left: 0px;
 }
 
 .lyricle-lyrics-div-spaceLeft {
-    margin-left: 4px;
+    margin-left: 2px; /* Increased from 1px */
 }
 
 .lyricle-lyrics-div-spaceRight {
-    margin-left: 4px;
+    margin-left: 2px; /* Increased from 1px */
 }
 .lyricle-lyrics-input {
     width: 100%;
@@ -242,8 +243,8 @@ body {
   justify-content: center;
   width: 100%;
   max-width: 100%;
-  padding: 0 5px;
-  gap: 2px; /* Reduced from 4px */
+  padding: 0 3px; /* Increased from 2px */
+  gap: 2px; /* Increased from 1px */
   margin: 0 auto;
 }
 
