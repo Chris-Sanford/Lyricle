@@ -1350,15 +1350,27 @@ function completeGame(song) {
     debugLog("Audio muted, not playing on completion");
   }
 
-  // Disable lifeline buttons when game is completed
+  // Disable lifeline button when game is completed
   var lifelineButton = document.getElementById("lifelineButton");
   if (lifelineButton) {
     lifelineButton.classList.add("disabled");
   }
   
+  // More thoroughly disable the keyboard lifeline button
   var keyboardLifelineButton = document.getElementById("keyboardLifelineButton");
   if (keyboardLifelineButton) {
+    // Add both disabled class and aria-disabled attribute
     keyboardLifelineButton.classList.add("disabled");
+    keyboardLifelineButton.setAttribute("aria-disabled", "true");
+    
+    // Also remove the event listener by cloning and replacing the node
+    const newButton = keyboardLifelineButton.cloneNode(true);
+    keyboardLifelineButton.parentNode.replaceChild(newButton, keyboardLifelineButton);
+    
+    // Apply disabled styling
+    newButton.style.opacity = "0.5";
+    newButton.style.cursor = "not-allowed";
+    newButton.style.pointerEvents = "none";
   }
 
   var allCorrect = wordsCorrect === wordsToGuess
@@ -1382,7 +1394,7 @@ function completeGame(song) {
     }
   }
 
-  constructGameCompleteModal(song)
+  constructGameCompleteModal(song);
 }
 
 function displayGameCompleteModal() {
@@ -1602,6 +1614,23 @@ function concede(song) {
   var lifelineButton = document.getElementById("lifelineButton");
   if (lifelineButton) {
     lifelineButton.classList.add("disabled");
+  }
+  
+  // More thoroughly disable the keyboard lifeline button
+  var keyboardLifelineButton = document.getElementById("keyboardLifelineButton");
+  if (keyboardLifelineButton) {
+    // Add both disabled class and aria-disabled attribute
+    keyboardLifelineButton.classList.add("disabled");
+    keyboardLifelineButton.setAttribute("aria-disabled", "true");
+    
+    // Also remove the event listener by cloning and replacing the node
+    const newButton = keyboardLifelineButton.cloneNode(true);
+    keyboardLifelineButton.parentNode.replaceChild(newButton, keyboardLifelineButton);
+    
+    // Apply disabled styling
+    newButton.style.opacity = "0.5";
+    newButton.style.cursor = "not-allowed";
+    newButton.style.pointerEvents = "none";
   }
 
   // Reveal all lyrics

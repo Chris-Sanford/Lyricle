@@ -329,3 +329,11 @@ html, body {
   transform: translate(-50%, -50%);
   font-weight: bold;
 }
+
+/* Add disabled state styling for the keyboard lifeline button */
+.lyricle-keyboard-lifeline.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+  background-color: rgba(50, 50, 50, 0.5);
+}
