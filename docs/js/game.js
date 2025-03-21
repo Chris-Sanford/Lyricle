@@ -284,6 +284,12 @@ function constructLyricInputBoxes(song, lyricsGridContainer) {
   lyricsGridContainer.innerHTML = '';
   lyricsGridContainer.style.marginTop = "10px"; // Add margin at top to ensure it starts below the title bar
   
+  // NEW: Ensure the grid is centered horizontally
+  lyricsGridContainer.style.width = "100%";
+  lyricsGridContainer.style.maxWidth = "100%";
+  lyricsGridContainer.style.left = "0";
+  lyricsGridContainer.style.right = "0";
+  
   // Set lineIndex to 0
   var lineIndex = 0;
 
@@ -296,14 +302,18 @@ function constructLyricInputBoxes(song, lyricsGridContainer) {
     var row = document.createElement("div");
     row.classList.add("row");
     row.classList.add("lyricle-lyrics-row");
+    row.style.maxWidth = "100%"; // NEW: Ensure the row doesn't exceed viewport width
+    row.style.width = "100%";    // NEW: Take up full width of container
     lyricsGridContainer.appendChild(row);
 
     // Create a column within the row to store all lyrics
     var col = document.createElement("div");
     col.classList.add("col");
     col.classList.add("lyricle-lyrics-col");
-    // Add a flex-wrap class to allow wrapping
     col.classList.add("lyricle-lyrics-flex-wrap");
+    // NEW: Ensure the column is centered and doesn't overflow
+    col.style.maxWidth = "100%";
+    col.style.margin = "0 auto";
     row.appendChild(col);
 
     // For each lyric object in the lyricsToDisplay array
@@ -334,8 +344,8 @@ function constructLyricInputBoxes(song, lyricsGridContainer) {
       var width = calculateOptimizedLyricBoxWidth(lyricsToDisplay[i].content);
       div.style.width = width + "px";
       
-      // NEW: Add max-width restriction for mobile
-      div.style.maxWidth = "calc(100vw - 20px)";
+      // Ensure each lyric box doesn't exceed screen width
+      div.style.maxWidth = "calc(100vw - 30px)";
 
       // Create a span as an input box within the div
       var input = document.createElement("span");
@@ -386,7 +396,7 @@ function constructLyricInputBoxes(song, lyricsGridContainer) {
     lyricsToDisplay = song.lyrics.filter(lyric => lyric.lineIndex === lineIndex);
   }
 
-  // NEW: Add responsive resize handler
+  // Add responsive resize handlers
   window.addEventListener('resize', function() {
     adjustLyricLineHeights();
     adjustLyricContentPosition();
@@ -421,7 +431,7 @@ function adjustLyricLineHeights() {
   });
 }
 
-// NEW: Function to adjust the vertical positioning of the lyrics content
+// Update the adjustLyricContentPosition function
 function adjustLyricContentPosition() {
   // Get key elements
   const songTitle = document.getElementById('songTitle');
@@ -445,20 +455,63 @@ function adjustLyricContentPosition() {
   // Position the grid in the middle of the available space
   const lyricsGridHeight = lyricsGrid.getBoundingClientRect().height;
   
-  // If the lyrics content fits within the available space, center it
+  // Ensure the lyrics container is centered horizontally
+  lyricsContainer.style.left = "0";
+  lyricsContainer.style.right = "0";
+  lyricsContainer.style.width = "100%";
+  
+  // If the lyrics content fits within the available space, center it vertically
   if (lyricsGridHeight < availableHeight) {
     const topMargin = Math.max(10, (availableHeight - lyricsGridHeight) / 2);
     lyricsGrid.style.marginTop = topMargin + 'px';
     lyricsGrid.style.position = 'relative';
     lyricsGrid.style.top = '0';
     lyricsGrid.style.transform = 'none';
+    // NEW: Ensure horizontal centering
+    lyricsGrid.style.left = "0";
+    lyricsGrid.style.right = "0";
+    lyricsGrid.style.margin = topMargin + "px auto 0 auto";
   } else {
     // If content is too tall, just position it at the top with a small margin
     lyricsGrid.style.marginTop = '10px';
     lyricsGrid.style.position = 'relative';
     lyricsGrid.style.top = '0';
     lyricsGrid.style.transform = 'none';
+    // NEW: Ensure horizontal centering
+    lyricsGrid.style.left = "0";
+    lyricsGrid.style.right = "0";
+    lyricsGrid.style.margin = "10px auto 0 auto";
   }
+  
+  // NEW: Ensure no horizontal overflow
+  checkAndPreventHorizontalOverflow();
+}
+
+// NEW: Function to detect and fix horizontal overflow
+function checkAndPreventHorizontalOverflow() {
+  const lyricsRows = document.querySelectorAll('.lyricle-lyrics-row');
+  const viewportWidth = window.innerWidth;
+  
+  lyricsRows.forEach(row => {
+    // Calculate total width of all direct children
+    const col = row.querySelector('.lyricle-lyrics-col');
+    if (!col) return;
+    
+    const children = col.children;
+    let totalRowWidth = 0;
+    
+    // Check if this row exceeds viewport width when all items are placed in a row
+    for (let i = 0; i < children.length; i++) {
+      totalRowWidth += children[i].offsetWidth + 8; // Add margin
+    }
+    
+    // If row would overflow, ensure flex-wrap is enabled and max-width is set
+    if (totalRowWidth > viewportWidth) {
+      col.style.flexWrap = 'wrap';
+      col.style.maxWidth = '100%';
+      col.style.justifyContent = 'center';
+    }
+  });
 }
 
 // Debug logging function

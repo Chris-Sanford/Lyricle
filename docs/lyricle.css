@@ -19,6 +19,7 @@ body {
     position: fixed; 
     width: 100%;
     height: 100%;
+    max-width: 100vw; /* Prevent horizontal overflow */
 }
 
 /* Center the element vertically and horizontally */
@@ -29,12 +30,13 @@ body {
 }
 
 .xycenter {
-    margin: 0;
+    margin: 0 auto;
     position: relative;
     top: 50%;
-    left: 50%;
-    -ms-transform: translate(-50%, -50%);
-    transform: translate(-50%, -50%);
+    left: 0;
+    right: 0;
+    transform: translateY(-50%);
+    max-width: 100%;
 }
 
 /* Parent Elements (First "Layer" within Body) */
@@ -65,15 +67,17 @@ body {
     z-index: 10; /* Ensure these appear above the lyrics */
 }
 .lyricle-lyrics {
-    max-width: 800px;
-    /* Fixed position between title and oskb */
+    max-width: 100%;
+    width: 100%;
     position: relative;
     margin-left: auto;
     margin-right: auto;
-    overflow-y: hidden; /* No scrolling within lyrics area */
+    overflow: hidden;
     display: flex;
     align-items: center;
     justify-content: center;
+    left: 0;
+    right: 0;
 }
 .lyricle-oskb {
     max-width: 484px; /* Prevents larger displays from creating unreasonably large OSKB */
@@ -103,25 +107,33 @@ body {
 
 
 .lyricle-lyrics-grid {
-    max-width: 800px;
     width: 100%;
+    max-width: 100%;
     margin-left: auto;
     margin-right: auto;
     position: relative;
-    /* Remove transform that might be causing issues */
     transform: none;
+    left: 0;
+    right: 0;
+    /* Center content */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 .lyricle-lyrics-row {
-    max-width: 800px;
+    width: 100%;
+    max-width: 100%;
     margin-left: auto;
     margin-right: auto;
     position: relative;
     min-height: 2.2em;
     height: auto;
-    margin-top: 0.4em; /* Increased spacing between rows */
+    margin-top: 0.4em;
     margin-bottom: 0.4em;
     padding: 0;
     overflow: visible;
+    /* Center content */
+    justify-content: center;
 }
 .lyricle-lyrics-div {
     height: 1.6em;
@@ -139,7 +151,7 @@ body {
     line-height: 1.6em;
     position: relative;
     box-sizing: border-box;
-    max-width: calc(100vw - 20px); /* Ensure it doesn't exceed screen width */
+    max-width: calc(100vw - 30px); /* Slightly more restrictive */
 }
 .lyricle-lyrics-div-special {
     margin-left: 0px;
@@ -229,8 +241,10 @@ body {
   align-items: center;
   justify-content: center;
   width: 100%;
+  max-width: 100%;
   padding: 0 5px;
-  gap: 4px; /* Add gap for better spacing between items */
+  gap: 4px;
+  margin: 0 auto;
 }
 
 .lyricle-lyrics-flex-wrap {
