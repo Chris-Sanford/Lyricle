@@ -57,11 +57,13 @@ body {
     border-bottom: 2px solid rgba(255, 255, 255, 0.177);
 }
 .lyricle-lyrics {
-    max-width: 800px; /* Prevents larger displays from oversizing divs */
-    max-height: 766px; /* Prevents larger displays from oversizing divs  */
-    height: 35vh; /* Dynamically calculates height based on viewport for mobile responsivenesss but is limited by aforementioned max values for large displays */
-    margin-left: auto; /* margins left and right being auto center the element without needing to be a container (with bootstrap CSS flexing) */
+    max-width: 800px;
+    min-height: 35vh; /* Change to min-height instead of fixed height */
+    height: auto;
+    margin-left: auto;
     margin-right: auto;
+    overflow-y: auto; /* Allow scrolling if needed */
+    padding-bottom: 20px; /* Add padding at the bottom */
 }
 .lyricle-oskb {
     max-width: 484px; /* Prevents larger displays from creating unreasonably large OSKB */
@@ -88,44 +90,41 @@ body {
 
 
 .lyricle-lyrics-grid {
-    max-width: 800px; /* Prevents larger displays from oversizing divs */
-    max-height: 766px; /* Prevents larger displays from oversizing divs  */
-    margin-left: auto; /* margins left and right being auto center the element without needing to be a container (with bootstrap CSS flexing) */
+    max-width: 800px;
+    height: auto;
+    margin-left: auto;
     margin-right: auto;
-    position: relative; /* Ensure stable positioning of the grid */
+    position: relative;
 }
 .lyricle-lyrics-row {
     max-width: 800px;
-    margin-left: auto; /* margins left and right being auto center the element without needing to be a container (with bootstrap CSS flexing) */
+    margin-left: auto;
     margin-right: auto;
-    position: relative; /* Keep the row position stable */
-    min-height: 2.2em; /* Increased from 1.8em to 2.2em */
-    height: 2.2em; /* Increased from 1.8em to 2.2em */
-    margin-top: 0.2em; /* Added small top margin for additional spacing */
-    overflow: visible; /* Allow content to overflow without breaking layout */
+    position: relative;
+    min-height: 2.2em;
+    height: auto; /* Change from fixed height to auto */
+    margin-top: 0.2em;
+    margin-bottom: 0.2em; /* Add bottom margin for wrapped content */
+    padding: 5px 0;
+    overflow: visible;
 }
 .lyricle-lyrics-div {
     height: 1.6em;
-    border: 1px solid rgb(255, 255, 255);
-    background: transparent;
     border: none;
-    /* border-bottom: 2px solid rgb(255, 255, 255); */
     font-size: min(1.3em, 60px);
     font-weight: bold;
-    display: inline-block;
+    display: inline-flex;
     justify-content: center;
     align-items: center;
     text-align: center;
     white-space: nowrap;
-    overflow: visible; /* Changed from hidden to visible to prevent clipping of characters */
-    margin-left: 4px;
-    margin-right: 2px; /* Add right margin to prevent apostrophes from being clipped */
-    /* Remove letter-spacing that caused issues */
-    /* Remove padding that caused issues */
-    vertical-align: baseline; /* Ensure consistent vertical alignment */
-    line-height: 1.6em; /* Maintain consistent line height */
-    position: relative; /* Allow absolute positioning of children if needed */
-    box-sizing: border-box; /* Include padding and border in element's width and height */
+    overflow: visible;
+    margin: 2px 4px;
+    vertical-align: baseline;
+    line-height: 1.6em;
+    position: relative;
+    box-sizing: border-box;
+    max-width: calc(100vw - 20px); /* Ensure it doesn't exceed screen width */
 }
 .lyricle-lyrics-div-special {
     margin-left: 0px;
@@ -206,4 +205,18 @@ body {
     margin-right: 0.3vmax;
     padding-left: 0.3vmax;
     padding-right: 0.3vmax;
+}
+
+/* Add these new styles to allow proper wrapping */
+.lyricle-lyrics-col {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 5px;
+}
+
+.lyricle-lyrics-flex-wrap {
+  flex-wrap: wrap;
 }

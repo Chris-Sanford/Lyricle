@@ -298,6 +298,8 @@ function constructLyricInputBoxes(song, lyricsGridContainer) {
     var col = document.createElement("div");
     col.classList.add("col");
     col.classList.add("lyricle-lyrics-col");
+    // Add a flex-wrap class to allow wrapping
+    col.classList.add("lyricle-lyrics-flex-wrap");
     row.appendChild(col);
 
     // For each lyric object in the lyricsToDisplay array
@@ -325,8 +327,11 @@ function constructLyricInputBoxes(song, lyricsGridContainer) {
       }
 
       // Dynamically calculate the width of the div based on the content of the lyric
-      var width = calculateOptimizedLyricBoxWidth(lyricsToDisplay[i].content)
+      var width = calculateOptimizedLyricBoxWidth(lyricsToDisplay[i].content);
       div.style.width = width + "px";
+      
+      // NEW: Add max-width restriction for mobile
+      div.style.maxWidth = "calc(100vw - 20px)";
 
       // Create a span as an input box within the div
       var input = document.createElement("span");
@@ -374,8 +379,36 @@ function constructLyricInputBoxes(song, lyricsGridContainer) {
     lineIndex++;
 
     // Get all lyric objects from the next lineIndex
-    var lyricsToDisplay = song.lyrics.filter(lyric => lyric.lineIndex === lineIndex);
+    lyricsToDisplay = song.lyrics.filter(lyric => lyric.lineIndex === lineIndex);
   }
+
+  // NEW: Add responsive resize handler
+  window.addEventListener('resize', adjustLyricLineHeights);
+  
+  // Initial adjustment
+  setTimeout(adjustLyricLineHeights, 100);
+}
+
+// NEW: Function to adjust lyric line heights based on content wrapping
+function adjustLyricLineHeights() {
+  const lyricsRows = document.querySelectorAll('.lyricle-lyrics-row');
+  
+  lyricsRows.forEach(row => {
+    const col = row.querySelector('.lyricle-lyrics-col');
+    if (!col) return;
+    
+    // Reset height to auto first to measure actual content
+    row.style.height = 'auto';
+    row.style.minHeight = 'auto';
+    
+    // Get actual content height plus some padding
+    const contentHeight = col.offsetHeight;
+    const newHeight = contentHeight + 10 + 'px';
+    
+    // Set the new height
+    row.style.height = newHeight;
+    row.style.minHeight = newHeight;
+  });
 }
 
 // Debug logging function
@@ -1305,7 +1338,7 @@ function init() { // Initialize the game
       songData = allSongData[Math.floor(Math.random() * allSongData.length)];
     }
     startGame(songData);
-    //constructRandomButton(); // Add random button from the beginning
+    constructRandomButton(); // Add random button from the beginning
     displayHowToPlayModal();
   });
 }
