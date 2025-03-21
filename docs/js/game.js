@@ -248,34 +248,26 @@ function constructRandomButton() {
 }
 
 function calculateOptimizedLyricBoxWidth(lyricContent, customBuffer) {
-  // Increase buffer back to a more balanced value
+  // Slightly increase the buffer for better word separation
   var widthBuffer = customBuffer !== undefined ? customBuffer : 6;
 
   // Create a div
   var div = document.createElement("div");
-
-  // Hide the div so it's not displayed and doesn't interfere with the page layout
   div.style.visibility = "hidden";
-
-  // Set the font size to the same as the lyric boxes
   div.style.fontSize = "min(1.3em, 60px)";
-
-  // Set its width to max-content, something not available in an input element
   div.style.width = "max-content";
-
-  // Set the inner Text value to the lyric content
   div.innerText = lyricContent;
-
-  // Append the div to the body so it's rendered and we can get the width
   document.body.appendChild(div);
-
-  // Get the width of the div to get the exact pixel width that will fit the secret lyric content perfectly
   var width = div.clientWidth;
-
-  // Remove the div from the body
   div.remove();
-
-  // Return the width with the buffer
+  
+  // Add a slight extra buffer for words that might need it
+  // Words that are likely to blend visually with neighbors: shorter words, 
+  // words ending with 'f', 't', etc.
+  if (lyricContent.length < 5 || /[ftsrl]$/i.test(lyricContent.trim())) {
+    widthBuffer += 1; // Add just 1px extra for these cases
+  }
+  
   return width + widthBuffer;
 }
 
@@ -304,14 +296,14 @@ function constructLyricInputBoxes(song, lyricsGridContainer) {
     row.style.marginBottom = "0.15em"; // Keep this reduced value
     lyricsGridContainer.appendChild(row);
 
-    // Column with balanced padding
+    // Column with slightly increased padding
     var col = document.createElement("div");
     col.classList.add("col");
     col.classList.add("lyricle-lyrics-col");
     col.classList.add("lyricle-lyrics-flex-wrap");
     col.style.maxWidth = "100%";
     col.style.margin = "0 auto";
-    col.style.padding = "0 3px"; // Increased from 2px to 3px
+    col.style.padding = "0 3px";
     row.appendChild(col);
 
     for (var i = 0; i < lyricsToDisplay.length; i++) {
@@ -330,17 +322,17 @@ function constructLyricInputBoxes(song, lyricsGridContainer) {
         }
       }
 
-      // Use a balanced buffer size
-      var widthBuffer = 4; // Middle ground between 3 and original 6
+      // Slightly increased buffer
+      var widthBuffer = 5; // Increased from 4 to 5 for better separation
       var width = calculateOptimizedLyricBoxWidth(lyricsToDisplay[i].content, widthBuffer);
       div.style.width = width + "px";
       
       // Keep max-width constraint
       div.style.maxWidth = "calc(100vw - 25px)";
       
-      // Use balanced margins
-      div.style.marginLeft = "2px";  // Increased from 1px to 2px
-      div.style.marginRight = "2px"; // Increased from 1px to 2px
+      // Slightly increased margins
+      div.style.marginLeft = "3px";  // Increased from 2px to 3px
+      div.style.marginRight = "3px"; // Increased from 2px to 3px
 
       // Create input and event listeners (unchanged)
       var input = document.createElement("span");
@@ -481,9 +473,9 @@ function checkAndPreventHorizontalOverflow() {
     const children = col.children;
     let totalRowWidth = 0;
     
-    // Increased margin calculation
+    // Update margin calculation to match our new spacing
     for (let i = 0; i < children.length; i++) {
-      totalRowWidth += children[i].offsetWidth + 4; // Increased from 2px to 4px per item
+      totalRowWidth += children[i].offsetWidth + 6; // Increased from 4px to 6px per item
     }
     
     if (totalRowWidth > viewportWidth) {

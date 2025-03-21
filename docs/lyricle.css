@@ -147,23 +147,25 @@ body {
     text-align: center;
     white-space: nowrap;
     overflow: visible;
-    margin: 1px 2px; /* Increased horizontal margin from 1px to 2px */
+    margin: 1px 3px; /* Increased from 2px to 3px horizontal margin */
     vertical-align: baseline;
     line-height: 1.6em;
     position: relative;
     box-sizing: border-box;
     max-width: calc(100vw - 25px);
+    /* Add slight letter spacing to help with readability */
+    letter-spacing: 0.01em;
 }
 .lyricle-lyrics-div-special {
     margin-left: 0px;
 }
 
 .lyricle-lyrics-div-spaceLeft {
-    margin-left: 2px; /* Increased from 1px */
+    margin-left: 3px; /* Increased from 2px to 3px */
 }
 
 .lyricle-lyrics-div-spaceRight {
-    margin-left: 2px; /* Increased from 1px */
+    margin-left: 3px; /* Increased from 2px to 3px */
 }
 .lyricle-lyrics-input {
     width: 100%;
@@ -178,6 +180,8 @@ body {
     box-sizing: border-box; /* Include padding and border in element's width and height */
     empty-cells: show; /* Ensure empty cells take up space */
     position: relative; /* Ensure stable positioning */
+    /* Add a tiny bit of letter spacing for better readability */
+    letter-spacing: 0.01em;
 }
 .lyricle-lyrics-input-noguess {
     /* border-bottom: none; */
@@ -243,8 +247,8 @@ body {
   justify-content: center;
   width: 100%;
   max-width: 100%;
-  padding: 0 3px; /* Increased from 2px */
-  gap: 2px; /* Increased from 1px */
+  padding: 0 3px;
+  gap: 3px; /* Increased from 2px to 3px for slightly more space between items */
   margin: 0 auto;
 }
 
