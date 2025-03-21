@@ -247,114 +247,115 @@ function constructRandomButton() {
   button.addEventListener("click", getRandomSong);
 }
 
-function calculateOptimizedLyricBoxWidth(lyricContent) {
-  // Define the standard width buffer to add to each calculated width
-  var widthBuffer = 6;
+function calculateOptimizedLyricBoxWidth(lyricContent, customBuffer) {
+  // Slightly increase the buffer for better word separation
+  var widthBuffer = customBuffer !== undefined ? customBuffer : 6;
 
   // Create a div
   var div = document.createElement("div");
-
-  // Hide the div so it's not displayed and doesn't interfere with the page layout
   div.style.visibility = "hidden";
-
-  // Set the font size to the same as the lyric boxes
   div.style.fontSize = "min(1.3em, 60px)";
-
-  // Set its width to max-content, something not available in an input element
   div.style.width = "max-content";
-
-  // Set the inner Text value to the lyric content
   div.innerText = lyricContent;
-
-  // Append the div to the body so it's rendered and we can get the width
   document.body.appendChild(div);
-
-  // Get the width of the div to get the exact pixel width that will fit the secret lyric content perfectly
   var width = div.clientWidth;
-
-  // Remove the div from the body
   div.remove();
-
-  // Return the width
+  
+  // Add a slight extra buffer for words that might need it
+  // Words that are likely to blend visually with neighbors: shorter words, 
+  // words ending with 'f', 't', etc.
+  if (lyricContent.length < 5 || /[ftsrl]$/i.test(lyricContent.trim())) {
+    widthBuffer += 1; // Add just 1px extra for these cases
+  }
+  
   return width + widthBuffer;
 }
 
 function constructLyricInputBoxes(song, lyricsGridContainer) {
-  // Set lineIndex to 0
+  // Reset and initialization code
+  lyricsGridContainer.innerHTML = '';
+  lyricsGridContainer.style.marginTop = "5px";
+  
+  // Horizontal centering code
+  lyricsGridContainer.style.width = "100%";
+  lyricsGridContainer.style.maxWidth = "100%";
+  lyricsGridContainer.style.left = "0";
+  lyricsGridContainer.style.right = "0";
+  
   var lineIndex = 0;
-
-  // Get all lyric objects from lineIndex 0
   var lyricsToDisplay = song.lyrics.filter(lyric => lyric.lineIndex === lineIndex);
 
-  // while there are still lyrics to display
   while (lyricsToDisplay != null && lyricsToDisplay.length > 0) {
-    // Create a row within the lyrics container
+    // Row creation with balanced margins
     var row = document.createElement("div");
     row.classList.add("row");
     row.classList.add("lyricle-lyrics-row");
+    row.style.maxWidth = "100%";
+    row.style.width = "100%";
+    row.style.marginTop = "0.15em";    // Keep this reduced value
+    row.style.marginBottom = "0.15em"; // Keep this reduced value
     lyricsGridContainer.appendChild(row);
 
-    // Create a column within the row to store all lyrics
+    // Column with slightly increased padding
     var col = document.createElement("div");
     col.classList.add("col");
     col.classList.add("lyricle-lyrics-col");
+    col.classList.add("lyricle-lyrics-flex-wrap");
+    col.style.maxWidth = "100%";
+    col.style.margin = "0 auto";
+    col.style.padding = "0 3px";
     row.appendChild(col);
 
-    // For each lyric object in the lyricsToDisplay array
     for (var i = 0; i < lyricsToDisplay.length; i++) {
-      // Create a parent div within the column
       var div = document.createElement("div");
       div.id = "lyricInputDiv" + lyricsToDisplay[i].boxIndex;
-      
-      // Add the lyricle-lyrics-div class
       div.classList.add("lyricle-lyrics-div");
 
-      // If the word is a special character, add the lyricle-lyrics-div-special class
+      // Special character handling 
       if (lyricsToDisplay[i].isSpecial) {
         div.classList.add("lyricle-lyrics-div-special");
-
-        // If the word has a space to the left, add the lyricle-lyrics-div-space-left class
         if (lyricsToDisplay[i].spaceLeft) {
           div.classList.add("lyricle-lyrics-div-space-left");
         }
-
-        // If the word has a space to the right, add the lyricle-lyrics-div-space-right class
         if (lyricsToDisplay[i].spaceRight) {
           div.classList.add("lyricle-lyrics-div-space-right");
         }
       }
 
-      // Dynamically calculate the width of the div based on the content of the lyric
-      var width = calculateOptimizedLyricBoxWidth(lyricsToDisplay[i].content)
+      // Slightly increased buffer
+      var widthBuffer = 5; // Increased from 4 to 5 for better separation
+      var width = calculateOptimizedLyricBoxWidth(lyricsToDisplay[i].content, widthBuffer);
       div.style.width = width + "px";
+      
+      // Keep max-width constraint
+      div.style.maxWidth = "calc(100vw - 25px)";
+      
+      // Slightly increased margins
+      div.style.marginLeft = "3px";  // Increased from 2px to 3px
+      div.style.marginRight = "3px"; // Increased from 2px to 3px
 
-      // Create a span as an input box within the div
+      // Create input and event listeners (unchanged)
       var input = document.createElement("span");
       input.classList.add("input", "lyricle-lyrics-input");
       input.role = "textbox"
       input.contentEditable = true;
       input.id = "lyricInput" + lyricsToDisplay[i].boxIndex;
 
-      // Add a keydown listener to the input box
+      // Add event listeners (unchanged)
       input.addEventListener("keydown", function(event) {
         lyricBoxKeyDownListener(event, song);
       });
-
-      // Add an input listener to the input box
       input.addEventListener("input", function() {
         lyricBoxInputListener(song);
       });
-
-      // Add focus listener to the input box
       input.addEventListener("focus", function() {
         lyricBoxFocusListener(input, song);
       });
 
-      // If the word is not to be guessed, populate the input box with the word and disable it
+      // Handling for non-guessed words (unchanged)
       if (!lyricsToDisplay[i].toGuess) {
         input.innerText = lyricsToDisplay[i].content;
         div.classList.add("lyricle-lyrics-input-noguess");
-        // Keep border bottom but make opacity very low for spacing purposes
         div.style.borderBottom = "4px solid rgba(255, 255, 255, 0.001)";
         input.disabled = true;
         input.contentEditable = false;
@@ -363,19 +364,126 @@ function constructLyricInputBoxes(song, lyricsGridContainer) {
         div.style.borderBottom = "4px solid rgba(255, 255, 255, 0.99)";
       }
 
-      // Add the input box to the div
       div.appendChild(input);
-
-      // Add the div to the column
       col.appendChild(div);
     }
 
-    // Increment lineIndex by 1
     lineIndex++;
-
-    // Get all lyric objects from the next lineIndex
-    var lyricsToDisplay = song.lyrics.filter(lyric => lyric.lineIndex === lineIndex);
+    lyricsToDisplay = song.lyrics.filter(lyric => lyric.lineIndex === lineIndex);
   }
+
+  // Resize handlers (unchanged)
+  window.addEventListener('resize', function() {
+    adjustLyricLineHeights();
+    adjustLyricContentPosition();
+  });
+  
+  setTimeout(function() {
+    adjustLyricLineHeights();
+    adjustLyricContentPosition();
+  }, 50);
+}
+
+// NEW: Function to adjust lyric line heights based on content wrapping
+function adjustLyricLineHeights() {
+  const lyricsRows = document.querySelectorAll('.lyricle-lyrics-row');
+  
+  lyricsRows.forEach(row => {
+    const col = row.querySelector('.lyricle-lyrics-col');
+    if (!col) return;
+    
+    // Reset height to auto first to measure actual content
+    row.style.height = 'auto';
+    row.style.minHeight = 'auto';
+    
+    // Get actual content height with minimal padding
+    const contentHeight = col.offsetHeight;
+    // Reduce padding from 10px to just 2px
+    const newHeight = contentHeight + 2 + 'px';
+    
+    // Set the new height
+    row.style.height = newHeight;
+    row.style.minHeight = newHeight;
+  });
+}
+
+// Update the adjustLyricContentPosition function
+function adjustLyricContentPosition() {
+  // Get key elements
+  const songTitle = document.getElementById('songTitle');
+  const lyricsContainer = document.getElementById('lyrics');
+  const lyricsGrid = document.getElementById('lyricsGrid');
+  const oskbContainer = document.getElementById('oskb');
+  
+  if (!songTitle || !lyricsContainer || !lyricsGrid || !oskbContainer) return;
+  
+  // Calculate available height between song title and oskb
+  const viewportHeight = window.innerHeight;
+  const songTitleBottom = songTitle.getBoundingClientRect().bottom;
+  const oskbTop = oskbContainer.getBoundingClientRect().top;
+  
+  // Calculate the available space
+  const availableHeight = oskbTop - songTitleBottom;
+  
+  // Set the lyrics container to this height
+  lyricsContainer.style.height = availableHeight + 'px';
+  
+  // Ensure the lyrics container is centered horizontally
+  lyricsContainer.style.left = "0";
+  lyricsContainer.style.right = "0";
+  lyricsContainer.style.width = "100%";
+  
+  // Position the grid in the middle of the available space
+  const lyricsGridHeight = lyricsGrid.getBoundingClientRect().height;
+  
+  // If the lyrics content fits within the available space, center it vertically
+  if (lyricsGridHeight < availableHeight) {
+    const topMargin = Math.max(5, (availableHeight - lyricsGridHeight) / 2); // Reduced min from 10px to 5px
+    lyricsGrid.style.marginTop = topMargin + 'px';
+    lyricsGrid.style.position = 'relative';
+    lyricsGrid.style.top = '0';
+    lyricsGrid.style.transform = 'none';
+    lyricsGrid.style.left = "0";
+    lyricsGrid.style.right = "0";
+    lyricsGrid.style.margin = topMargin + "px auto 0 auto";
+  } else {
+    // If content is too tall, position it at the top with minimal margin
+    lyricsGrid.style.marginTop = '5px'; // Reduced from 10px to 5px
+    lyricsGrid.style.position = 'relative';
+    lyricsGrid.style.top = '0';
+    lyricsGrid.style.transform = 'none';
+    lyricsGrid.style.left = "0";
+    lyricsGrid.style.right = "0";
+    lyricsGrid.style.margin = "5px auto 0 auto"; // Reduced from 10px to 5px
+  }
+  
+  // NEW: Ensure no horizontal overflow
+  checkAndPreventHorizontalOverflow();
+}
+
+// NEW: Function to detect and fix horizontal overflow
+function checkAndPreventHorizontalOverflow() {
+  const lyricsRows = document.querySelectorAll('.lyricle-lyrics-row');
+  const viewportWidth = window.innerWidth;
+  
+  lyricsRows.forEach(row => {
+    const col = row.querySelector('.lyricle-lyrics-col');
+    if (!col) return;
+    
+    const children = col.children;
+    let totalRowWidth = 0;
+    
+    // Update margin calculation to match our new spacing
+    for (let i = 0; i < children.length; i++) {
+      totalRowWidth += children[i].offsetWidth + 6; // Increased from 4px to 6px per item
+    }
+    
+    if (totalRowWidth > viewportWidth) {
+      col.style.flexWrap = 'wrap';
+      col.style.maxWidth = '100%';
+      col.style.justifyContent = 'center';
+    }
+  });
 }
 
 // Debug logging function
@@ -1305,7 +1413,7 @@ function init() { // Initialize the game
       songData = allSongData[Math.floor(Math.random() * allSongData.length)];
     }
     startGame(songData);
-    //constructRandomButton(); // Add random button from the beginning
+    constructRandomButton(); // Add random button from the beginning
     displayHowToPlayModal();
   });
 }

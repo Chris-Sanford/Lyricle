@@ -15,6 +15,11 @@
 
 body {
     touch-action: manipulation; /* Prevents double tap zoom on mobile devices, helps for pressing Random and Lifeline */
+    overflow: hidden; /* Prevent scrolling on the entire page */
+    position: fixed; 
+    width: 100%;
+    height: 100%;
+    max-width: 100vw; /* Prevent horizontal overflow */
 }
 
 /* Center the element vertically and horizontally */
@@ -25,12 +30,13 @@ body {
 }
 
 .xycenter {
-    margin: 0;
+    margin: 0 auto;
     position: relative;
     top: 50%;
-    left: 50%;
-    -ms-transform: translate(-50%, -50%);
-    transform: translate(-50%, -50%);
+    left: 0;
+    right: 0;
+    transform: translateY(-50%);
+    max-width: 100%;
 }
 
 /* Parent Elements (First "Layer" within Body) */
@@ -49,19 +55,30 @@ body {
     margin-left: auto; /* margins left and right being auto center the element without needing to be a container (with bootstrap CSS flexing) */
     margin-right: auto;
     border-bottom: 2px solid rgba(255, 255, 255, 0.177);
+    position: relative;
+    z-index: 10; /* Ensure these appear above the lyrics */
 }
 .lyricle-songtitle {
     max-width: 800px; /* Prevents larger displays from oversizing divs */
     max-height: 80px; /* Prevents larger displays from oversizing divs  */
     height: 5vh; /* Dynamically calculates height based on viewport for mobile responsivenesss but is limited by aforementioned max values for large displays */
     border-bottom: 2px solid rgba(255, 255, 255, 0.177);
+    position: relative;
+    z-index: 10; /* Ensure these appear above the lyrics */
 }
 .lyricle-lyrics {
-    max-width: 800px; /* Prevents larger displays from oversizing divs */
-    max-height: 766px; /* Prevents larger displays from oversizing divs  */
-    height: 35vh; /* Dynamically calculates height based on viewport for mobile responsivenesss but is limited by aforementioned max values for large displays */
-    margin-left: auto; /* margins left and right being auto center the element without needing to be a container (with bootstrap CSS flexing) */
+    max-width: 100%;
+    width: 100%;
+    position: relative;
+    margin-left: auto;
     margin-right: auto;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    left: 0;
+    right: 0;
+    padding: 0; /* Ensure no extra padding */
 }
 .lyricle-oskb {
     max-width: 484px; /* Prevents larger displays from creating unreasonably large OSKB */
@@ -70,6 +87,9 @@ body {
     margin-left: auto; /* margins left and right being auto center the element without needing to be a container (with bootstrap CSS flexing) */
     margin-right: auto;
     text-align: center;
+    position: relative;
+    z-index: 10;
+    margin-top: auto;
 }
 
 /* Children Elements (Elements contained within the aforementioned Parents) */
@@ -88,55 +108,64 @@ body {
 
 
 .lyricle-lyrics-grid {
-    max-width: 800px; /* Prevents larger displays from oversizing divs */
-    max-height: 766px; /* Prevents larger displays from oversizing divs  */
-    margin-left: auto; /* margins left and right being auto center the element without needing to be a container (with bootstrap CSS flexing) */
+    width: 100%;
+    max-width: 100%;
+    margin-left: auto;
     margin-right: auto;
-    position: relative; /* Ensure stable positioning of the grid */
+    position: relative;
+    transform: none;
+    left: 0;
+    right: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0; /* Ensure no extra gap between rows */
+    padding: 0;
 }
 .lyricle-lyrics-row {
-    max-width: 800px;
-    margin-left: auto; /* margins left and right being auto center the element without needing to be a container (with bootstrap CSS flexing) */
+    width: 100%;
+    max-width: 100%;
+    margin-left: auto;
     margin-right: auto;
-    position: relative; /* Keep the row position stable */
-    min-height: 2.2em; /* Increased from 1.8em to 2.2em */
-    height: 2.2em; /* Increased from 1.8em to 2.2em */
-    margin-top: 0.2em; /* Added small top margin for additional spacing */
-    overflow: visible; /* Allow content to overflow without breaking layout */
+    position: relative;
+    min-height: 1.8em;
+    height: auto;
+    margin-top: 0.15em;
+    margin-bottom: 0.15em;
+    padding: 0;
+    overflow: visible;
+    justify-content: center;
 }
 .lyricle-lyrics-div {
     height: 1.6em;
-    border: 1px solid rgb(255, 255, 255);
-    background: transparent;
     border: none;
-    /* border-bottom: 2px solid rgb(255, 255, 255); */
     font-size: min(1.3em, 60px);
     font-weight: bold;
-    display: inline-block;
+    display: inline-flex;
     justify-content: center;
     align-items: center;
     text-align: center;
     white-space: nowrap;
-    overflow: visible; /* Changed from hidden to visible to prevent clipping of characters */
-    margin-left: 4px;
-    margin-right: 2px; /* Add right margin to prevent apostrophes from being clipped */
-    /* Remove letter-spacing that caused issues */
-    /* Remove padding that caused issues */
-    vertical-align: baseline; /* Ensure consistent vertical alignment */
-    line-height: 1.6em; /* Maintain consistent line height */
-    position: relative; /* Allow absolute positioning of children if needed */
-    box-sizing: border-box; /* Include padding and border in element's width and height */
+    overflow: visible;
+    margin: 1px 3px; /* Increased from 2px to 3px horizontal margin */
+    vertical-align: baseline;
+    line-height: 1.6em;
+    position: relative;
+    box-sizing: border-box;
+    max-width: calc(100vw - 25px);
+    /* Add slight letter spacing to help with readability */
+    letter-spacing: 0.01em;
 }
 .lyricle-lyrics-div-special {
     margin-left: 0px;
 }
 
 .lyricle-lyrics-div-spaceLeft {
-    margin-left: 4px;
+    margin-left: 3px; /* Increased from 2px to 3px */
 }
 
 .lyricle-lyrics-div-spaceRight {
-    margin-left: 4px;
+    margin-left: 3px; /* Increased from 2px to 3px */
 }
 .lyricle-lyrics-input {
     width: 100%;
@@ -151,6 +180,8 @@ body {
     box-sizing: border-box; /* Include padding and border in element's width and height */
     empty-cells: show; /* Ensure empty cells take up space */
     position: relative; /* Ensure stable positioning */
+    /* Add a tiny bit of letter spacing for better readability */
+    letter-spacing: 0.01em;
 }
 .lyricle-lyrics-input-noguess {
     /* border-bottom: none; */
@@ -206,4 +237,28 @@ body {
     margin-right: 0.3vmax;
     padding-left: 0.3vmax;
     padding-right: 0.3vmax;
+}
+
+/* Add these new styles to allow proper wrapping */
+.lyricle-lyrics-col {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 100%;
+  padding: 0 3px;
+  gap: 3px; /* Increased from 2px to 3px for slightly more space between items */
+  margin: 0 auto;
+}
+
+.lyricle-lyrics-flex-wrap {
+  flex-wrap: wrap;
+}
+
+/* Make sure the entire content fits in the viewport */
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
 }
