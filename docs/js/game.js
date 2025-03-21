@@ -1670,6 +1670,46 @@ async function populateAlertsDiv() {
   }, 3000);
 }
 
+// Function to update the lifeline display both in the keyboard and elsewhere
+function updateLifelineDisplay() {
+  // Update keyboard lifeline number
+  const keyboardLifelineNumber = document.getElementById("keyboardLifelineNumber");
+  if (keyboardLifelineNumber) {
+    keyboardLifelineNumber.innerText = lifelines;
+  }
+  
+  // Update the keyboard lifeline button appearance based on lifelines remaining
+  const keyboardLifelineButton = document.getElementById("keyboardLifelineButton");
+  if (keyboardLifelineButton) {
+    // Reset classes first
+    keyboardLifelineButton.classList.remove("btn-danger");
+    
+    // Apply appropriate styling based on lifelines
+    if (lifelines === 1) {
+      keyboardLifelineButton.classList.add("btn-danger");
+    } else if (lifelines === 0) {
+      // Change heart icon to broken heart when lifelines reach zero
+      const lifelineIcon = keyboardLifelineButton.querySelector("i");
+      if (lifelineIcon) {
+        lifelineIcon.classList.remove("fa-heart");
+        lifelineIcon.classList.add("fa-heart-crack");
+      }
+      
+      // Hide the number since the cracked heart indicates no lifelines
+      if (keyboardLifelineNumber) {
+        keyboardLifelineNumber.style.display = "none";
+      }
+    }
+  }
+  
+  // Also update the original lifeline button number if it exists
+  const originalLifelineNumber = document.getElementById("lifelineButtonNumber");
+  if (originalLifelineNumber) {
+    originalLifelineNumber.innerText = lifelines;
+  }
+}
+
+// Modified useLifeline function to properly apply lifelines
 function useLifeline(song, button) {
   // If lifelines is 0, show concede modal
   if (lifelines === 0) {
@@ -1677,55 +1717,57 @@ function useLifeline(song, button) {
     return;
   }
 
+  // If the stopwatch hasn't been started, start it
+  if (!startTime) {
+    startStopwatch();
+  }
+
+  // Increment the input counter
+  inputCounter++;
+  
   // Decrement the lifelines remaining
   lifelines--;
 
   // Update all lifeline displays
   updateLifelineDisplay();
 
-  // If the stopwatch hasn't been started, start it
-  if (!startTime) {
-    startStopwatch();
-  }
-
+  // Actually apply the lifeline to reveal characters in all lyric boxes
   if (lifelines >= 0) {
-    // Populate the nth character of the secret lyric for every incomplete lyric box
-    // nth being calculated by how many lifelines remaining. 1st lifeline reveals 1st character, 2nd lifeline reveals 2nd character, etc.
-
-    // Start a for loop from 0 to the length of the lyrics array
+    debugLog("Applying lifeline: " + (startingLifelines - lifelines) + " characters to reveal");
+    
+    // Loop through each lyric input to apply the hint
     for (var i = 0; i < song.lyrics.length; i++) {
       // Get the lyricInput element
       var lyricInput = document.getElementById("lyricInput" + i);
 
-      // If the lyricInput element exists, is a span, and is still enabled
-      if (lyricInput.contentEditable === "true") {
-        // Set the innerText of the lyricInput element to the nth character of the secret lyric
+      // Skip lyrics that don't need to be guessed or are already correct
+      if (!lyricInput || 
+          !song.lyrics[i].toGuess || 
+          lyricInput.parentElement.classList.contains("lyricle-lyrics-input-correct")) {
+        continue;
+      }
 
-        // Don't give another letter if the length of the lyric is so short that it would reveal the entire lyric
-        if (song.lyrics[i].content.length <= (startingLifelines - lifelines)) {
-          continue;
-        }
-
-        // Build the string to populate based on the number of lifelines used/remaining
-        // If this is the 2nd lifeline used, populate the first 2 characters of the secret lyric
-        // Create a loop that runs from (startingLifelines - lifelines) down to 0 to determine how many characters to give
-        var stringToPopulate = ""; // Initialize the string to populate
-
-        // Create a loop that runs from 0 to (startingLifelines - lifelines) to determine how many characters to give
-        for (var j = 0; j < startingLifelines - lifelines; j++) {
+      // Calculate how many characters to reveal
+      const charsToReveal = startingLifelines - lifelines;
+      
+      // Build the string to populate based on the number of lifelines used
+      var stringToPopulate = ""; 
+      for (var j = 0; j < charsToReveal; j++) {
+        if (j < song.lyrics[i].content.length) {
           stringToPopulate += song.lyrics[i].content.charAt(j);
         }
-
-        lyricInput.innerText = stringToPopulate;
-
-        // Update the Opacity of the lyricInput
-        checkCorrectness(lyricInput, song);
       }
+
+      // Set the revealed characters in the input
+      lyricInput.innerText = stringToPopulate;
+      
+      // Check if this completes the word
+      checkCorrectness(lyricInput, song);
     }
   }
 
-  // Apply button-specific styling if needed (for the original non-keyboard lifeline button)
-  if (button.id !== "keyboardLifelineButton") {
+  // Apply button-specific styling for the original lifeline button if it was used
+  if (button && button.id !== "keyboardLifelineButton") {
     if (lifelines === 1) {
       button.classList.add("btn-danger");
     }
@@ -1741,7 +1783,7 @@ function useLifeline(song, button) {
       }
       
       // Remove the lifeline number since the cracked heart already indicates no lifelines
-      var lifelineNumber = document.getElementById("lifelineButtonNumber");
+      var lifelineNumber = button.querySelector(".lyricle-lifeline-number");
       if (lifelineNumber) {
         lifelineNumber.style.display = "none";
       }
@@ -1803,11 +1845,14 @@ function constructCustomKeyboard() {
   lifelineNumber.innerText = lifelines;
   lifelineKey.appendChild(lifelineNumber);
   
-  // Add event listener for lifeline button
+  // Important: Make sure this event listener correctly calls useLifeline
   lifelineKey.addEventListener("click", function() {
-    // Call the useLifeline function with the current song and this button
-    if (window.currentSong) {
+    // Only proceed if we have a current song and the game is still active
+    if (window.currentSong && !endTime) {
+      debugLog("Lifeline button clicked");
       useLifeline(window.currentSong, this);
+    } else {
+      debugLog("Lifeline button clicked but no active game");
     }
   });
   
@@ -1837,45 +1882,6 @@ function constructCustomKeyboard() {
   
   // Update the lifeline number
   updateLifelineDisplay();
-}
-
-// Function to update the lifeline display both in the keyboard and elsewhere
-function updateLifelineDisplay() {
-  // Update keyboard lifeline number
-  const keyboardLifelineNumber = document.getElementById("keyboardLifelineNumber");
-  if (keyboardLifelineNumber) {
-    keyboardLifelineNumber.innerText = lifelines;
-  }
-  
-  // Update the keyboard lifeline button appearance based on lifelines remaining
-  const keyboardLifelineButton = document.getElementById("keyboardLifelineButton");
-  if (keyboardLifelineButton) {
-    // Reset classes first
-    keyboardLifelineButton.classList.remove("btn-danger");
-    
-    // Apply appropriate styling based on lifelines
-    if (lifelines === 1) {
-      keyboardLifelineButton.classList.add("btn-danger");
-    } else if (lifelines === 0) {
-      // Change heart icon to broken heart when lifelines reach zero
-      const lifelineIcon = keyboardLifelineButton.querySelector("i");
-      if (lifelineIcon) {
-        lifelineIcon.classList.remove("fa-heart");
-        lifelineIcon.classList.add("fa-heart-crack");
-      }
-      
-      // Hide the number since the cracked heart indicates no lifelines
-      if (keyboardLifelineNumber) {
-        keyboardLifelineNumber.style.display = "none";
-      }
-    }
-  }
-  
-  // Also update the original lifeline button number if it exists
-  const originalLifelineNumber = document.getElementById("lifelineButtonNumber");
-  if (originalLifelineNumber) {
-    originalLifelineNumber.innerText = lifelines;
-  }
 }
 
 // Handle key presses from the custom keyboard
