@@ -301,3 +301,31 @@ html, body {
 .lyricle-key.special-key {
   background-color: rgba(100, 100, 100, 0.4);
 }
+
+/* Keyboard lifeline button styling */
+.lyricle-keyboard-lifeline {
+  position: relative;
+  min-width: 4em;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(60, 60, 60, 0.8);
+}
+
+.btn-danger.lyricle-keyboard-lifeline {
+  background-color: rgba(220, 53, 69, 0.4);
+}
+
+.lyricle-keyboard-lifeline i {
+  font-size: 1.3em;
+}
+
+.lyricle-keyboard-lifeline-number {
+  position: absolute;
+  font-size: 0.9em;
+  color: rgb(65, 65, 65);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-weight: bold;
+}

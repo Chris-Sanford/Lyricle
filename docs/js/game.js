@@ -188,6 +188,14 @@ function constructSongObject(title, artist, preview, chorus) {
 }
 
 function constructLifelineButton(song) {
+  // Since we now have the lifeline in the keyboard, we can skip creating the original one
+  if (customKeyboardEnabled) {
+    // Just make sure the keyboard lifeline is updated
+    updateLifelineDisplay();
+    return;
+  }
+  
+  // Only create the traditional lifeline button if we're not using the custom keyboard
   // Get the OSKB Col element to populate the lifeline button into
   var oskbRow = document.getElementById("oskbRow1Col1");
 
@@ -1342,10 +1350,15 @@ function completeGame(song) {
     debugLog("Audio muted, not playing on completion");
   }
 
-  // Disable lifeline button when game is completed
+  // Disable lifeline buttons when game is completed
   var lifelineButton = document.getElementById("lifelineButton");
   if (lifelineButton) {
     lifelineButton.classList.add("disabled");
+  }
+  
+  var keyboardLifelineButton = document.getElementById("keyboardLifelineButton");
+  if (keyboardLifelineButton) {
+    keyboardLifelineButton.classList.add("disabled");
   }
 
   var allCorrect = wordsCorrect === wordsToGuess
@@ -1635,19 +1648,16 @@ function useLifeline(song, button) {
     return;
   }
 
-  // Update the lifelines remaining text
-  // Get the lifelineButtonNumber element
-  var lifelineButtonNumber = document.getElementById("lifelineButtonNumber");
+  // Decrement the lifelines remaining
+  lifelines--;
 
-  // Set the innerText to the number of lifelines remaining
-  lifelineButtonNumber.innerText = (lifelines - 1);
+  // Update all lifeline displays
+  updateLifelineDisplay();
 
   // If the stopwatch hasn't been started, start it
   if (!startTime) {
     startStopwatch();
   }
-
-  lifelines--; // Decrement the lifelines remaining
 
   if (lifelines >= 0) {
     // Populate the nth character of the secret lyric for every incomplete lyric box
@@ -1685,25 +1695,27 @@ function useLifeline(song, button) {
     }
   }
 
-  if(lifelines === 1) {
-    button.classList.add("btn-danger");
-  }
-
-  if (lifelines === 0) {
-    button.classList.remove("btn-danger");
-    // Keep button clickable, don't add disabled class
-    
-    // Change heart icon to broken heart when lifelines reach zero
-    var lifelineIcon = button.querySelector("i");
-    if (lifelineIcon) {
-      lifelineIcon.classList.remove("fa-heart");
-      lifelineIcon.classList.add("fa-heart-crack");
+  // Apply button-specific styling if needed (for the original non-keyboard lifeline button)
+  if (button.id !== "keyboardLifelineButton") {
+    if (lifelines === 1) {
+      button.classList.add("btn-danger");
     }
-    
-    // Remove the lifeline number since the cracked heart already indicates no lifelines
-    var lifelineNumber = document.getElementById("lifelineButtonNumber");
-    if (lifelineNumber) {
-      lifelineNumber.style.display = "none";
+
+    if (lifelines === 0) {
+      button.classList.remove("btn-danger");
+      
+      // Change heart icon to broken heart when lifelines reach zero
+      var lifelineIcon = button.querySelector("i");
+      if (lifelineIcon) {
+        lifelineIcon.classList.remove("fa-heart");
+        lifelineIcon.classList.add("fa-heart-crack");
+      }
+      
+      // Remove the lifeline number since the cracked heart already indicates no lifelines
+      var lifelineNumber = document.getElementById("lifelineButtonNumber");
+      if (lifelineNumber) {
+        lifelineNumber.style.display = "none";
+      }
     }
   }
 }
@@ -1744,13 +1756,33 @@ function constructCustomKeyboard() {
   const row3Container = document.getElementById("oskbRow3Col1");
   row3Container.innerHTML = "";
   
-  // Add Enter key
-  const enterKey = document.createElement("div");
-  enterKey.className = "lyricle-key special-key wide-key";
-  enterKey.textContent = "Enter";
-  enterKey.dataset.key = "Enter";
-  enterKey.addEventListener("click", handleKeyPress);
-  row3Container.appendChild(enterKey);
+  // Add Lifeline button instead of Enter key
+  const lifelineKey = document.createElement("div");
+  lifelineKey.className = "lyricle-key special-key wide-key lyricle-keyboard-lifeline";
+  lifelineKey.id = "keyboardLifelineButton";
+  lifelineKey.dataset.key = "Lifeline";
+  
+  // Create heart icon
+  const heartIcon = document.createElement("i");
+  heartIcon.className = "fas fa-heart";
+  lifelineKey.appendChild(heartIcon);
+  
+  // Create the lifeline number
+  const lifelineNumber = document.createElement("span");
+  lifelineNumber.id = "keyboardLifelineNumber";
+  lifelineNumber.className = "lyricle-keyboard-lifeline-number";
+  lifelineNumber.innerText = lifelines;
+  lifelineKey.appendChild(lifelineNumber);
+  
+  // Add event listener for lifeline button
+  lifelineKey.addEventListener("click", function() {
+    // Call the useLifeline function with the current song and this button
+    if (window.currentSong) {
+      useLifeline(window.currentSong, this);
+    }
+  });
+  
+  row3Container.appendChild(lifelineKey);
   
   // Add letter keys
   const row3Keys = ["z", "x", "c", "v", "b", "n", "m"];
@@ -1773,6 +1805,48 @@ function constructCustomKeyboard() {
   
   // Add event listener to prevent the native keyboard on mobile
   document.addEventListener('focusin', preventNativeKeyboard);
+  
+  // Update the lifeline number
+  updateLifelineDisplay();
+}
+
+// Function to update the lifeline display both in the keyboard and elsewhere
+function updateLifelineDisplay() {
+  // Update keyboard lifeline number
+  const keyboardLifelineNumber = document.getElementById("keyboardLifelineNumber");
+  if (keyboardLifelineNumber) {
+    keyboardLifelineNumber.innerText = lifelines;
+  }
+  
+  // Update the keyboard lifeline button appearance based on lifelines remaining
+  const keyboardLifelineButton = document.getElementById("keyboardLifelineButton");
+  if (keyboardLifelineButton) {
+    // Reset classes first
+    keyboardLifelineButton.classList.remove("btn-danger");
+    
+    // Apply appropriate styling based on lifelines
+    if (lifelines === 1) {
+      keyboardLifelineButton.classList.add("btn-danger");
+    } else if (lifelines === 0) {
+      // Change heart icon to broken heart when lifelines reach zero
+      const lifelineIcon = keyboardLifelineButton.querySelector("i");
+      if (lifelineIcon) {
+        lifelineIcon.classList.remove("fa-heart");
+        lifelineIcon.classList.add("fa-heart-crack");
+      }
+      
+      // Hide the number since the cracked heart indicates no lifelines
+      if (keyboardLifelineNumber) {
+        keyboardLifelineNumber.style.display = "none";
+      }
+    }
+  }
+  
+  // Also update the original lifeline button number if it exists
+  const originalLifelineNumber = document.getElementById("lifelineButtonNumber");
+  if (originalLifelineNumber) {
+    originalLifelineNumber.innerText = lifelines;
+  }
 }
 
 // Handle key presses from the custom keyboard
