@@ -81,15 +81,18 @@ body {
     padding: 0; /* Ensure no extra padding */
 }
 .lyricle-oskb {
-    max-width: 484px; /* Prevents larger displays from creating unreasonably large OSKB */
-    max-height: 200px; /* Prevents larger displays from creating unreasonably large OSKB  */
-    height: 30vh; /* Dynamically calculates height based on viewport for mobile responsivenesss but is limited by aforementioned max values for large displays */
-    margin-left: auto; /* margins left and right being auto center the element without needing to be a container (with bootstrap CSS flexing) */
-    margin-right: auto;
-    text-align: center;
-    position: relative;
-    z-index: 10;
-    margin-top: auto;
+    max-width: 100%;
+    width: 100%;
+    height: auto;
+    max-height: 30vh;
+    padding: 0.5em 0;
+    background-color: rgba(30, 30, 30, 0.95);
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    z-index: 1000;
 }
 
 /* Children Elements (Elements contained within the aforementioned Parents) */
@@ -192,11 +195,12 @@ body {
 }
 
 .lyricle-oskb-row {
-    max-width: 484px; /* Prevents larger displays from creating unreasonably large OSKB */
-    max-height: 66px; /* Prevents larger displays from creating unreasonably large OSKB  */
-    height: 10vh; /* Dynamically calculates height based on viewport for mobile responsivenesss but is limited by aforementioned max values for large displays */
-    margin: 0px;
-    padding: 0px;
+    max-width: 100%;
+    width: 100%;
+    height: auto;
+    margin: 0.15em 0;
+    display: flex;
+    justify-content: center;
 }
 .lyricle-oskb-col {
     margin: 0px;
@@ -261,4 +265,39 @@ html, body {
   height: 100%;
   margin: 0;
   padding: 0;
+}
+
+/* Keyboard key styles */
+.lyricle-key {
+  background-color: rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  min-width: 2em;
+  height: 2.5em;
+  margin: 0.2em;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1em;
+  font-weight: 500;
+  color: white;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.1s;
+  text-transform: uppercase;
+}
+
+.lyricle-key.wide-key {
+  min-width: 4em;
+}
+
+.lyricle-key.backspace-key {
+  min-width: 3em;
+}
+
+.lyricle-key:active {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+.lyricle-key.special-key {
+  background-color: rgba(100, 100, 100, 0.4);
 }

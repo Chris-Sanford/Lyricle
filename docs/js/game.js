@@ -25,6 +25,10 @@ allowedCharacters.push("'"); // Allow apostrophes although they will be filtered
 // ... What does 'let' do differently from 'var' again?
 let startTime, endTime, interval; // stopwatch variables
 
+// Global Variables for keyboard functionality
+var activeInputElement = null;
+var customKeyboardEnabled = true;
+
 // Class Constructors
 // Construct the Lyric class
 class Lyric {
@@ -334,22 +338,42 @@ function constructLyricInputBoxes(song, lyricsGridContainer) {
       div.style.marginLeft = "3px";  // Increased from 2px to 3px
       div.style.marginRight = "3px"; // Increased from 2px to 3px
 
-      // Create input and event listeners (unchanged)
+      // Create input and event listeners
       var input = document.createElement("span");
       input.classList.add("input", "lyricle-lyrics-input");
       input.role = "textbox"
-      input.contentEditable = true;
+      input.contentEditable = false; // Set to false to avoid native keyboard
       input.id = "lyricInput" + lyricsToDisplay[i].boxIndex;
 
-      // Add event listeners (unchanged)
+      // Use a modified click event instead of focus for mobile
+      input.addEventListener("click", function(event) {
+        event.preventDefault();
+        if (customKeyboardEnabled) {
+          // Update the active input element
+          activeInputElement = this;
+          
+          // Call the focus listener to handle visual styling
+          lyricBoxFocusListener(this, song);
+        }
+      });
+      
+      // Keep other listeners for non-mobile use
       input.addEventListener("keydown", function(event) {
-        lyricBoxKeyDownListener(event, song);
+        if (!customKeyboardEnabled) {
+          lyricBoxKeyDownListener(event, song);
+        }
       });
+      
       input.addEventListener("input", function() {
-        lyricBoxInputListener(song);
+        if (!customKeyboardEnabled) {
+          lyricBoxInputListener(song);
+        }
       });
+      
       input.addEventListener("focus", function() {
-        lyricBoxFocusListener(input, song);
+        if (!customKeyboardEnabled) {
+          lyricBoxFocusListener(input, song);
+        }
       });
 
       // Handling for non-guessed words (unchanged)
@@ -407,7 +431,7 @@ function adjustLyricLineHeights() {
   });
 }
 
-// Update the adjustLyricContentPosition function
+// Update the adjustLyricContentPosition function to account for the fixed keyboard height
 function adjustLyricContentPosition() {
   // Get key elements
   const songTitle = document.getElementById('songTitle');
@@ -420,10 +444,12 @@ function adjustLyricContentPosition() {
   // Calculate available height between song title and oskb
   const viewportHeight = window.innerHeight;
   const songTitleBottom = songTitle.getBoundingClientRect().bottom;
-  const oskbTop = oskbContainer.getBoundingClientRect().top;
+  
+  // Use the fixed oskb height rather than its position
+  const oskbHeight = Math.min(viewportHeight * 0.3, 200); // 30vh with a max of 200px
   
   // Calculate the available space
-  const availableHeight = oskbTop - songTitleBottom;
+  const availableHeight = viewportHeight - songTitleBottom - oskbHeight - 20; // 20px buffer
   
   // Set the lyrics container to this height
   lyricsContainer.style.height = availableHeight + 'px';
@@ -438,7 +464,7 @@ function adjustLyricContentPosition() {
   
   // If the lyrics content fits within the available space, center it vertically
   if (lyricsGridHeight < availableHeight) {
-    const topMargin = Math.max(5, (availableHeight - lyricsGridHeight) / 2); // Reduced min from 10px to 5px
+    const topMargin = Math.max(5, (availableHeight - lyricsGridHeight) / 2);
     lyricsGrid.style.marginTop = topMargin + 'px';
     lyricsGrid.style.position = 'relative';
     lyricsGrid.style.top = '0';
@@ -448,16 +474,16 @@ function adjustLyricContentPosition() {
     lyricsGrid.style.margin = topMargin + "px auto 0 auto";
   } else {
     // If content is too tall, position it at the top with minimal margin
-    lyricsGrid.style.marginTop = '5px'; // Reduced from 10px to 5px
+    lyricsGrid.style.marginTop = '5px';
     lyricsGrid.style.position = 'relative';
     lyricsGrid.style.top = '0';
     lyricsGrid.style.transform = 'none';
     lyricsGrid.style.left = "0";
     lyricsGrid.style.right = "0";
-    lyricsGrid.style.margin = "5px auto 0 auto"; // Reduced from 10px to 5px
+    lyricsGrid.style.margin = "5px auto 0 auto";
   }
   
-  // NEW: Ensure no horizontal overflow
+  // Ensure no horizontal overflow
   checkAndPreventHorizontalOverflow();
 }
 
@@ -812,8 +838,8 @@ function lyricBoxInputListener(song) {
   checkCorrectness(lyricBox, song);
 }
 
-function lyricBoxFocusListener (input, song) {
-  // Update the style of the previously-focused input box to signify that it is no longer focused
+function lyricBoxFocusListener(input, song) {
+  // Update the style of the previously-focused input box
   var previouslyFocusedInput = document.getElementById("lyricInput" + focusedBoxIndex);
 
   // If the previouslyFocusedInput exists and is not marked as correct or noguess
@@ -841,19 +867,16 @@ function lyricBoxFocusListener (input, song) {
     });
   }
 
-  // Get the active element
-  var lyricBox = document.activeElement;
+  // Set the active input element for the custom keyboard
+  activeInputElement = input;
 
-  // Force the cursor to the end of the input box
-  moveCursorToEnd(lyricBox, song);
-
-  // Set the focusedBoxIndex value globally so all other functions can address it
-  focusedBoxIndex = parseInt(lyricBox.id.replace("lyricInput", ""));
+  // Set the focusedBoxIndex value globally
+  focusedBoxIndex = parseInt(input.id.replace("lyricInput", ""));
   
   // Get the current lyric object and input value to calculate correct opacity
   var lyricIndex = focusedBoxIndex;
   var lyric = song.lyrics[lyricIndex];
-  var comparableInput = lyricBox.innerHTML
+  var comparableInput = input.innerHTML
     .replace(/([^a-zA-Z0-9\s\u00C0-\u017F])/g, "")
     .toLowerCase()
     .normalize("NFD")
@@ -864,13 +887,18 @@ function lyricBoxFocusListener (input, song) {
   var opacity = 1.00 - percentageCorrect;
 
   // Set the bottom border to be blue while maintaining the correct opacity
-  setLyricBoxBorderBottomStyle(lyricBox, {
+  setLyricBoxBorderBottomStyle(input, {
     width: 4,
     color1: 0,
     color2: 115,
     color3: 255,
     opacity: opacity
   });
+  
+  // If custom keyboard is enabled, prevent native keyboard
+  if (customKeyboardEnabled) {
+    input.blur();
+  }
 }
 
 // Supporting Functions
@@ -989,6 +1017,12 @@ function startGame(songData) { // Loads main game with song lyrics to guess
   // Set initial muted state
   audio.muted = true;
   debugLog("Audio element initialized, muted: " + audio.muted);
+
+  // Save current song in a global variable for keyboard access
+  window.currentSong = song;
+  
+  // Construct the custom keyboard
+  constructCustomKeyboard();
 }
 
 function moveCursorToEnd(lyricBox, song) {
@@ -1416,6 +1450,9 @@ function init() { // Initialize the game
     constructRandomButton(); // Add random button from the beginning
     displayHowToPlayModal();
   });
+
+  // Construct the custom keyboard
+  constructCustomKeyboard();
 }
 
 function displayConcedeModal(song) {
@@ -1668,6 +1705,166 @@ function useLifeline(song, button) {
     if (lifelineNumber) {
       lifelineNumber.style.display = "none";
     }
+  }
+}
+
+// Function to construct the custom keyboard
+function constructCustomKeyboard() {
+  debugLog("Constructing custom keyboard");
+  
+  // First row (QWERTYUIOP)
+  const row1Keys = ["q", "w", "e", "r", "t", "y", "u", "i", "o", "p"];
+  const row1Container = document.getElementById("oskbRow1Col1");
+  row1Container.innerHTML = "";
+  
+  row1Keys.forEach(key => {
+    const keyButton = document.createElement("div");
+    keyButton.className = "lyricle-key";
+    keyButton.textContent = key;
+    keyButton.dataset.key = key;
+    keyButton.addEventListener("click", handleKeyPress);
+    row1Container.appendChild(keyButton);
+  });
+  
+  // Second row (ASDFGHJKL)
+  const row2Keys = ["a", "s", "d", "f", "g", "h", "j", "k", "l"];
+  const row2Container = document.getElementById("oskbRow2Col1");
+  row2Container.innerHTML = "";
+  
+  row2Keys.forEach(key => {
+    const keyButton = document.createElement("div");
+    keyButton.className = "lyricle-key";
+    keyButton.textContent = key;
+    keyButton.dataset.key = key;
+    keyButton.addEventListener("click", handleKeyPress);
+    row2Container.appendChild(keyButton);
+  });
+  
+  // Third row (ZXCVBNM + Backspace)
+  const row3Container = document.getElementById("oskbRow3Col1");
+  row3Container.innerHTML = "";
+  
+  // Add Enter key
+  const enterKey = document.createElement("div");
+  enterKey.className = "lyricle-key special-key wide-key";
+  enterKey.textContent = "Enter";
+  enterKey.dataset.key = "Enter";
+  enterKey.addEventListener("click", handleKeyPress);
+  row3Container.appendChild(enterKey);
+  
+  // Add letter keys
+  const row3Keys = ["z", "x", "c", "v", "b", "n", "m"];
+  row3Keys.forEach(key => {
+    const keyButton = document.createElement("div");
+    keyButton.className = "lyricle-key";
+    keyButton.textContent = key;
+    keyButton.dataset.key = key;
+    keyButton.addEventListener("click", handleKeyPress);
+    row3Container.appendChild(keyButton);
+  });
+  
+  // Add Backspace key
+  const backspaceKey = document.createElement("div");
+  backspaceKey.className = "lyricle-key special-key backspace-key";
+  backspaceKey.innerHTML = '<i class="fas fa-delete-left"></i>';
+  backspaceKey.dataset.key = "Backspace";
+  backspaceKey.addEventListener("click", handleKeyPress);
+  row3Container.appendChild(backspaceKey);
+  
+  // Add event listener to prevent the native keyboard on mobile
+  document.addEventListener('focusin', preventNativeKeyboard);
+}
+
+// Handle key presses from the custom keyboard
+function handleKeyPress(event) {
+  // Get the key that was pressed
+  const key = event.currentTarget.dataset.key;
+  
+  // Make sure we have an active input element
+  if (!activeInputElement) {
+    // If no input is focused, try to focus the first unfilled lyric box
+    focusFirstUnfilledLyric();
+    if (!activeInputElement) return;
+  }
+  
+  // Update input counter
+  inputCounter++;
+  
+  // Process the key press
+  if (key === "Backspace") {
+    // Handle backspace - remove the last character
+    let text = activeInputElement.innerText;
+    if (text.length > 0) {
+      activeInputElement.innerText = text.slice(0, -1);
+      checkCorrectness(activeInputElement, window.currentSong);
+    }
+  } else if (key === "Enter") {
+    // Handle enter - move to next lyric box
+    selectNextInput(activeInputElement, focusedBoxIndex);
+  } else {
+    // Handle regular characters
+    // Only add the character if we haven't reached max length
+    const lyric = window.currentSong.lyrics[focusedBoxIndex];
+    if (activeInputElement.innerText.length < lyric.content.length) {
+      activeInputElement.innerText += key;
+      checkCorrectness(activeInputElement, window.currentSong);
+    }
+  }
+}
+
+// Focus the first unfilled lyric box
+function focusFirstUnfilledLyric() {
+  const lyrics = window.currentSong.lyrics;
+  for (let i = 0; i < lyrics.length; i++) {
+    if (lyrics[i].toGuess) {
+      const input = document.getElementById(`lyricInput${i}`);
+      if (input && !input.parentElement.classList.contains("lyricle-lyrics-input-correct")) {
+        input.focus();
+        break;
+      }
+    }
+  }
+}
+
+// Prevent the native keyboard from showing
+function preventNativeKeyboard(event) {
+  if (customKeyboardEnabled && event.target.classList.contains('lyricle-lyrics-input')) {
+    // Save reference to the active input element
+    activeInputElement = event.target;
+    
+    // Prevent native keyboard
+    event.preventDefault();
+    event.stopPropagation();
+    
+    // Make the input lose focus immediately after gaining it
+    // This keeps the visual focus indicator but prevents keyboard
+    document.activeElement.blur();
+    
+    // Set the focused box index
+    focusedBoxIndex = parseInt(activeInputElement.id.replace("lyricInput", ""));
+    
+    // Apply the focused styling
+    const lyric = window.currentSong.lyrics[focusedBoxIndex];
+    const comparableInput = activeInputElement.innerHTML
+      .replace(/([^a-zA-Z0-9\s\u00C0-\u017F])/g, "")
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/\p{Diacritic}/gu, '');
+    
+    // Calculate opacity based on correctness
+    const percentageCorrect = getPercentageCorrect(comparableInput, lyric.contentComparable);
+    const opacity = 1.00 - percentageCorrect;
+
+    // Set the bottom border to be blue
+    setLyricBoxBorderBottomStyle(activeInputElement, {
+      width: 4,
+      color1: 0,
+      color2: 115,
+      color3: 255,
+      opacity: opacity
+    });
+    
+    return false;
   }
 }
 
