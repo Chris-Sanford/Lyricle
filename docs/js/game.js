@@ -962,6 +962,23 @@ function lyricBoxFocusListener(input, song) {
     opacity: opacity
   });
   
+  // Move cursor to end of content if there is any
+  if (input.innerText.length > 0) {
+    const range = document.createRange();
+    const sel = window.getSelection();
+    
+    // Create a text node if one doesn't exist
+    if (!input.firstChild) {
+      input.appendChild(document.createTextNode(''));
+    }
+    
+    // Set cursor position to end
+    range.setStart(input.firstChild, input.innerText.length);
+    range.collapse(true);
+    sel.removeAllRanges();
+    sel.addRange(range);
+  }
+  
   // Only blur on mobile devices with custom keyboard
   if (isMobileDevice() && customKeyboardEnabled) {
     setTimeout(() => input.blur(), 0);
