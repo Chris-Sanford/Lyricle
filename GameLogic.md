@@ -42,7 +42,7 @@ If the song preview ends after the game has completed, `enabling AudioControl` w
 
 Players are given 3 lifelines up front. The lifeline is usable through the dedicated on-screen keyboard button.
 
-When a player uses a lifeline, the next correct letter is populated into all incomplete lyrics, with various caveats and behaviors:
+When a player uses a lifeline, the next correct LETTER (NOT CHARACTER, which means don't give punctuation for lifelines) is populated into all incomplete lyrics, with various caveats and behaviors:
 - Lifelines do not affect already completed lyrics
 - If the incomplete lyric has content already in it, it's replaced with the newly-given lifeline content
 - The first lifeline gives only the first letter. The second lifeline gives the first 2 letters. The third lifeline gives the first 3 letters.

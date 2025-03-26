@@ -1815,7 +1815,8 @@ function useLifeline(song, button) {
 
   // Actually apply the lifeline to reveal characters in all lyric boxes
   if (lifelines >= 0) {
-    debugLog("Applying lifeline: " + (startingLifelines - lifelines) + " characters to reveal");
+    // Calculate how many characters to reveal based on lifelines used
+    const charsToReveal = startingLifelines - lifelines;
     
     // Loop through each lyric input to apply the hint
     for (var i = 0; i < song.lyrics.length; i++) {
@@ -1829,19 +1830,31 @@ function useLifeline(song, button) {
         continue;
       }
 
-      // Calculate how many characters to reveal
-      const charsToReveal = startingLifelines - lifelines;
+      // Get the actual content without special characters
+      const correctWord = song.lyrics[i].content;
+      const correctLetters = correctWord.replace(/[^a-zA-Z]/g, '');
       
-      // Build the string to populate based on the number of lifelines used
-      var stringToPopulate = ""; 
-      for (var j = 0; j < charsToReveal; j++) {
-        if (j < song.lyrics[i].content.length) {
-          stringToPopulate += song.lyrics[i].content.charAt(j);
+      // Skip single letter words
+      if (correctLetters.length <= 1) {
+        continue;
+      }
+      
+      // Calculate how many letters we can reveal without completing the word
+      const maxRevealable = correctLetters.length - 1;
+      const lettersToReveal = Math.min(charsToReveal, maxRevealable);
+      
+      // Build revealed string by taking letters from the original word
+      let revealedString = '';
+      let letterCount = 0;
+      for (let j = 0; j < correctWord.length && letterCount < lettersToReveal; j++) {
+        if (/[a-zA-Z]/.test(correctWord[j])) {
+          revealedString += correctWord[j];
+          letterCount++;
         }
       }
 
       // Set the revealed characters in the input
-      lyricInput.innerText = stringToPopulate;
+      lyricInput.innerText = revealedString;
       
       // Check if this completes the word
       checkCorrectness(lyricInput, song);
