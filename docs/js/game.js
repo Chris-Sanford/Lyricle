@@ -434,48 +434,15 @@ function isMobileDevice() {
 
 // Update the preventNativeKeyboard function to only apply to mobile devices
 function preventNativeKeyboard(event) {
-  // Check if this is a mobile device before preventing the keyboard
-  if (isMobileDevice() && event.target.classList.contains('lyricle-lyrics-input')) {
-    // Save reference to the active input
+  // Only prevent keyboard on mobile devices
+  if (isMobileDevice() && customKeyboardEnabled && event.target.classList.contains('lyricle-lyrics-input')) {
     activeInputElement = event.target;
-    
-    // Prevent default behavior to avoid showing native keyboard
     event.preventDefault();
     event.stopPropagation();
-    
-    // Blur the input to ensure native keyboard doesn't appear
     setTimeout(() => event.target.blur(), 0);
-    
-    // Set the focused box index
     focusedBoxIndex = parseInt(event.target.id.replace("lyricInput", ""));
-    
-    // Apply the focused styling
-    if (window.currentSong) {
-      const lyric = window.currentSong.lyrics[focusedBoxIndex];
-      const comparableInput = event.target.innerHTML
-        .replace(/([^a-zA-Z0-9\s\u00C0-\u017F])/g, "")
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/\p{Diacritic}/gu, '');
-      
-      // Calculate opacity based on correctness
-      const percentageCorrect = getPercentageCorrect(comparableInput, lyric.contentComparable);
-      const opacity = 1.00 - percentageCorrect;
-
-      // Set the bottom border
-      setLyricBoxBorderBottomStyle(event.target, {
-        width: 4,
-        color1: 0,
-        color2: 115,
-        color3: 255,
-        opacity: opacity
-      });
-    }
-    
     return false;
   }
-  
-  // Allow default behavior for desktop
   return true;
 }
 
@@ -849,18 +816,43 @@ function getRandomSong() {
 
 // Listeners
 function lyricBoxKeyDownListener(event, song) {
-  // If the key or character isn't allowed, prevent the default action of the event and end the function
-  if (!allowedKeys.includes(event.key) && !allowedCharacters.includes((event.key).toLowerCase())) {
+  // If the game is complete, don't allow any input
+  if (endTime) {
     event.preventDefault();
     return;
   }
 
-  // If the lyricBox is already at the max length and the key pressed is not in allowedKeys, prevent the default action of the event and end the function
-  let inputAtMax = event.srcElement.innerText.length >= song.lyrics[focusedBoxIndex].content.length;
+  // Start stopwatch on first input if not started
+  if (!startTime) {
+    startStopwatch();
+  }
+
+  // Handle special keys
+  if (event.key === "Tab") {
+    // Allow default Tab behavior for keyboard navigation
+    return;
+  } else if (event.key === "Enter") {
+    event.preventDefault();
+    selectNextInput(event.target, focusedBoxIndex);
+    return;
+  }
+
+  // If the key or character isn't allowed, prevent the default action
+  if (!allowedKeys.includes(event.key) && !allowedCharacters.includes(event.key.toLowerCase())) {
+    event.preventDefault();
+    return;
+  }
+
+  // If the lyricBox is already at max length and the key isn't a control key, prevent input
+  const lyric = song.lyrics[focusedBoxIndex];
+  let inputAtMax = event.target.innerText.length >= lyric.content.length;
   if (inputAtMax && !allowedKeys.includes(event.key)) {
     event.preventDefault();
     return;
   }
+
+  // For allowed input, increment the counter
+  inputCounter++;
 }
 
 function lyricBoxInputListener(song) {
@@ -916,35 +908,6 @@ function lyricBoxInputListener(song) {
 
 // Update lyricBoxFocusListener to work properly on all devices
 function lyricBoxFocusListener(input, song) {
-  // Update styling for the previously focused input
-  var previouslyFocusedInput = document.getElementById("lyricInput" + focusedBoxIndex);
-
-  if (previouslyFocusedInput && 
-      !previouslyFocusedInput.parentElement.classList.contains("lyricle-lyrics-input-noguess") && 
-      !previouslyFocusedInput.parentElement.classList.contains("lyricle-lyrics-input-correct")) {
-    
-    // Calculate correctness for the previous input
-    var prevLyricIndex = focusedBoxIndex;
-    var prevLyric = song.lyrics[prevLyricIndex];
-    var prevComparableInput = previouslyFocusedInput.innerHTML
-      .replace(/([^a-zA-Z0-9\s\u00C0-\u017F])/g, "")
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/\p{Diacritic}/gu, '');
-    
-    var prevPercentageCorrect = getPercentageCorrect(prevComparableInput, prevLyric.contentComparable);
-    var prevOpacity = 1.00 - prevPercentageCorrect;
-    
-    // Style the previous input
-    setLyricBoxBorderBottomStyle(previouslyFocusedInput, {
-      width: 4,
-      color1: 255,
-      color2: 255,
-      color3: 255,
-      opacity: prevOpacity
-    });
-  }
-
   // Update global references
   activeInputElement = input;
   focusedBoxIndex = parseInt(input.id.replace("lyricInput", ""));
@@ -970,11 +933,10 @@ function lyricBoxFocusListener(input, song) {
     opacity: opacity
   });
   
-  // For mobile, blur the input to prevent native keyboard
+  // Only blur on mobile devices with custom keyboard
   if (isMobileDevice() && customKeyboardEnabled) {
     setTimeout(() => input.blur(), 0);
   }
-  // For desktop, keep focus to allow hardware keyboard input
 }
 
 // Supporting Functions
