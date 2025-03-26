@@ -912,19 +912,48 @@ function lyricBoxFocusListener(input, song) {
   activeInputElement = input;
   focusedBoxIndex = parseInt(input.id.replace("lyricInput", ""));
   
+  // First, reset all lyric boxes to their default state
+  for (let i = 0; i < song.lyrics.length; i++) {
+    const otherInput = document.getElementById(`lyricInput${i}`);
+    if (otherInput && otherInput !== input) {
+      // Skip if this is a completed or non-guessable lyric
+      if (otherInput.parentElement.classList.contains("lyricle-lyrics-input-correct") ||
+          !song.lyrics[i].toGuess) {
+        continue;
+      }
+      
+      // Calculate the percentage correct for proper opacity
+      const comparableInput = otherInput.innerHTML
+        .replace(/([^a-zA-Z0-9\s\u00C0-\u017F])/g, "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/\p{Diacritic}/gu, '');
+      
+      const percentageCorrect = getPercentageCorrect(comparableInput, song.lyrics[i].contentComparable);
+      const opacity = 1.00 - percentageCorrect;
+      
+      // Reset to default white underline with calculated opacity
+      setLyricBoxBorderBottomStyle(otherInput, {
+        width: 4,
+        color1: 255,
+        color2: 255,
+        color3: 255,
+        opacity: opacity
+      });
+    }
+  }
+  
   // Calculate styling for current input
-  var lyricIndex = focusedBoxIndex;
-  var lyric = song.lyrics[lyricIndex];
-  var comparableInput = input.innerHTML
+  const comparableInput = input.innerHTML
     .replace(/([^a-zA-Z0-9\s\u00C0-\u017F])/g, "")
     .toLowerCase()
     .normalize("NFD")
     .replace(/\p{Diacritic}/gu, '');
   
-  var percentageCorrect = getPercentageCorrect(comparableInput, lyric.contentComparable);
-  var opacity = 1.00 - percentageCorrect;
+  const percentageCorrect = getPercentageCorrect(comparableInput, song.lyrics[focusedBoxIndex].contentComparable);
+  const opacity = 1.00 - percentageCorrect;
 
-  // Apply focused style
+  // Apply focused style (blue) only to the current input
   setLyricBoxBorderBottomStyle(input, {
     width: 4,
     color1: 0,
