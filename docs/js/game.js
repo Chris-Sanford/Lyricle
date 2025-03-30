@@ -1500,6 +1500,8 @@ function displayHowToPlayModal() {
     if (audio) {
       debugLog("Audio state after modal close: muted=" + audio.muted + ", paused=" + audio.paused);
     }
+    // Focus first unfilled lyric after modal is hidden
+    focusFirstUnfilledLyric();
   });
 }
 
@@ -2066,18 +2068,24 @@ function handleKeyPress(event) {
   }
 }
 
-// Focus the first unfilled lyric box
+// Update the focusFirstUnfilledLyric function to be more robust
 function focusFirstUnfilledLyric() {
-  const lyrics = window.currentSong.lyrics;
-  for (let i = 0; i < lyrics.length; i++) {
-    if (lyrics[i].toGuess) {
-      const input = document.getElementById(`lyricInput${i}`);
-      if (input && !input.parentElement.classList.contains("lyricle-lyrics-input-correct")) {
-        input.focus();
-        break;
-      }
+    const lyrics = window.currentSong.lyrics;
+    for (let i = 0; i < lyrics.length; i++) {
+        if (lyrics[i].toGuess) {
+            const input = document.getElementById(`lyricInput${i}`);
+            if (input && !input.parentElement.classList.contains("lyricle-lyrics-input-correct")) {
+                // Set as active input
+                activeInputElement = input;
+                focusedBoxIndex = i;
+                
+                // Focus and trigger the focus listener for proper styling
+                input.focus();
+                lyricBoxFocusListener(input, window.currentSong);
+                break;
+            }
+        }
     }
-  }
 }
 
 window.onload = init; // upon loading the page, initialize the game
