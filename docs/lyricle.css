@@ -188,7 +188,17 @@ body {
     position: relative; /* Ensure stable positioning */
     /* Add a tiny bit of letter spacing for better readability */
     letter-spacing: 0.01em;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
 }
+
+/* Prevent iOS from showing text selection */
+.lyricle-lyrics-input::selection {
+    background: transparent;
+}
+
 .lyricle-lyrics-input-noguess {
     /* border-bottom: none; */
 }

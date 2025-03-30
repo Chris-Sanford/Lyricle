@@ -64,7 +64,7 @@ Once the game is completed, the `Game Complete` modal is launched with various s
 
 ## Keyboards
 
-Desktop players can either type on their native hardware keyboard or use the on-screen keyboard to input lyric guesses. Mobile players will rely soley on the on-screen keyboard to ensure a consistent gameplay experience without relying on their native system keyboard that has adverse affects on the viewport and thusly the overall game experience.
+Desktop players can either type on their native hardware keyboard or use the on-screen keyboard to input lyric guesses. Mobile players will rely soley on the proprietary on-screen keyboard Lyricle provides to ensure a consistent gameplay experience without relying on their native system keyboard that has adverse affects on the viewport and thusly the overall game experience.
 
 ## Lyric Input Control Logic/Flow
 

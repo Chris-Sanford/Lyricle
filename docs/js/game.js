@@ -344,9 +344,6 @@ function constructLyricInputBoxes(song, lyricsGridContainer) {
       input.role = "textbox";
       input.id = "lyricInput" + lyricsToDisplay[i].boxIndex;
       
-      // Always make contentEditable true to allow keyboard input
-      input.contentEditable = "true";
-
       // Add event listeners
       input.addEventListener("click", function(event) {
         // Set as active input
@@ -355,30 +352,38 @@ function constructLyricInputBoxes(song, lyricsGridContainer) {
         // Call focus listener to handle styling
         lyricBoxFocusListener(this, song);
         
-        // Only prevent default on mobile
+        // Only prevent default and stop propagation on mobile
         if (isMobileDevice() && customKeyboardEnabled) {
           event.preventDefault();
-          // Blur immediately on mobile to prevent native keyboard
-          setTimeout(() => this.blur(), 0);
+          event.stopPropagation();
         }
       });
       
-      // Always include keyboard event listeners
+      // Always make contentEditable true for desktop, but false for mobile
+      if (isMobileDevice() && customKeyboardEnabled) {
+        input.contentEditable = false;
+      } else {
+        input.contentEditable = "true";
+      }
+      
+      // Handle focus events
+      input.addEventListener("focus", function(event) {
+        lyricBoxFocusListener(this, song);
+        
+        // Only prevent default and stop propagation on mobile
+        if (isMobileDevice() && customKeyboardEnabled) {
+          event.preventDefault();
+          event.stopPropagation();
+        }
+      });
+      
+      // Always include keyboard event listeners for desktop
       input.addEventListener("keydown", function(event) {
         lyricBoxKeyDownListener(event, song);
       });
       
       input.addEventListener("input", function() {
         lyricBoxInputListener(song);
-      });
-      
-      input.addEventListener("focus", function() {
-        lyricBoxFocusListener(this, song);
-        
-        // Only blur on mobile devices
-        if (isMobileDevice() && customKeyboardEnabled) {
-          setTimeout(() => this.blur(), 0);
-        }
       });
 
       // Handle non-guessable words
@@ -434,12 +439,10 @@ function isMobileDevice() {
 
 // Update the preventNativeKeyboard function to only apply to mobile devices
 function preventNativeKeyboard(event) {
-  // Only prevent keyboard on mobile devices
   if (isMobileDevice() && customKeyboardEnabled && event.target.classList.contains('lyricle-lyrics-input')) {
-    activeInputElement = event.target;
     event.preventDefault();
     event.stopPropagation();
-    setTimeout(() => event.target.blur(), 0);
+    activeInputElement = event.target;
     focusedBoxIndex = parseInt(event.target.id.replace("lyricInput", ""));
     return false;
   }
@@ -1497,6 +1500,8 @@ function displayHowToPlayModal() {
     if (audio) {
       debugLog("Audio state after modal close: muted=" + audio.muted + ", paused=" + audio.paused);
     }
+    // Focus first unfilled lyric after modal is hidden
+    focusFirstUnfilledLyric();
   });
 }
 
@@ -2063,18 +2068,24 @@ function handleKeyPress(event) {
   }
 }
 
-// Focus the first unfilled lyric box
+// Update the focusFirstUnfilledLyric function to be more robust
 function focusFirstUnfilledLyric() {
-  const lyrics = window.currentSong.lyrics;
-  for (let i = 0; i < lyrics.length; i++) {
-    if (lyrics[i].toGuess) {
-      const input = document.getElementById(`lyricInput${i}`);
-      if (input && !input.parentElement.classList.contains("lyricle-lyrics-input-correct")) {
-        input.focus();
-        break;
-      }
+    const lyrics = window.currentSong.lyrics;
+    for (let i = 0; i < lyrics.length; i++) {
+        if (lyrics[i].toGuess) {
+            const input = document.getElementById(`lyricInput${i}`);
+            if (input && !input.parentElement.classList.contains("lyricle-lyrics-input-correct")) {
+                // Set as active input
+                activeInputElement = input;
+                focusedBoxIndex = i;
+                
+                // Focus and trigger the focus listener for proper styling
+                input.focus();
+                lyricBoxFocusListener(input, window.currentSong);
+                break;
+            }
+        }
     }
-  }
 }
 
 window.onload = init; // upon loading the page, initialize the game
