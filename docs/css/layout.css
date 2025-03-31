@@ -1,0 +1,45 @@
+/* Layout and positioning utilities */
+
+/* Center elements vertically and horizontally */
+.center, .lyricle-lyrics-row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.xycenter {
+    margin: 0 auto;
+    position: relative;
+    top: 50%;
+    left: 0;
+    right: 0;
+    transform: translateY(-50%);
+    max-width: 100%;
+}
+
+/* Parent Elements (First "Layer" within Body) */
+.lyricle-alerts {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 5vh;
+    margin-top: 5vh;
+    padding-top: 5vh;
+}
+
+/* Add these new styles to allow proper wrapping */
+.lyricle-lyrics-col {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    max-width: 100%;
+    padding: 0 3px;
+    gap: 3px; /* Increased from 2px to 3px for slightly more space between items */
+    margin: 0 auto;
+}
+
+.lyricle-lyrics-flex-wrap {
+    flex-wrap: wrap;
+} 

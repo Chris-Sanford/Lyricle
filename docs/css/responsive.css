@@ -1,0 +1,80 @@
+/* Responsive styles and media queries */
+
+/* Desktop-specific adjustments */
+@media (min-width: 768px) {
+    .lyricle-oskb {
+        max-height: 22vh;
+        min-height: 170px;
+        bottom: 15px;
+        padding-bottom: 15px;
+    }
+    
+    .lyricle-key {
+        height: 45px;
+        width: 45px;
+        margin: 0.15em;
+        font-size: 1.2em;
+    }
+    
+    /* Special keys on desktop */
+    .lyricle-keyboard-lifeline, .backspace-key {
+        width: 60px;
+    }
+
+    /* Row containers need width adjustments on desktop */
+    #oskbRow1Col1 {
+        width: 535px !important;
+    }
+    
+    #oskbRow2Col1 {
+        width: 480px !important;
+    }
+    
+    #oskbRow3Col1 {
+        width: 425px !important;
+    }
+}
+
+/* Mobile-specific styles */
+@media (max-width: 767px) {
+    .lyricle-oskb {
+        max-height: 33vh;
+        min-height: 150px;
+        padding-bottom: 5px;
+    }
+    
+    /* Use fixed sizes for consistency on mobile */
+    .lyricle-key {
+        height: 42px;
+        width: 9.5%;
+        min-width: 30px;
+        max-width: 45px;
+        margin: 0.1em;
+        font-size: 1em;
+    }
+    
+    /* Row adjustments for mobile */
+    .lyricle-oskb-row {
+        width: 100%;
+        margin: 0.05em auto;
+    }
+    
+    /* Special keys sizing on mobile */
+    .lyricle-keyboard-lifeline {
+        width: 11%;
+        min-width: 36px;
+    }
+    
+    .backspace-key {
+        width: 11%;
+        min-width: 36px;
+    }
+
+    /* Remove any max-width constraints on rows for mobile */
+    #oskbRow1Col1, #oskbRow2Col1, #oskbRow3Col1 {
+        width: 100% !important;
+        max-width: 100% !important;
+        display: flex !important;
+        justify-content: center !important;
+    }
+} 

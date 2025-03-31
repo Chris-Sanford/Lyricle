@@ -1,0 +1,30 @@
+/* Base styles and resets */
+
+/* Temporary Borders for Visualizing Development and Layout */
+/* Apply a border to all elements */
+/* * { border: 1px solid white; } */
+
+/* highlight an element as your cursor hovers over */
+/* *:hover { outline:2px solid rgb(0, 255, 0); } */
+
+/* Base HTML elements */
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    touch-action: manipulation; /* Prevents double tap zoom on mobile devices */
+    overflow: hidden; /* Prevent scrolling on the entire page */
+    position: fixed; 
+    width: 100%;
+    height: 100%;
+    max-width: 100vw; /* Prevent horizontal overflow */
+}
+
+/* Apply to all classes containing the string container */
+[class*="container"] { 
+    text-align: center;
+    padding: 0; /* This might break a lot of things from Bootstrap but so far looks way better */
+} 

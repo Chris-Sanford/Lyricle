@@ -1,0 +1,45 @@
+/* Top bar styles */
+
+.lyricle-topbar {
+    max-width: 800px; /* Prevents larger displays from oversizing divs */
+    max-height: 80px; /* Prevents larger displays from oversizing divs  */
+    height: 5vh; /* Dynamically calculates height based on viewport for mobile responsivenesss but is limited by aforementioned max values for large displays */
+    margin-left: auto; /* margins left and right being auto center the element without needing to be a container (with bootstrap CSS flexing) */
+    margin-right: auto;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.177);
+    position: relative;
+    z-index: 10; /* Ensure these appear above the lyrics */
+}
+
+.lyricle-topbar-logo {
+    font-family: 'Ubuntu', sans-serif;
+    font-weight: bold;
+    font-size: 3.5vh;
+}
+
+.lyricle-icon-button {
+    font-size: 3vh;
+    outline: none;
+    border: none;
+}
+
+/* Song title styles */
+.lyricle-songtitle {
+    max-width: 800px; /* Prevents larger displays from oversizing divs */
+    max-height: 80px; /* Prevents larger displays from oversizing divs  */
+    height: 5vh; /* Dynamically calculates height based on viewport for mobile responsivenesss but is limited by aforementioned max values for large displays */
+    border-bottom: 2px solid rgba(255, 255, 255, 0.177);
+    position: relative;
+    z-index: 10; /* Ensure these appear above the lyrics */
+}
+
+.lyricle-songtitle-text {
+    white-space: nowrap;
+}
+
+.lyricle-songtitle-spacer {
+    margin-left: 0.3vmax;
+    margin-right: 0.3vmax;
+    padding-left: 0.3vmax;
+    padding-right: 0.3vmax;
+} 

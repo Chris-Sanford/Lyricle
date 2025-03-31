@@ -1,0 +1,111 @@
+/* Lyrics and game area styles */
+
+.lyricle-lyrics {
+    max-width: 100%;
+    width: 100%;
+    position: relative;
+    margin-left: auto;
+    margin-right: auto;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    left: 0;
+    right: 0;
+    padding: 0; /* Ensure no extra padding */
+}
+
+.lyricle-lyrics-grid {
+    width: 100%;
+    max-width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    position: relative;
+    transform: none;
+    left: 0;
+    right: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0; /* Ensure no extra gap between rows */
+    padding: 0;
+}
+
+.lyricle-lyrics-row {
+    width: 100%;
+    max-width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    position: relative;
+    min-height: 1.8em;
+    height: auto;
+    margin-top: 0.15em;
+    margin-bottom: 0.15em;
+    padding: 0;
+    overflow: visible;
+    justify-content: center;
+}
+
+.lyricle-lyrics-div {
+    height: 1.6em;
+    border: none;
+    font-size: min(1.3em, 60px);
+    font-weight: bold;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    white-space: nowrap;
+    overflow: visible;
+    margin: 1px 3px; /* Increased from 2px to 3px horizontal margin */
+    vertical-align: baseline;
+    line-height: 1.6em;
+    position: relative;
+    box-sizing: border-box;
+    max-width: calc(100vw - 25px);
+    letter-spacing: 0.01em;
+}
+
+.lyricle-lyrics-div-special {
+    margin-left: 0px;
+}
+
+.lyricle-lyrics-div-spaceLeft {
+    margin-left: 3px; /* Increased from 2px to 3px */
+}
+
+.lyricle-lyrics-div-spaceRight {
+    margin-left: 3px; /* Increased from 2px to 3px */
+}
+
+.lyricle-lyrics-input {
+    width: 100%;
+    height: 100%;
+    color: rgb(209, 209, 209);
+    vertical-align: baseline;
+    display: inline-block;
+    min-height: 1.6em;
+    line-height: 1.6em;
+    box-sizing: border-box;
+    empty-cells: show;
+    position: relative;
+    letter-spacing: 0.01em;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Prevent iOS from showing text selection */
+.lyricle-lyrics-input::selection {
+    background: transparent;
+}
+
+.lyricle-lyrics-input-noguess {
+    /* border-bottom: none; */
+}
+
+.lyricle-lyrics-input-correct {
+    color: green;
+    /* border-bottom: none; */
+} 
