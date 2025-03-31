@@ -1,0 +1,23 @@
+/* Lifeline button styles */
+
+.lyricle-lifeline-button {
+    position: relative;
+    font-size: 6vh;
+    outline: none;
+    border: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.lyricle-lifeline-number {
+    font-size: 4vh;
+    color: rgb(65, 65, 65);
+    position: absolute;
+    top: 48%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-weight: bold;
+} 

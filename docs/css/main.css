@@ -1,0 +1,22 @@
+/* Main CSS file - imports all modular CSS files */
+
+/* Base styles */
+@import 'base.css';
+
+/* Layout utilities */
+@import 'layout.css';
+
+/* Top bar styles */
+@import 'topbar.css';
+
+/* Lyrics and game area styles */
+@import 'lyrics.css';
+
+/* Keyboard styles */
+@import 'keyboard.css';
+
+/* Lifeline button styles */
+@import 'lifeline.css';
+
+/* Responsive styles */
+@import 'responsive.css'; 
