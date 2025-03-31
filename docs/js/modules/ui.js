@@ -1,10 +1,26 @@
-import { gameState } from './state.js';
+import { gameState, CONFIG } from './state.js';
 import { audioManager } from './audio.js';
 import { calculateOptimizedLyricBoxWidth, setLyricBoxBorderBottomStyle } from './utils.js';
+import { gameManager } from './game.js';
 
 class UIManager {
   constructor() {
     this.bindEvents();
+    this.setupDebugMode();
+  }
+
+  setupDebugMode() {
+    if (CONFIG.debugMode) {
+      const topBarLeftButtons = document.getElementById('topBarLeftButtons');
+      if (topBarLeftButtons) {
+        const randomButton = document.createElement('button');
+        randomButton.className = 'btn lyricle-icon-button';
+        randomButton.innerHTML = '<i class="fas fa-dice"></i>';
+        randomButton.title = 'Load Random Song';
+        randomButton.onclick = () => gameManager.getRandomSong();
+        topBarLeftButtons.appendChild(randomButton);
+      }
+    }
   }
 
   bindEvents() {
