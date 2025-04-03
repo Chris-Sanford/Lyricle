@@ -5,7 +5,7 @@ let endTime = null;
 let interval = null;
 
 // Start the stopwatch and update elapsed time every second
-function startStopwatch() {
+function start() {
   startTime = Date.now();
   interval = setInterval(function() {
     var elapsedTime = Date.now() - startTime;
@@ -13,13 +13,13 @@ function startStopwatch() {
 }
 
 // Stop the stopwatch and record end time
-function stopStopwatch() {
+function stop() {
   clearInterval(interval);
   endTime = Date.now();
 }
 
 // Reset the stopwatch to initial state
-function resetStopwatch() {
+function reset() {
   clearInterval(interval);
   startTime = null;
   endTime = null;
@@ -42,9 +42,9 @@ function getFormattedTime() {
 
 // Export functions and variables that need to be accessed by game.js
 window.Stopwatch = {
-  startStopwatch,
-  stopStopwatch,
-  resetStopwatch,
+  start,
+  stop,
+  reset,
   getElapsedTime,
   getFormattedTime,
   get startTime() { return startTime; },

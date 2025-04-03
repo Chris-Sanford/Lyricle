@@ -813,7 +813,7 @@ function lyricBoxKeyDownListener(event, song) {
 
   // Start stopwatch on first input if not started
   if (!Stopwatch.startTime) {
-    Stopwatch.startStopwatch();
+    Stopwatch.start();
   }
 
   // Handle special keys
@@ -847,7 +847,7 @@ function lyricBoxKeyDownListener(event, song) {
 function lyricBoxInputListener(song) {
   // If the stopwatch hasn't been started, start it
   if (!Stopwatch.startTime) {
-    Stopwatch.startStopwatch();
+    Stopwatch.start();
     debugLog("First user interaction, attempting to unlock audio");
     
     // First user interaction - perfect time to "unlock" audio on iOS
@@ -1027,7 +1027,7 @@ function startGame(songData) { // Loads main game with song lyrics to guess
 
   constructLifelineButton(song);
 
-  Stopwatch.resetStopwatch();
+  Stopwatch.reset();
   
   // Create an audio element to play the song preview - use the hidden one in HTML
   var hiddenAudio = document.getElementById("hiddenAudio");
@@ -1353,7 +1353,7 @@ function selectNextInput(input, boxIndex) {
 }
 
 function completeGame(song) {
-  Stopwatch.stopStopwatch();
+  Stopwatch.stop();
   debugLog("Game completed");
 
   // Try to play the audio automatically when game completes
@@ -1644,7 +1644,7 @@ function displayConcedeModal(song) {
 
 function concede(song) {
   // Stop the stopwatch if it's running
-  Stopwatch.stopStopwatch();
+  Stopwatch.stop();
   debugLog("Game conceded");
   
   // Try to play the audio automatically, similar to completeGame
@@ -1788,7 +1788,7 @@ function useLifeline(song, button) {
 
   // If the stopwatch hasn't been started, start it
   if (!Stopwatch.startTime) {
-    Stopwatch.startStopwatch();
+    Stopwatch.start();
   }
 
   // Increment the input counter
