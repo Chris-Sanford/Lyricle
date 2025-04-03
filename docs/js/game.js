@@ -557,13 +557,6 @@ function checkAndPreventHorizontalOverflow() {
   });
 }
 
-// Debug logging function
-function debugLog(message) {
-  if (debugMode) {
-    console.log("AUDIO DEBUG: " + message);
-  }
-}
-
 // Add a new function for explicit user-triggered playback
 function playAudioWithUserInteraction() {
   debugLog("playAudioWithUserInteraction called - muted: " + (audio?.muted || 'no audio') + ", game completed: " + (endTime ? 'yes' : 'no'));
