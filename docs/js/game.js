@@ -2,15 +2,16 @@
 
 // Import song-related classes and functions
 import { Song, Lyric, constructSongObject, constructLyricObjects } from './song.js';
+// Import the new AudioController
+import { AudioController } from './audio.js';
+// Import debugLog
+import { debugLog } from './debug.js';
 
 // Global Variables
 var lastLine = 0; // initialize lastLine to 0, make variable global so it can be accessed by all functions
 var startingLifelines = 3; // initialize starting lifelines to 3, make variable global so it can be accessed by all functions
 var lifelines = 0;
 var focusedBoxIndex = 0;
-var audio;
-var audioLoaded = false;
-var terminateAudio = false;
 var allSongData; // Declare allSongData globally
 
 var allowedKeys = ["Backspace","Delete","Tab","ArrowLeft","ArrowRight"]; // array to store sanitized input for comparison
@@ -401,78 +402,36 @@ function checkAndPreventHorizontalOverflow() {
 
 // Add a new function for explicit user-triggered playback
 function playAudioWithUserInteraction() {
-  debugLog("playAudioWithUserInteraction called - muted: " + (audio?.muted || 'no audio') + ", game completed: " + (endTime ? 'yes' : 'no'));
-  if (!audio || audio.muted) return;
-  
-  // Set volume directly - no fading on iOS
-  audio.volume = 0.2;
-  debugLog("Setting volume to 0.2");
+  debugLog("playAudioWithUserInteraction (game.js wrapper) called");
+  AudioController.playWithUserInteraction(); // Delegate to AudioController
+}
 
-  // Ensure playback position is at beginning only if currentTime is 0 or near the end
-  // This allows resuming from where it was paused
-  if (audio.currentTime === 0 || audio.currentTime >= audio.duration - 1) {
-    audio.currentTime = 0;
-    debugLog("Reset currentTime to beginning for clean playback");
-  } else if (audio.paused) {
-    debugLog("Resuming from position: " + audio.currentTime.toFixed(2) + "s");
-  }
-  
-  // Play with error handling for iOS
-  try {
-    debugLog("Attempting to play audio");
-    const playPromise = audio.play();
-    if (playPromise !== undefined) {
-      playPromise.then(() => {
-        debugLog("Audio playback started successfully");
-      }).catch(error => {
-        debugLog("Playback error: " + error);
-        // Update UI to indicate playback failed
-        var muteButton = document.getElementById("muteButtonIcon");
-        if (muteButton) {
-          muteButton.className = "fa-solid fa-volume-xmark";
-        }
-      });
-    }
-  } catch (e) {
-    debugLog("Exception during playback: " + e);
+// Update toggleMuteSongPreview to use AudioController
+function toggleMuteSongPreview() {
+  debugLog("toggleMuteSongPreview called in game.js");
+  // Pass the UI update function as a callback
+  AudioController.toggleMute(updateMuteButtonUI);
+
+  // If the user just unmuted, and the game is complete, attempt playback via interaction
+  if (!AudioController.isMuted() && endTime) {
+      debugLog("Game completed and user unmuted, attempting playback via interaction.");
+      AudioController.playWithUserInteraction();
   }
 }
 
-function toggleMuteSongPreview() {
-  debugLog("toggleMuteSongPreview called");
-  var muteButton = document.getElementById("muteButtonIcon"); // Get the Mute button by id
-  
-  // Important: This is a direct user interaction, the perfect time to play on iOS
-  if (muteButton.className === "fas fa-volume-up") { // If the button currently shows that volume is on
-    // User wants to mute
-    debugLog("User muting audio, current position: " + audio.currentTime.toFixed(2) + "s");
-    audio.pause();
-    audio.muted = true;
-    muteButton.className = "fa-solid fa-volume-xmark"; // change icon to show that volume is off
-  } else if (muteButton.className === "fa-solid fa-volume-xmark") { // if the icon indicates audio is muted
-    // User wants to unmute 
-    debugLog("User unmuting audio, endTime: " + (endTime ? 'set' : 'not set'));
-    audio.muted = false;
-    
-    // Only play audio if the game is completed (endTime is set)
-    if (endTime) {
-      // This is the perfect time to play on iOS - direct user interaction
-      debugLog("Game completed, attempting playback from position: " + audio.currentTime.toFixed(2) + "s");
-      playAudioWithUserInteraction();
-    } else {
-      debugLog("Game not completed, not playing audio despite unmute");
-    }
-    
-    muteButton.className = "fas fa-volume-up"; // change icon back to show that volume is on
-  }
+// Add a new helper function to update mute button UI
+function updateMuteButtonUI(isMuted) {
+  const mainIcon = document.getElementById("muteButtonIcon");
+  const modalIcon = document.getElementById("muteButtonIcon2");
+  const className = isMuted ? "fa-solid fa-volume-xmark" : "fas fa-volume-up";
 
-  // Get the mute button in the modal footer if it exists
-  var muteButton2 = document.getElementById("muteButtonIcon2");
-  if (muteButton2) {
-    // Set the className to be the same as the original muteButton
-    muteButton2.className = muteButton.className;
-    debugLog("Synced muteButton2 icon state");
+  if (mainIcon) {
+    mainIcon.className = className;
   }
+  if (modalIcon) {
+    modalIcon.className = className;
+  }
+  debugLog(`UI Update: Mute buttons set to ${isMuted ? 'muted' : 'unmuted'} icon`);
 }
 
 function constructGameCompleteModal(song, elapsedTime) { // Add elapsedTime parameter
@@ -605,11 +564,11 @@ function constructGameCompleteModal(song, elapsedTime) { // Add elapsedTime para
     debugLog("Modal mute button clicked");
     toggleMuteSongPreview();
     // Try to directly play after user interaction on iOS
-    if (!audio.muted && endTime) {
-      debugLog("Modal: Playing audio after user interaction from position: " + audio.currentTime.toFixed(2) + "s");
-      playAudioWithUserInteraction();
+    if (!AudioController.isMuted() && endTime) {
+      debugLog("Modal: Playing audio after user interaction from position: " + AudioController.getCurrentTime().toFixed(2) + "s");
+      AudioController.playWithUserInteraction();
     } else {
-      debugLog("Modal: Not playing audio - muted: " + audio.muted + ", game completed: " + (endTime ? "yes" : "no"));
+      debugLog("Modal: Not playing audio - muted: " + AudioController.isMuted() + ", game completed: " + (endTime ? "yes" : "no"));
     }
   });
   
@@ -642,8 +601,8 @@ function getRandomSong() {
   var songData = allSongData[seed];
 
   // Stop any currently-playing audio
-  if (audio.currentTime > 0) {
-    stopSongPreview();
+  if (AudioController.getCurrentTime() > 0) { // New check using controller
+    AudioController.stop(true); // Stop and reset time
   }
 
   // To play a specific song:
@@ -698,41 +657,9 @@ function lyricBoxInputListener(song) {
   // If the stopwatch hasn't been started, start it
   if (!Stopwatch.startTime) {
     Stopwatch.start();
-    debugLog("First user interaction, attempting to unlock audio");
-    
-    // First user interaction - perfect time to "unlock" audio on iOS
-    // This creates a user gesture chain that iOS can use later
-    if (audio) {
-      // Touch the audio element without actually playing
-      // This helps "unlock" the audio context on iOS
-      debugLog("Setting audio parameters for iOS unlock");
-      audio.volume = 0;
-      audio.muted = true;
-      audio.currentTime = 0; // Ensure we're at the beginning
-      
-      try {
-        // Create a silent version to unlock audio
-        debugLog("Creating silent audio element for unlock");
-        const silentAudio = new Audio();
-        silentAudio.volume = 0;
-        silentAudio.muted = true;
-        // Use a brief silence instead of the actual song
-        debugLog("Playing silent audio to unlock");
-        const touchPromise = silentAudio.play();
-        if (touchPromise !== undefined) {
-          touchPromise.then(() => {
-            // Success - audio context is unlocked
-            debugLog("Silent audio played successfully, pausing");
-            silentAudio.pause();
-          }).catch(e => {
-            // Silently fail - we'll try again at completion
-            debugLog("Initial audio touch failed: " + e);
-          });
-        }
-      } catch (e) {
-        debugLog("Error creating silent audio: " + e);
-      }
-    }
+    debugLog("First user interaction, attempting to unlock audio via AudioController");
+    // Attempt to unlock audio context on first interaction
+    AudioController.unlockAudioContext();
   }
 
   // Increment the input counter
@@ -878,60 +805,30 @@ function startGame(songData) { // Loads main game with song lyrics to guess
   Stopwatch.reset();
   
   // Create an audio element to play the song preview - use the hidden one in HTML
-  var hiddenAudio = document.getElementById("hiddenAudio");
+  // var hiddenAudio = document.getElementById("hiddenAudio"); // Handled by AudioController
   
   // IMPORTANT: Ensure audio is completely disabled before setting source
   // This prevents any autoplay issues before the game is completed
-  hiddenAudio.volume = 0;
-  hiddenAudio.muted = true;
-  hiddenAudio.pause();
-  
-  debugLog("Setting audio source: " + song.preview);
-  hiddenAudio.src = song.preview;
-  hiddenAudio.preload = "auto";
-  audio = hiddenAudio;
-  
-  // Add comprehensive audio event listeners for debugging
-  audio.addEventListener('play', function() {
-    debugLog("Audio PLAY event triggered");
-  });
-  
-  audio.addEventListener('playing', function() {
-    debugLog("Audio PLAYING event triggered");
-  });
-  
-  audio.addEventListener('pause', function() {
-    debugLog("Audio PAUSE event triggered");
-  });
-  
-  audio.addEventListener('canplay', function() {
-    debugLog("Audio CANPLAY event triggered");
-  });
-  
-  audio.addEventListener('loadstart', function() {
-    debugLog("Audio LOADSTART event triggered");
-  });
-  
-  audio.addEventListener('error', function(e) {
-    debugLog("Audio ERROR event triggered: " + e);
-  });
-  
-  // Add event listener to track when audio is loaded
-  audio.addEventListener('canplaythrough', function() {
-    audioLoaded = true;
-    debugLog("Audio loaded and ready to play");
-    
-    // Double-check it's still muted after loading
-    if (!endTime) {
-      audio.muted = true;
-      audio.volume = 0;
-      debugLog("Ensuring audio remains muted after loading (game not completed)");
-    }
-  });
-  
-  // Set initial muted state
-  audio.muted = true;
-  debugLog("Audio element initialized, muted: " + audio.muted);
+  // hiddenAudio.volume = 0; // Handled by AudioController
+  // hiddenAudio.muted = true; // Handled by AudioController
+  // hiddenAudio.pause(); // Handled by AudioController
+
+  // Set the source using AudioController
+  AudioController.setSource(song.preview);
+  // audio = hiddenAudio; // Handled by AudioController
+
+  // Remove old event listeners - now handled within AudioController
+  // audio.addEventListener('play', function() { ... });
+  // audio.addEventListener('playing', function() { ... });
+  // audio.addEventListener('pause', function() { ... });
+  // audio.addEventListener('canplay', function() { ... });
+  // audio.addEventListener('loadstart', function() { ... });
+  // audio.addEventListener('error', function(e) { ... });
+  // audio.addEventListener('canplaythrough', function() { ... });
+
+  // Set initial muted state - handled by AudioController
+  // audio.muted = true;
+  // debugLog("Audio element initialized, muted: " + audio.muted); // Logging now inside controller
 
   // Save current song in a global variable for keyboard access
   window.currentSong = song;
@@ -1012,71 +909,7 @@ async function getAllSongData() {
   allSongData = await response.json();
 }
 
-async function playSongPreview() {
-  debugLog("playSongPreview called");
-  // iOS requires user interaction to play audio
-  if (!audioLoaded) {
-    debugLog("Audio not loaded yet, waiting");
-    // Wait for audio to load before attempting to play
-    await new Promise(resolve => {
-      if (audio.readyState >= 3) { // HAVE_FUTURE_DATA or higher
-        audioLoaded = true;
-        debugLog("Audio already loaded");
-        resolve();
-      } else {
-        debugLog("Adding canplaythrough listener");
-        audio.addEventListener('canplaythrough', function onCanPlay() {
-          audioLoaded = true;
-          audio.removeEventListener('canplaythrough', onCanPlay);
-          debugLog("Audio loaded via canplaythrough event");
-          resolve();
-        });
-      }
-    });
-  }
-
-  // While the user has the audio muted, do nothing
-  if (document.getElementById("muteButtonIcon").className === "fa-solid fa-volume-xmark") {
-    debugLog("Audio is muted, not playing");
-    return; // Don't try to play if muted
-  }
-
-  // Set a moderate volume that works well across devices
-  audio.volume = 0.2;
-  debugLog("Setting volume to 0.2");
-  
-  try {
-    // iOS requires play() to be called directly from a user interaction
-    debugLog("Attempting to play audio from playSongPreview");
-    const playPromise = audio.play();
-    
-    // Handle the play promise to catch any errors
-    if (playPromise !== undefined) {
-      playPromise.catch(error => {
-        debugLog("Playback error from playSongPreview: " + error);
-        // If autoplay fails, we'll rely on the user pressing the play button
-      });
-    }
-  } catch (e) {
-    debugLog("Exception during playback from playSongPreview: " + e);
-  }
-}
-
-async function stopSongPreview() {
-  debugLog("stopSongPreview called");
-  terminateAudio = true;
-  if (audio != null) {
-    debugLog("Pausing audio");
-    audio.pause();
-    try {
-      debugLog("Resetting currentTime to 0");
-      audio.currentTime = 0;
-    } catch (e) {
-      debugLog("Error resetting audio: " + e);
-    }
-  }
-  terminateAudio = false;
-}
+// ... existing code ...
 
 function getPercentageCorrect(input, secret) {
   // Create an array of characters from input and secret
@@ -1204,39 +1037,20 @@ function completeGame(song) {
   const elapsedTime = (Stopwatch.endTime - Stopwatch.startTime) / 1000; // Use properties
   debugLog("Game completed");
 
-  // Try to play the audio automatically when game completes
-  // The user has definitely interacted with the page by now
-  debugLog("Checking mute status for autoplay on completion");
-  var muteButton = document.getElementById("muteButtonIcon");
-  if (muteButton.className !== "fa-solid fa-volume-xmark") {
-    debugLog("Audio not muted, attempting to play on completion");
-    muteButton.className = "fas fa-volume-up";
-    
-    // Enable audio and try to play it
-    audio.muted = false;
-    
-    // Important: Set volume before trying to play
-    audio.volume = 0.2;
-    debugLog("Set volume to 0.2 for autoplay");
-    
-    // Small delay to ensure audio settings take effect
-    setTimeout(function() {
-      // Attempt to play - this should work on iOS since user has interacted with the page
-      try {
-        debugLog("Playing audio on game completion after delay");
-        const playPromise = audio.play();
-        if (playPromise !== undefined) {
-          playPromise.catch(error => {
-            debugLog("Autoplay on completion failed: " + error);
-            // We won't change the UI here since the button already shows play is available
-          });
-        }
-      } catch (e) {
-        debugLog("Exception during autoplay on completion: " + e);
-      }
-    }, 100);
+  // Try to play the audio automatically when game completes using AudioController
+  debugLog("Checking mute status for autoplay on completion via AudioController");
+  if (!AudioController.isMuted()) {
+      debugLog("Audio not muted, attempting to play on completion via AudioController.playPreview()");
+      // Update UI immediately just in case
+      updateMuteButtonUI(false);
+      // Small delay before playing to ensure other UI updates/state changes settle
+      setTimeout(() => {
+          AudioController.playPreview();
+      }, 100);
   } else {
-    debugLog("Audio muted, not playing on completion");
+      debugLog("Audio muted (AudioController state), not playing on completion");
+      // Ensure UI reflects the muted state
+      updateMuteButtonUI(true);
   }
 
   // Disable lifeline button when game is completed
@@ -1295,10 +1109,10 @@ function displayGameCompleteModal() {
 function displayHowToPlayModal() {
   debugLog("Displaying How To Play modal");
   // Log audio state if it exists
-  if (audio) {
-    debugLog("Audio state: muted=" + audio.muted + ", paused=" + audio.paused + ", currentTime=" + audio.currentTime + ", src=" + (audio.src ? "set" : "not set"));
+  if (AudioController.audio) { // Check if controller has initialized audio
+    debugLog(`Audio state (Controller): muted=${AudioController.isMuted()}, loaded=${AudioController.isLoaded()}, currentTime=${AudioController.getCurrentTime().toFixed(2)}, src=${AudioController.audio.src ? 'set' : 'not set'}`);
   } else {
-    debugLog("Audio element not initialized yet");
+    debugLog("AudioController has not initialized audio element yet");
   }
   
   var modalElement = document.getElementById("howToPlay");
@@ -1313,8 +1127,9 @@ function displayHowToPlayModal() {
   // Add an event listener for when the modal is hidden
   modalElement.addEventListener('hidden.bs.modal', function() {
     debugLog("How To Play modal hidden");
-    if (audio) {
-      debugLog("Audio state after modal close: muted=" + audio.muted + ", paused=" + audio.paused);
+    // Log audio state after modal close using AudioController
+    if (AudioController.audio) {
+        debugLog(`Audio state after modal close (Controller): muted=${AudioController.isMuted()}, paused=${AudioController.audio.paused}`);
     }
     // Focus first unfilled lyric after modal is hidden
     focusFirstUnfilledLyric();
@@ -1348,15 +1163,12 @@ function init() {
   // We'll keep customKeyboardEnabled true for both, but handle differently
   customKeyboardEnabled = true;
   
-  // Initialize audio state to prevent autoplay
-  var hiddenAudio = document.getElementById("hiddenAudio");
-  if (hiddenAudio) {
-    debugLog("Initial audio setup");
-    hiddenAudio.muted = true;
-    hiddenAudio.volume = 0;
-    hiddenAudio.pause();
-    hiddenAudio.autoplay = false;
-  }
+  // Initialize AudioController
+  AudioController.init();
+
+  // Initialize audio state to prevent autoplay - Handled by AudioController.init()
+  // var hiddenAudio = document.getElementById("hiddenAudio");
+  // if (hiddenAudio) { ... }
 
   // Get day int and load song data
   var day;
@@ -1508,36 +1320,20 @@ function concede(song) {
   const elapsedTime = Stopwatch.endTime ? (Stopwatch.endTime - Stopwatch.startTime) / 1000 : 0; // Use properties
   debugLog("Game conceded");
   
-  // Try to play the audio automatically, similar to completeGame
-  var muteButton = document.getElementById("muteButtonIcon");
-  if (muteButton.className !== "fa-solid fa-volume-xmark") {
-    debugLog("Audio not muted, attempting to play on concede");
-    muteButton.className = "fas fa-volume-up";
-    
-    // Enable audio and try to play it
-    audio.muted = false;
-    
-    // Important: Set volume before trying to play
-    audio.volume = 0.2;
-    debugLog("Set volume to 0.2 for autoplay on concede");
-    
-    // Small delay to ensure audio settings take effect
-    setTimeout(function() {
-      // Attempt to play - this should work on iOS since user has interacted with the page
-      try {
-        debugLog("Playing audio on concede after delay");
-        const playPromise = audio.play();
-        if (playPromise !== undefined) {
-          playPromise.catch(error => {
-            debugLog("Autoplay on concede failed: " + error);
-          });
-        }
-      } catch (e) {
-        debugLog("Exception during autoplay on concede: " + e);
-      }
-    }, 100);
+  // Try to play the audio automatically, similar to completeGame, using AudioController
+  debugLog("Checking mute status for autoplay on concede via AudioController");
+  if (!AudioController.isMuted()) {
+      debugLog("Audio not muted, attempting to play on concede via AudioController.playPreview()");
+      // Update UI immediately
+      updateMuteButtonUI(false);
+      // Small delay before playing
+      setTimeout(() => {
+          AudioController.playPreview();
+      }, 100);
   } else {
-    debugLog("Audio muted, not playing on concede");
+      debugLog("Audio muted (AudioController state), not playing on concede");
+      // Ensure UI reflects the muted state
+      updateMuteButtonUI(true);
   }
   
   // Disable the lifeline button
