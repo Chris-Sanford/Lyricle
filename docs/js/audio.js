@@ -3,18 +3,18 @@ import { debugLog } from './debug.js';
 const AudioController = {
   audio: null,
   audioLoaded: false,
-  _isMuted: true, // Internal state to track desired mute status
+  _isMuted: false, // Internal state to track desired mute status - START FALSE TO MATCH UI
 
   // Initialization method - Gets the audio element and sets initial state/listeners
   init() {
     this.audio = document.getElementById("hiddenAudio");
     if (this.audio) {
       debugLog("AudioController: Initializing audio element");
+      // Keep element muted initially for browser policies, but _isMuted (intent) is false
       this.audio.muted = true;
       this.audio.volume = 0;
       this.audio.pause();
       this.audio.autoplay = false; // Explicitly disable autoplay
-      this._isMuted = true; // Reflect initial state
       this._addEventListeners();
     } else {
       debugLog("AudioController: Hidden audio element not found");
@@ -55,11 +55,12 @@ const AudioController = {
     this.audio.src = url;
     this.audio.preload = "auto"; // Preload the new source
     this.audioLoaded = false; // Reset loaded flag
-    // Re-apply initial muted state forcefully
+    // Force element to muted initially, but DO NOT override the internal _isMuted state here.
+    // _isMuted should retain its value (e.g., the initial `false`).
     this.audio.muted = true;
     this.audio.volume = 0;
-    this._isMuted = true;
-    debugLog(`AudioController: Source set, muted: ${this.audio.muted}, internal mute state: ${this._isMuted}`);
+    // this._isMuted = true; // REMOVED: This was incorrectly overriding the desired initial state.
+    debugLog(`AudioController: Source set. Element muted: ${this.audio.muted}. Retained internal state (_isMuted): ${this._isMuted}`);
   },
 
   // Plays audio, intended to be called directly from a user interaction (click/touch)
@@ -152,8 +153,9 @@ const AudioController = {
           if (playPromise !== undefined) {
               playPromise.catch(error => {
                   debugLog("AudioController: Playback error from playPreview (autoplay likely failed): " + error);
-                  // If autoplay fails, set internal state back to muted as playback isn't happening
-                  this._isMuted = true;
+                  // If autoplay fails, we log it, but don't change the internal mute state.
+                  // The user's intended state (_isMuted) should persist.
+                  // this._isMuted = true; // REMOVED: Don't override user intent on autoplay failure.
               });
           }
       } catch (e) {
@@ -165,24 +167,32 @@ const AudioController = {
   // Toggles the mute state and calls back to update UI
   toggleMute(uiUpdateCallback) {
     if (!this.audio) return;
-    debugLog(`AudioController: toggleMute called. Current internal state: ${this._isMuted}`);
+    debugLog(`AUDIO DEBUG: toggleMute START. Current internal state (_isMuted): ${this._isMuted}`);
 
     if (!this._isMuted) { // If currently unmuted
       // User wants to mute
-      debugLog("AudioController: Muting audio, current position: " + this.audio.currentTime.toFixed(2) + "s");
+      debugLog("AUDIO DEBUG: User wants to MUTE. Pausing audio.");
       this.audio.pause();
       this.audio.muted = true;
       this._isMuted = true;
-      if (uiUpdateCallback) uiUpdateCallback(true); // Notify UI: isMuted = true
+      debugLog(`AUDIO DEBUG: Set internal state (_isMuted) to: ${this._isMuted}`);
+      if (uiUpdateCallback) {
+        debugLog("AUDIO DEBUG: Calling UI update callback with true (muted).");
+        uiUpdateCallback(true); // Notify UI: isMuted = true
+      }
     } else { // If currently muted
       // User wants to unmute
-      debugLog("AudioController: Unmuting audio");
+      debugLog("AUDIO DEBUG: User wants to UNMUTE.");
       this.audio.muted = false; // Unmute the element first
       this._isMuted = false;
-      if (uiUpdateCallback) uiUpdateCallback(false); // Notify UI: isMuted = false
+      debugLog(`AUDIO DEBUG: Set internal state (_isMuted) to: ${this._isMuted}`);
+      if (uiUpdateCallback) {
+        debugLog("AUDIO DEBUG: Calling UI update callback with false (unmuted).");
+        uiUpdateCallback(false); // Notify UI: isMuted = false
+      }
       // The calling context (game.js) should decide whether to call playWithUserInteraction now
     }
-    debugLog(`AudioController: toggleMute finished. New internal state: ${this._isMuted}`);
+    debugLog(`AUDIO DEBUG: toggleMute END. Final internal state (_isMuted): ${this._isMuted}`);
   },
 
   // Stops playback

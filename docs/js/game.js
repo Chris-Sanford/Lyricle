@@ -408,13 +408,13 @@ function playAudioWithUserInteraction() {
 
 // Update toggleMuteSongPreview to use AudioController
 function toggleMuteSongPreview() {
-  debugLog("toggleMuteSongPreview called in game.js");
+  debugLog("GAME DEBUG: toggleMuteSongPreview called in game.js"); // Log entry
   // Pass the UI update function as a callback
   AudioController.toggleMute(updateMuteButtonUI);
 
   // If the user just unmuted, and the game is complete, attempt playback via interaction
   if (!AudioController.isMuted() && endTime) {
-      debugLog("Game completed and user unmuted, attempting playback via interaction.");
+      debugLog("GAME DEBUG: toggleMuteSongPreview - Game completed and user unmuted, attempting playback via interaction.");
       AudioController.playWithUserInteraction();
   }
 }
@@ -1035,22 +1035,27 @@ function selectNextInput(input, boxIndex) {
 function completeGame(song) {
   Stopwatch.stop();
   const elapsedTime = (Stopwatch.endTime - Stopwatch.startTime) / 1000; // Use properties
-  debugLog("Game completed");
+  debugLog(`GAME DEBUG: completeGame called. Elapsed time: ${elapsedTime.toFixed(2)}s`);
 
   // Try to play the audio automatically when game completes using AudioController
-  debugLog("Checking mute status for autoplay on completion via AudioController");
+  debugLog(`GAME DEBUG: Checking audio state before playing preview. AudioController.isMuted(): ${AudioController.isMuted()}`);
   if (!AudioController.isMuted()) {
-      debugLog("Audio not muted, attempting to play on completion via AudioController.playPreview()");
+      debugLog("GAME DEBUG: AudioController is NOT muted. Attempting to play preview.");
       // Update UI immediately just in case
+      debugLog("GAME DEBUG: Calling updateMuteButtonUI(false) before playPreview timeout.");
       updateMuteButtonUI(false);
       // Small delay before playing to ensure other UI updates/state changes settle
       setTimeout(() => {
+          debugLog("GAME DEBUG: Inside setTimeout for playPreview. Calling AudioController.playPreview().");
           AudioController.playPreview();
+          debugLog("GAME DEBUG: After calling AudioController.playPreview().");
       }, 100);
   } else {
-      debugLog("Audio muted (AudioController state), not playing on completion");
+      debugLog("GAME DEBUG: AudioController IS muted. Skipping playPreview.");
       // Ensure UI reflects the muted state
+      debugLog("GAME DEBUG: Calling updateMuteButtonUI(true).");
       updateMuteButtonUI(true);
+      debugLog("GAME DEBUG: After calling updateMuteButtonUI(true).");
   }
 
   // Disable lifeline button when game is completed
@@ -1211,7 +1216,13 @@ function init() {
   }
   
   // Add event listeners previously in HTML
-  document.getElementById('muteButton').addEventListener('click', toggleMuteSongPreview);
+  const mainMuteButton = document.getElementById('muteButton');
+  if (mainMuteButton) {
+      mainMuteButton.addEventListener('click', toggleMuteSongPreview);
+      debugLog("GAME DEBUG: Added click listener to main muteButton."); // Log listener addition
+  } else {
+      debugLog("GAME DEBUG: ERROR - Main muteButton not found during init.");
+  }
   
   const howToPlayModalElement = document.getElementById('howToPlay');
   const playButton = howToPlayModalElement.querySelector('.modal-footer .btn-primary');
@@ -1318,22 +1329,27 @@ function concede(song) {
   // Stop the stopwatch if it's running
   Stopwatch.stop();
   const elapsedTime = Stopwatch.endTime ? (Stopwatch.endTime - Stopwatch.startTime) / 1000 : 0; // Use properties
-  debugLog("Game conceded");
+  debugLog(`GAME DEBUG: concede called. Elapsed time: ${elapsedTime.toFixed(2)}s`);
   
   // Try to play the audio automatically, similar to completeGame, using AudioController
-  debugLog("Checking mute status for autoplay on concede via AudioController");
+  debugLog(`GAME DEBUG: Checking audio state before playing preview on concede. AudioController.isMuted(): ${AudioController.isMuted()}`);
   if (!AudioController.isMuted()) {
-      debugLog("Audio not muted, attempting to play on concede via AudioController.playPreview()");
+      debugLog("GAME DEBUG: AudioController is NOT muted on concede. Attempting to play preview.");
       // Update UI immediately
+      debugLog("GAME DEBUG: Calling updateMuteButtonUI(false) before playPreview timeout on concede.");
       updateMuteButtonUI(false);
       // Small delay before playing
       setTimeout(() => {
+          debugLog("GAME DEBUG: Inside setTimeout for playPreview on concede. Calling AudioController.playPreview().");
           AudioController.playPreview();
+          debugLog("GAME DEBUG: After calling AudioController.playPreview() on concede.");
       }, 100);
   } else {
-      debugLog("Audio muted (AudioController state), not playing on concede");
+      debugLog("GAME DEBUG: AudioController IS muted on concede. Skipping playPreview.");
       // Ensure UI reflects the muted state
+      debugLog("GAME DEBUG: Calling updateMuteButtonUI(true) on concede.");
       updateMuteButtonUI(true);
+      debugLog("GAME DEBUG: After calling updateMuteButtonUI(true) on concede.");
   }
   
   // Disable the lifeline button
