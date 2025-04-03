@@ -11,7 +11,6 @@ var inputCounter = 0;
 var audio;
 var audioLoaded = false;
 var terminateAudio = false;
-var debugMode = true; // Enable debug logging
 
 var allowedKeys = ["Backspace","Delete","Tab","ArrowLeft","ArrowRight"]; // array to store sanitized input for comparison
 
@@ -1523,9 +1522,6 @@ function init() {
     document.documentElement.setAttribute('data-bs-theme', 'dark');
     let darkmode = true;
   }
-  
-  // Make debugMode available to window/global scope for the HTML script
-  window.debugMode = debugMode;
   
   // Detect if user is on mobile
   const isMobile = isMobileDevice();
