@@ -909,8 +909,6 @@ async function getAllSongData() {
   allSongData = await response.json();
 }
 
-// ... existing code ...
-
 function getPercentageCorrect(input, secret) {
   // Create an array of characters from input and secret
   var inputChars = input.split('');
