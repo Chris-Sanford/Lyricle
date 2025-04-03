@@ -1,13 +1,10 @@
 // game.js
 
 // Global Variables
-var wordsCorrect = 0; // initialize wordsCorrect score to 0, make variable global so it can be accessed by all functions
-var wordsToGuess = 0; // total number of words to have to guess correctly, used to determine if game is complete
 var lastLine = 0; // initialize lastLine to 0, make variable global so it can be accessed by all functions
 var startingLifelines = 3; // initialize starting lifelines to 3, make variable global so it can be accessed by all functions
 var lifelines = 0;
 var focusedBoxIndex = 0;
-var inputCounter = 0;
 var audio;
 var audioLoaded = false;
 var terminateAudio = false;
@@ -699,12 +696,15 @@ function constructGameCompleteModal(song) {
   bodyHeaderRow.appendChild(bodyHeaderCell);
   tableBody.appendChild(bodyHeaderRow);
 
+  // Get completion stats
+  const stats = Stats.getCompletionStats();
+
   // Create the rows and cells for each statistic
   var percentageCorrectRow = document.createElement("tr");
   var percentageCorrectCell1 = document.createElement("td");
   percentageCorrectCell1.innerText = "Percentage Correct";
   var percentageCorrectCell2 = document.createElement("td");
-  percentageCorrectCell2.innerText = `${wordsCorrect} of ${wordsToGuess} (${Math.floor((wordsCorrect / wordsToGuess) * 100)}%)`;
+  percentageCorrectCell2.innerText = `${stats.wordsCorrect} of ${stats.wordsToGuess} (${stats.percentageComplete}%)`;
   percentageCorrectRow.appendChild(percentageCorrectCell1);
   percentageCorrectRow.appendChild(percentageCorrectCell2);
   tableBody.appendChild(percentageCorrectRow);
@@ -732,7 +732,7 @@ function constructGameCompleteModal(song) {
   var totalInputsCell1 = document.createElement("td");
   totalInputsCell1.innerText = "Total Inputs";
   var totalInputsCell2 = document.createElement("td");
-  totalInputsCell2.innerText = inputCounter;
+  totalInputsCell2.innerText = stats.inputCounter;
   totalInputsRow.appendChild(totalInputsCell1);
   totalInputsRow.appendChild(totalInputsCell2);
   tableBody.appendChild(totalInputsRow);
@@ -841,7 +841,7 @@ function lyricBoxKeyDownListener(event, song) {
   }
 
   // For allowed input, increment the counter
-  inputCounter++;
+  Stats.incrementInputCounter();
 }
 
 function lyricBoxInputListener(song) {
@@ -886,7 +886,7 @@ function lyricBoxInputListener(song) {
   }
 
   // Increment the input counter
-  inputCounter++;
+  Stats.incrementInputCounter();
 
   // Get lyricBox element using activeElement
   var lyricBox = document.activeElement;
@@ -991,16 +991,14 @@ function startGame(songData) { // Loads main game with song lyrics to guess
     statsButton.remove();
   }
 
-  wordsCorrect = 0;
-  wordsToGuess = 0;
-  inputCounter = 0;
+  Stats.resetStats();
   lifelines = startingLifelines;
   focusedBoxIndex = 0;
 
   // construct a new Song object using the songData object
   var song = constructSongObject(songData.title, songData.artist, songData.preview_url, songData.chorus);
 
-  wordsToGuess = song.lyrics.filter(lyric => lyric.toGuess).length;
+  Stats.setWordsToGuess(song.lyrics.filter(lyric => lyric.toGuess).length);
 
   // Get the songTitle, songTitleName and songTitleArtist divs
   var songTitleDiv = document.getElementById("songTitle");
@@ -1321,8 +1319,7 @@ function checkCorrectness(lyricBox, song) {
     });
     lyricBox.disabled = true;
     lyricBox.contentEditable = false;
-    wordsCorrect++;
-    if (wordsCorrect === wordsToGuess) { // if the wordsCorrect score equals the number of words in the song
+    if (Stats.incrementWordsCorrect()) { // if all words are correct
       completeGame(song); // call function that executes game completion code
     }
     selectNextInput(lyricBox, (lyricIndex)); // call function that selects the next lyricBox box - updated parameter
@@ -1792,7 +1789,7 @@ function useLifeline(song, button) {
   }
 
   // Increment the input counter
-  inputCounter++;
+  Stats.incrementInputCounter();
   
   // Decrement the lifelines remaining
   lifelines--;
@@ -2009,7 +2006,7 @@ function handleKeyPress(event) {
   }
   
   // Update input counter
-  inputCounter++;
+  Stats.incrementInputCounter();
   
   // Process the key press
   if (key === "Backspace") {
