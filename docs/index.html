@@ -50,7 +50,7 @@ integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEw
   <script src="./js/audio-unlock.js"></script>
   <script src="./js/stopwatch.js"></script>
   <script src="./js/stats.js"></script>
-  <script src="./js/game.js"></script>
+  <script src="./js/game.js" type="module"></script>
 
   <!-- How To Play Modal -->
   <div class="modal fade modal-lg" id="howToPlay">
@@ -76,7 +76,7 @@ integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEw
           <p>To get a high score, save your lifelines and guess the lyrics as quickly and accurately as you can!</p>
         </div>
         <div class="modal-footer d-flex justify-content-center">
-          <button type="button" class="btn btn-primary" data-bs-dismiss="modal" onclick="if(window.debugLog) window.debugLog('Play button clicked in How To Play modal'); focusFirstUnfilledLyric();">Play</button>
+          <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Play</button>
         </div>
       </div>
     </div>
@@ -101,7 +101,7 @@ integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEw
         Lyricle
       </div>
       <div id="topBarRightButtons" class="col h-100 center">
-        <button id="muteButton" class="btn lyricle-icon-button" type="button" onclick="toggleMuteSongPreview()" aria-label="Play/Mute Song Preview">
+        <button id="muteButton" class="btn lyricle-icon-button" type="button" aria-label="Play/Mute Song Preview">
           <i id="muteButtonIcon" class='fas fa-volume-up'></i>
         </button>
         <button id="howToPlayButton" class="btn lyricle-icon-button" type="button" data-bs-toggle="modal" data-bs-target="#howToPlay">

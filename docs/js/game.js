@@ -1,5 +1,8 @@
 // game.js
 
+// Import song-related classes and functions
+import { Song, Lyric, constructSongObject, constructLyricObjects } from './song.js';
+
 // Global Variables
 var lastLine = 0; // initialize lastLine to 0, make variable global so it can be accessed by all functions
 var startingLifelines = 3; // initialize starting lifelines to 3, make variable global so it can be accessed by all functions
@@ -8,6 +11,7 @@ var focusedBoxIndex = 0;
 var audio;
 var audioLoaded = false;
 var terminateAudio = false;
+var allSongData; // Declare allSongData globally
 
 var allowedKeys = ["Backspace","Delete","Tab","ArrowLeft","ArrowRight"]; // array to store sanitized input for comparison
 
@@ -22,163 +26,7 @@ allowedCharacters.push("'"); // Allow apostrophes although they will be filtered
 var activeInputElement = null;
 var customKeyboardEnabled = true;
 
-// Class Constructors
-// Construct the Lyric class
-class Lyric {
-  constructor(boxIndex, lineIndex, content, contentComparable, toGuess, spaceLeft, spaceRight, isSpecial) {
-    this.boxIndex = boxIndex; // index of the lyric box, either word or puntuation
-    this.lineIndex = lineIndex; // index of the which line (or row) the lyric box is in
-    this.content = content; // the original content of the lyric
-    this.contentComparable = contentComparable; // the content of the lyric in a format that can be compared
-    this.toGuess = toGuess; // boolean value indicating whether the word should be guessed or not
-    this.spaceLeft = spaceLeft; // boolean value indicating whether there is a space to the left of the word (for displaying punctuation well)
-    this.spaceRight = spaceRight; // boolean value indicating whether there is a space to the right of the word (for displaying punctuation well)
-    this.isSpecial = isSpecial; // boolean value indicating whether the word is a special character (punctuation, etc.)
-  }
-}
-
-// Construct the Song class
-class Song {
-  constructor(title, artist, preview, lyrics) {
-    this.title = title;
-    this.artist = artist;
-    this.preview = preview;
-    this.lyrics = lyrics;
-  }
-}
-
 // Object and Element Constructors
-
-// Define the function that creates Lyric objects from the chorus
-function constructLyricObjects(chorus) {
-  // Define the maximum number of lines to display in the game
-  var maxLines = 6; // This actually results in 5 lines due to how the logic is written with indices
-
-  // Define the maximum number of characters to display in the game
-  var maxChars = 120;
-
-  var lineCount = 0;
-  var charCount = 0;
-
-  // Split the chorus into lines (split by newline)
-  var lines = chorus.split("\n");
-
-  // Initialize an empty array to store the lyric objects
-  var lyrics = [];
-
-  // Set boxIndex to 0
-  var boxIndex = 0;
-
-  // Loop through each line
-  for (var i = 0; i < lines.length; i++) {
-    lineCount++;
-
-    // If we've reached the maximum number of lines, break out of the loop
-    if (lineCount >= maxLines) {
-      break;
-    }
-
-    // If we've reached the maximum number of characters, break out of the loop
-    if (charCount >= maxChars) {
-      break;
-    }
-
-    var lineCharacterCountNoSpaces = lines[i].replace(/\s/g, '');
-
-    // If the current character count plus the total combined length of all the words in the current line is greater than the maximum number of allowed characters, break out of the loop
-    if (charCount + lineCharacterCountNoSpaces.length >= maxChars) {
-      break;
-    }
-
-    // Split the line by spaces
-    var splitBySpaces = lines[i].split(" ");
-
-    // Initialize an array to store "preformatWords"
-    var preformatWords = [];
-
-    // Loop through each string in splitBySpaces
-    for (var j = 0; j < splitBySpaces.length; j++) {
-      var word = splitBySpaces[j];
-      var spaceLeft = false;
-      var spaceRight = false;
-      var isSpecial = false;
-
-      // If the word starts with a special character, add ::SPACELEFT:: to the start of the string
-      if (/^[^a-zA-Z0-9\s\u00C0-\u017F'*]/.test(word)) {
-      spaceLeft = true;
-      }
-
-      // If the word ends with a special character, add ::SPACERIGHT:: to the end of the string
-      if (/[^a-zA-Z0-9\s\u00C0-\u017F'*]$/.test(word)) {
-      spaceRight = true;
-      }
-
-      // Split the word by special characters except ::SPACELEFT:: and ::SPACERIGHT::
-      var splitWords = word.split(/([^a-zA-Z0-9\s\u00C0-\u017F'*])/).filter(Boolean);
-
-      // Add the split words to the preformatWords array
-      preformatWords = preformatWords.concat(splitWords.map((splitWord) => {
-        // If the splitWord is a special character, set isSpecial to true
-        if (/^[^a-zA-Z0-9\s\u00C0-\u017F'*]/.test(splitWord)) {
-          isSpecial = true;
-        }
-      return {
-        word: splitWord,
-        spaceLeft: spaceLeft,
-        spaceRight: spaceRight,
-        isSpecial: isSpecial
-      };
-      }));
-    }
-
-    // Loop through each word
-    for (var j = 0; j < preformatWords.length; j++) {
-
-      // Increment the charCount by the length of the word
-      charCount += preformatWords[j].word.length;
-
-      // Run RegExes against the word to make it comparable (plus strip out spaces)
-      var word = preformatWords[j].word
-        .toLowerCase() // make all letters lowercase
-        .normalize("NFD") // decompose letters and diatrics
-        .replace(/\p{Diacritic}/gu, '') // replace them with non-accented characters
-        .replace(/'/g, '') // replace apostrophes with nothing
-        .replace(/\s/g, ''); // remove spaces
-
-      // Set toGuess
-      var toGuess = /^[a-zA-Z]+$/.test(word) ? true : false;
-
-      // If the line index is 0, set toGuess to false always
-      if (i === 0) {
-        toGuess = false;
-      }
-
-      // Construct a Lyric object with the boxIndex, lineIndex, content, contentComparable, toGuess, spaceLeft, and spaceRight
-      var lyric = new Lyric(boxIndex, i, preformatWords[j].word, word, toGuess, preformatWords[j].spaceLeft, preformatWords[j].spaceRight, preformatWords[j].isSpecial);
-
-      // Add the Lyric object to the lyrics array
-      lyrics.push(lyric);
-
-      // Increment the boxIndex
-      boxIndex++;
-    }
-  }
-
-  // Outputs: An array of Lyric objects
-  return lyrics;
-}
-
-// Define the function that creates a Song object from the title, artist, preview, and lyric objects
-function constructSongObject(title, artist, preview, chorus) {
-  // Construct the lyric objects
-  var lyrics = constructLyricObjects(chorus);
-
-  // Construct the Song object
-  var song = new Song(title, artist, preview, lyrics);
-
-  // Return the Song object
-  return song;
-}
 
 function constructLifelineButton(song) {
   // Since we now have the lifeline in the keyboard, we can skip creating the original one
@@ -627,7 +475,7 @@ function toggleMuteSongPreview() {
   }
 }
 
-function constructGameCompleteModal(song) {
+function constructGameCompleteModal(song, elapsedTime) { // Add elapsedTime parameter
   debugLog("Constructing game complete modal");
   // Random button is now created at initialization, no need to create it here
   constructStatsButton();
@@ -697,7 +545,7 @@ function constructGameCompleteModal(song) {
   tableBody.appendChild(bodyHeaderRow);
 
   // Get completion stats
-  const stats = Stats.getCompletionStats();
+  const stats = Stats.getCompletionStats(lifelines, elapsedTime); // Pass elapsedTime
 
   // Create the rows and cells for each statistic
   var percentageCorrectRow = document.createElement("tr");
@@ -722,8 +570,10 @@ function constructGameCompleteModal(song) {
   var totalTimeCell1 = document.createElement("td");
   totalTimeCell1.innerText = "Time to Completion";
   var totalTimeCell2 = document.createElement("td");
-  const { minutes, seconds } = Stopwatch.getFormattedTime();
-  totalTimeCell2.innerText = minutes + " minutes and " + seconds + " seconds";
+  // Format the elapsed time nicely
+  const minutes = Math.floor(stats.elapsedTime / 60);
+  const seconds = Math.floor(stats.elapsedTime % 60);
+  totalTimeCell2.innerText = `${minutes} minute${minutes !== 1 ? 's' : ''} and ${seconds} second${seconds !== 1 ? 's' : ''}`;
   totalTimeRow.appendChild(totalTimeCell1);
   totalTimeRow.appendChild(totalTimeCell2);
   tableBody.appendChild(totalTimeRow);
@@ -1351,6 +1201,7 @@ function selectNextInput(input, boxIndex) {
 
 function completeGame(song) {
   Stopwatch.stop();
+  const elapsedTime = (Stopwatch.endTime - Stopwatch.startTime) / 1000; // Use properties
   debugLog("Game completed");
 
   // Try to play the audio automatically when game completes
@@ -1411,7 +1262,7 @@ function completeGame(song) {
     newButton.style.pointerEvents = "none";
   }
 
-  var allCorrect = wordsCorrect === wordsToGuess
+  var allCorrect = Stats.wordsCorrect === Stats.wordsToGuess; // Use Stats properties
   if (allCorrect) {
     // Do Nothing
   } else {
@@ -1432,7 +1283,7 @@ function completeGame(song) {
     }
   }
 
-  constructGameCompleteModal(song);
+  constructGameCompleteModal(song, elapsedTime); // Pass elapsedTime
 }
 
 function displayGameCompleteModal() {
@@ -1483,6 +1334,7 @@ function sanitizeInput(input) {
 
 // Update init function to handle both desktop and mobile correctly
 function init() {
+  var songData; // Declare songData here
   // Dark Mode Implementation
   if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
     document.documentElement.setAttribute('data-bs-theme', 'dark');
@@ -1507,6 +1359,7 @@ function init() {
   }
 
   // Get day int and load song data
+  var day;
   day = getDayInt();
 
   getAllSongData().then(() => {
@@ -1544,6 +1397,16 @@ function init() {
       adjustLyricContentPosition();
     }, 200);
   }
+  
+  // Add event listeners previously in HTML
+  document.getElementById('muteButton').addEventListener('click', toggleMuteSongPreview);
+  
+  const howToPlayModalElement = document.getElementById('howToPlay');
+  const playButton = howToPlayModalElement.querySelector('.modal-footer .btn-primary');
+  playButton.addEventListener('click', () => {
+    if (window.debugLog) window.debugLog('Play button clicked in How To Play modal');
+    focusFirstUnfilledLyric();
+  });
 }
 
 function displayConcedeModal(song) {
@@ -1642,6 +1505,7 @@ function displayConcedeModal(song) {
 function concede(song) {
   // Stop the stopwatch if it's running
   Stopwatch.stop();
+  const elapsedTime = Stopwatch.endTime ? (Stopwatch.endTime - Stopwatch.startTime) / 1000 : 0; // Use properties
   debugLog("Game conceded");
   
   // Try to play the audio automatically, similar to completeGame
@@ -1718,7 +1582,7 @@ function concede(song) {
   }
   
   // Show the game complete modal
-  constructGameCompleteModal(song);
+  constructGameCompleteModal(song, elapsedTime); // Pass elapsedTime
 }
 
 async function populateAlertsDiv() {

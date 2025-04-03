@@ -6,13 +6,17 @@ let wordsToGuess = 0;
 let inputCounter = 0;
 
 // Statistics functions
-function getCompletionStats() {
+function getCompletionStats(lifelinesCount, elapsedTime) {
+    const percentageComplete = wordsToGuess > 0 ? 
+        Math.round((wordsCorrect / wordsToGuess) * 100) : 100;
+      
     return {
         wordsCorrect,
         wordsToGuess,
-        percentageComplete: Math.floor((wordsCorrect / wordsToGuess) * 100),
-        inputCounter,
-        lifelines // This is still defined in game.js but accessed here
+        percentageComplete: percentageComplete,
+        lifelinesRemaining: lifelinesCount,
+        elapsedTime: elapsedTime,
+        inputCounter
     };
 }
 
