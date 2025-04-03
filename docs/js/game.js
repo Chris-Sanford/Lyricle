@@ -21,9 +21,6 @@ for (var i = 97; i <= 122; i++) {
 }
 allowedCharacters.push("'"); // Allow apostrophes although they will be filtered out in the comparison
 
-// ... What does 'let' do differently from 'var' again?
-let startTime, endTime, interval; // stopwatch variables
-
 // Global Variables for keyboard functionality
 var activeInputElement = null;
 var customKeyboardEnabled = true;
@@ -725,10 +722,7 @@ function constructGameCompleteModal(song) {
   var totalTimeCell1 = document.createElement("td");
   totalTimeCell1.innerText = "Time to Completion";
   var totalTimeCell2 = document.createElement("td");
-  var totalTime = endTime - startTime;
-  var totalSeconds = totalTime / 1000;
-  var minutes = Math.floor(totalSeconds / 60);
-  var seconds = Math.floor(totalSeconds % 60);
+  const { minutes, seconds } = Stopwatch.getFormattedTime();
   totalTimeCell2.innerText = minutes + " minutes and " + seconds + " seconds";
   totalTimeRow.appendChild(totalTimeCell1);
   totalTimeRow.appendChild(totalTimeCell2);
@@ -812,14 +806,14 @@ function getRandomSong() {
 // Listeners
 function lyricBoxKeyDownListener(event, song) {
   // If the game is complete, don't allow any input
-  if (endTime) {
+  if (Stopwatch.endTime) {
     event.preventDefault();
     return;
   }
 
   // Start stopwatch on first input if not started
-  if (!startTime) {
-    startStopwatch();
+  if (!Stopwatch.startTime) {
+    Stopwatch.startStopwatch();
   }
 
   // Handle special keys
@@ -852,8 +846,8 @@ function lyricBoxKeyDownListener(event, song) {
 
 function lyricBoxInputListener(song) {
   // If the stopwatch hasn't been started, start it
-  if (!startTime) {
-    startStopwatch();
+  if (!Stopwatch.startTime) {
+    Stopwatch.startStopwatch();
     debugLog("First user interaction, attempting to unlock audio");
     
     // First user interaction - perfect time to "unlock" audio on iOS
@@ -1033,7 +1027,7 @@ function startGame(songData) { // Loads main game with song lyrics to guess
 
   constructLifelineButton(song);
 
-  resetStopwatch();
+  Stopwatch.resetStopwatch();
   
   // Create an audio element to play the song preview - use the hidden one in HTML
   var hiddenAudio = document.getElementById("hiddenAudio");
@@ -1168,24 +1162,6 @@ async function getAllSongData() {
   var jsonUrl = 'https://pub-9d70620f0c724e4595b80ff107d19f59.r2.dev/gameData.json'
   const response = await fetch(jsonUrl);
   allSongData = await response.json();
-}
-
-function startStopwatch() {
-  startTime = Date.now();
-  interval = setInterval(function() {
-      var elapsedTime = Date.now() - startTime;
-  }, 1000); // update every second
-}
-
-function stopStopwatch() {
-  clearInterval(interval);
-  endTime = Date.now();
-}
-
-function resetStopwatch() {
-  clearInterval(interval);
-  startTime = null;
-  endTime = null;
 }
 
 async function playSongPreview() {
@@ -1377,7 +1353,7 @@ function selectNextInput(input, boxIndex) {
 }
 
 function completeGame(song) {
-  stopStopwatch();
+  Stopwatch.stopStopwatch();
   debugLog("Game completed");
 
   // Try to play the audio automatically when game completes
@@ -1668,7 +1644,7 @@ function displayConcedeModal(song) {
 
 function concede(song) {
   // Stop the stopwatch if it's running
-  stopStopwatch();
+  Stopwatch.stopStopwatch();
   debugLog("Game conceded");
   
   // Try to play the audio automatically, similar to completeGame
@@ -1811,8 +1787,8 @@ function useLifeline(song, button) {
   }
 
   // If the stopwatch hasn't been started, start it
-  if (!startTime) {
-    startStopwatch();
+  if (!Stopwatch.startTime) {
+    Stopwatch.startStopwatch();
   }
 
   // Increment the input counter
