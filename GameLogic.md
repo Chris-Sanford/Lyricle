@@ -12,7 +12,7 @@ Upon launch of Lyricle, you're greeted with the `How To Play` modal. This explai
 
 The top title/control bar is statically at the top and is designed to only take up the necessary amount of space to remain visible and easily-interactable.
 
-In the middle is the `Lyricle` site title. To the right is the audio control button (denoted by a `Speaker` icon that either indicates audio is enabled or disabled) and the `How To Play` button (denoted by `(?)`).
+In the horizontal middle of the top bar is the `Lyricle` site title. To the right is the audio control button (denoted by a `Speaker` icon that either indicates audio is enabled or disabled) and the `How To Play` button (denoted by `(?)`).
 
 In debug mode, a `random` button (denoted by a pair of dice) is displayed to the left of the title/control bar.
 
