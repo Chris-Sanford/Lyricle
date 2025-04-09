@@ -1,0 +1,11 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+
+# Product Requirements Document and Game Logic
+
+- ALWAYS abide by the logic defined in [GameLogic.md](mdc:GameLogic.md). Do not write code that conflicts with the logic defined in [GameLogic.md](mdc:GameLogic.md).
+- If I ever propose a change that conflicts with [GameLogic.md](mdc:GameLogic.md), let me know in your response so I know to modify the language myself.
+- ALWAYS apply software engineering principles and best practices, including Single Responsibility Principle and separation of concerns. We need to ensure all of our code is modular.
