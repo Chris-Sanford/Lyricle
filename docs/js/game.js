@@ -4,6 +4,8 @@
 import { Song, Lyric, constructSongObject, constructLyricObjects } from './song.js';
 // Import the new AudioController
 import { AudioController } from './audio.js';
+// Import the KeyboardController
+import { KeyboardController } from './keyboard.js';
 // Import debugLog
 import { debugLog } from './debug.js';
 // Import helper functions
@@ -13,7 +15,6 @@ import { isMobileDevice, splitLineForDisplay, getDayInt, sanitizeInput } from '.
 var lastLine = 0; // initialize lastLine to 0, make variable global so it can be accessed by all functions
 var startingLifelines = 3; // initialize starting lifelines to 3, make variable global so it can be accessed by all functions
 var lifelines = 0;
-var focusedBoxIndex = 0;
 var allSongData; // Declare allSongData globally
 
 var allowedKeys = ["Backspace","Delete","Tab","ArrowLeft","ArrowRight"]; // array to store sanitized input for comparison
@@ -26,48 +27,16 @@ for (var i = 97; i <= 122; i++) {
 allowedCharacters.push("'"); // Allow apostrophes although they will be filtered out in the comparison
 
 // Global Variables for keyboard functionality
-var activeInputElement = null;
-var customKeyboardEnabled = true;
+// var activeInputElement = null;
+// var customKeyboardEnabled = true;
 
 // Object and Element Constructors
 
 function constructLifelineButton(song) {
-  // Since we now have the lifeline in the keyboard, we can skip creating the original one
-  if (customKeyboardEnabled) {
-    // Just make sure the keyboard lifeline is updated
-    updateLifelineDisplay();
-    return;
-  }
-  
-  // Only create the traditional lifeline button if we're not using the custom keyboard
-  // Get the OSKB Col element to populate the lifeline button into
-  var oskbRow = document.getElementById("oskbRow1Col1");
-
-  // Create the lifeline button
-  var lifelineButton = document.createElement("button");
-  lifelineButton.id = "lifelineButton";
-  lifelineButton.type = "button";
-  lifelineButton.classList.add("btn", "lyricle-lifeline-button");
-
-  // Set the click event listener for the lifeline button
-  lifelineButton.addEventListener("click", function() {
-    useLifeline(song, lifelineButton);
-  });
-
-  // Create the lifeline button icon
-  var lifelineButtonIcon = document.createElement("i");
-  lifelineButtonIcon.classList.add("fas", "fa-heart");
-  lifelineButton.appendChild(lifelineButtonIcon);
-
-  // Create the lifeline button number
-  var lifelineButtonNumber = document.createElement("span");
-  lifelineButtonNumber.id = "lifelineButtonNumber";
-  lifelineButtonNumber.classList.add("lyricle-lifeline-number");
-  lifelineButtonNumber.innerText = lifelines;
-  lifelineButton.appendChild(lifelineButtonNumber);
-
-  // Append the lifeline button to the OSKB Col element
-  oskbRow.appendChild(lifelineButton);
+  // Lifeline button creation is now handled by KeyboardController.construct
+  // We just need to ensure the display is updated initially.
+  updateLifelineDisplay(); // Call the game.js version which now calls the KeyboardController version
+  return; // No need to create the old button
 }
 
 function constructStatsButton() {
@@ -190,21 +159,15 @@ function constructLyricInputBoxes(song, lyricsGridContainer) {
       
       // Add event listeners
       input.addEventListener("click", function(event) {
-        // Set as active input
-        activeInputElement = this;
+        // Set active input via KeyboardController
+        KeyboardController.setActiveInput(this);
         
         // Call focus listener to handle styling
         lyricBoxFocusListener(this, song);
-        
-        // Only prevent default and stop propagation on mobile
-        if (isMobileDevice() && customKeyboardEnabled) {
-          event.preventDefault();
-          event.stopPropagation();
-        }
       });
       
-      // Always make contentEditable true for desktop, but false for mobile
-      if (isMobileDevice() && customKeyboardEnabled) {
+      // Always make contentEditable true for desktop, but handle mobile via KeyboardController
+      if (isMobileDevice() && KeyboardController.isEnabled()) {
         input.contentEditable = false;
       } else {
         input.contentEditable = "true";
@@ -212,22 +175,25 @@ function constructLyricInputBoxes(song, lyricsGridContainer) {
       
       // Handle focus events
       input.addEventListener("focus", function(event) {
-        lyricBoxFocusListener(this, song);
+        // Set active input via KeyboardController
+        KeyboardController.setActiveInput(this);
         
-        // Only prevent default and stop propagation on mobile
-        if (isMobileDevice() && customKeyboardEnabled) {
-          event.preventDefault();
-          event.stopPropagation();
+        lyricBoxFocusListener(this, song);
+      });
+      
+      // Always include keyboard event listeners for desktop (or if custom keyboard is disabled)
+      input.addEventListener("keydown", function(event) {
+        // Only run desktop handler if custom keyboard isn't active or it's not mobile
+        if (!KeyboardController.isEnabled() || !isMobileDevice()) {
+           lyricBoxKeyDownListener(event, song);
         }
       });
       
-      // Always include keyboard event listeners for desktop
-      input.addEventListener("keydown", function(event) {
-        lyricBoxKeyDownListener(event, song);
-      });
-      
       input.addEventListener("input", function() {
-        lyricBoxInputListener(song);
+         // Only run desktop handler if custom keyboard isn't active or it's not mobile
+         if (!KeyboardController.isEnabled() || !isMobileDevice()) {
+            lyricBoxInputListener(song);
+         }
       });
 
       // Handle non-guessable words
@@ -263,16 +229,7 @@ function constructLyricInputBoxes(song, lyricsGridContainer) {
 }
 
 // Update the preventNativeKeyboard function to only apply to mobile devices
-function preventNativeKeyboard(event) {
-  if (isMobileDevice() && customKeyboardEnabled && event.target.classList.contains('lyricle-lyrics-input')) {
-    event.preventDefault();
-    event.stopPropagation();
-    activeInputElement = event.target;
-    focusedBoxIndex = parseInt(event.target.id.replace("lyricInput", ""));
-    return false;
-  }
-  return true;
-}
+// function preventNativeKeyboard(event) { ... }
 
 // NEW: Function to adjust lyric line heights based on content wrapping
 function adjustLyricLineHeights() {
@@ -655,12 +612,12 @@ function lyricBoxInputListener(song) {
   checkCorrectness(lyricBox, song);
 }
 
-// Update lyricBoxFocusListener to work properly on all devices
+// Update lyricBoxFocusListener to work properly on all devices and notify KeyboardController
 function lyricBoxFocusListener(input, song) {
-  // Update global references
-  activeInputElement = input;
-  focusedBoxIndex = parseInt(input.id.replace("lyricInput", ""));
-  
+  // Update KeyboardController's active input
+  KeyboardController.setActiveInput(input);
+  const focusedBoxIndex = KeyboardController.focusedBoxIndex; // Get index from controller
+
   // First, reset all lyric boxes to their default state
   for (let i = 0; i < song.lyrics.length; i++) {
     const otherInput = document.getElementById(`lyricInput${i}`);
@@ -722,15 +679,12 @@ function lyricBoxFocusListener(input, song) {
     }
     
     // Set cursor position to end
-    range.setStart(input.firstChild, input.innerText.length);
+    const textNode = input.firstChild || input;
+    const length = input.innerText.length;
+    range.setStart(textNode, length);
     range.collapse(true);
     sel.removeAllRanges();
     sel.addRange(range);
-  }
-  
-  // Only blur on mobile devices with custom keyboard
-  if (isMobileDevice() && customKeyboardEnabled) {
-    setTimeout(() => input.blur(), 0);
   }
 }
 
@@ -743,7 +697,8 @@ function startGame(songData) { // Loads main game with song lyrics to guess
   lyricsGridContainer.innerHTML = "";
   document.getElementById("songTitleName").innerHTML = "";
   document.getElementById("songTitleArtist").innerHTML = "";
-  document.getElementById("oskbRow1Col1").innerHTML = "";
+  // Don't clear oskbRow1Col1 here, KeyboardController manages it
+  // document.getElementById("oskbRow1Col1").innerHTML = "";
 
   // If statsButton exists, remove it
   var statsButton = document.getElementById("statsButton");
@@ -753,7 +708,7 @@ function startGame(songData) { // Loads main game with song lyrics to guess
 
   Stats.resetStats();
   lifelines = startingLifelines;
-  focusedBoxIndex = 0;
+  KeyboardController.setActiveInput(null); // Reset active input in controller
 
   // construct a new Song object using the songData object
   var song = constructSongObject(songData.title, songData.artist, songData.preview_url, songData.chorus);
@@ -783,41 +738,23 @@ function startGame(songData) { // Loads main game with song lyrics to guess
   // construct the lyric input boxes to start the game
   constructLyricInputBoxes(song, lyricsGridContainer);
 
-  constructLifelineButton(song);
+  // Construct the custom keyboard via the controller
+  // Pass the initial number of lifelines for the display
+  KeyboardController.construct(lifelines);
+
+  // The old constructLifelineButton is no longer needed as KeyboardController handles it
+  // constructLifelineButton(song);
 
   Stopwatch.reset();
-  
-  // Create an audio element to play the song preview - use the hidden one in HTML
-  // var hiddenAudio = document.getElementById("hiddenAudio"); // Handled by AudioController
-  
-  // IMPORTANT: Ensure audio is completely disabled before setting source
-  // This prevents any autoplay issues before the game is completed
-  // hiddenAudio.volume = 0; // Handled by AudioController
-  // hiddenAudio.muted = true; // Handled by AudioController
-  // hiddenAudio.pause(); // Handled by AudioController
 
-  // Set the source using AudioController
+  // Set the audio source using AudioController
   AudioController.setSource(song.preview);
-  // audio = hiddenAudio; // Handled by AudioController
-
-  // Remove old event listeners - now handled within AudioController
-  // audio.addEventListener('play', function() { ... });
-  // audio.addEventListener('playing', function() { ... });
-  // audio.addEventListener('pause', function() { ... });
-  // audio.addEventListener('canplay', function() { ... });
-  // audio.addEventListener('loadstart', function() { ... });
-  // audio.addEventListener('error', function(e) { ... });
-  // audio.addEventListener('canplaythrough', function() { ... });
-
-  // Set initial muted state - handled by AudioController
-  // audio.muted = true;
-  // debugLog("Audio element initialized, muted: " + audio.muted); // Logging now inside controller
 
   // Save current song in a global variable for keyboard access
-  window.currentSong = song;
-  
-  // Construct the custom keyboard
-  constructCustomKeyboard();
+  window.currentSong = song; // Keep this for now, though KeyboardController also gets a ref
+
+  // Keyboard construction and visibility handled by KeyboardController.construct
+  // constructCustomKeyboard();
 }
 
 function moveCursorToEnd(lyricBox, song) {
@@ -991,28 +928,8 @@ function completeGame(song) {
       debugLog("GAME DEBUG: After calling updateMuteButtonUI(true).");
   }
 
-  // Disable lifeline button when game is completed
-  var lifelineButton = document.getElementById("lifelineButton");
-  if (lifelineButton) {
-    lifelineButton.classList.add("disabled");
-  }
-  
-  // More thoroughly disable the keyboard lifeline button
-  var keyboardLifelineButton = document.getElementById("keyboardLifelineButton");
-  if (keyboardLifelineButton) {
-    // Add both disabled class and aria-disabled attribute
-    keyboardLifelineButton.classList.add("disabled");
-    keyboardLifelineButton.setAttribute("aria-disabled", "true");
-    
-    // Also remove the event listener by cloning and replacing the node
-    const newButton = keyboardLifelineButton.cloneNode(true);
-    keyboardLifelineButton.parentNode.replaceChild(newButton, keyboardLifelineButton);
-    
-    // Apply disabled styling
-    newButton.style.opacity = "0.5";
-    newButton.style.cursor = "not-allowed";
-    newButton.style.pointerEvents = "none";
-  }
+  // Disable the keyboard lifeline button via the controller
+  KeyboardController.disableLifelineButton();
 
   var allCorrect = Stats.wordsCorrect === Stats.wordsToGuess; // Use Stats properties
   if (allCorrect) {
@@ -1020,10 +937,10 @@ function completeGame(song) {
   } else {
     // populate every incorrect input box with the correct word
     for (var i = 0; i < song.lyrics.length; i++) {
-      var input = document.getElementById("lyricInput" + i); // get the input box element by id
-      if (!input.classList.contains("lyricle-lyrics-input-correct")) { // if the lyric isn't already correct
-        input.innerHTML = song.lyrics[i].content; // populate the input box with the correct word
-        input.parentElement.classList.add("lyricle-lyrics-input-noguess");
+      var input = document.getElementById("lyricInput" + i);
+      if (input && !input.classList.contains("lyricle-lyrics-input-correct")) { // Check parent too
+        input.innerHTML = song.lyrics[i].content;
+        input.parentElement.classList.add("lyricle-lyrics-input-noguess"); // Use noguess style for revealed
         setLyricBoxBorderBottomStyle(input, {
           width: 4,
           color1: 255,
@@ -1031,6 +948,8 @@ function completeGame(song) {
           color3: 255,
           opacity: 0.001
         });
+        input.disabled = true; // Disable revealed inputs
+        input.contentEditable = false;
       }
     }
   }
@@ -1074,7 +993,7 @@ function displayHowToPlayModal() {
   });
 }
 
-// Update init function to handle both desktop and mobile correctly
+// Update init function to handle both desktop and mobile correctly and init KeyboardController
 function init() {
   var songData; // Declare songData here
   // Dark Mode Implementation
@@ -1087,15 +1006,21 @@ function init() {
   const isMobile = isMobileDevice();
   debugLog("Device detection: " + (isMobile ? "Mobile device" : "Desktop device"));
   
-  // We'll keep customKeyboardEnabled true for both, but handle differently
-  customKeyboardEnabled = true;
-  
   // Initialize AudioController
   AudioController.init();
 
-  // Initialize audio state to prevent autoplay - Handled by AudioController.init()
-  // var hiddenAudio = document.getElementById("hiddenAudio");
-  // if (hiddenAudio) { ... }
+  // Initialize KeyboardController
+  const keyboardCallbacks = {
+      useLifeline: useLifeline, // Pass the game.js function
+      checkCorrectness: checkCorrectness, // Pass the game.js function
+      selectNextInput: selectNextInput, // Pass the game.js function
+      focusFirstUnfilledLyric: focusFirstUnfilledLyric, // Pass the game.js function
+      updateLifelineDisplay: updateLifelineDisplay, // Pass the game.js function (which calls controller)
+      isGameComplete: () => !!Stopwatch.endTime, // Provide a way to check game status
+      // getLifelines: () => lifelines // Provide getter for current lifelines
+  };
+  // Pass callbacks, and references to the song object (initially null) and Stats
+  KeyboardController.init(keyboardCallbacks, window.currentSong, Stats);
 
   // Get day int and load song data
   var day;
@@ -1107,36 +1032,26 @@ function init() {
     if (songData == null) {
       songData = allSongData[Math.floor(Math.random() * allSongData.length)];
     }
+    // Update the song reference in KeyboardController *before* starting game
+    KeyboardController._songRef = window.currentSong; // Directly update, or add a setter
+
     startGame(songData);
     constructRandomButton(); // Add random button from the beginning
     displayHowToPlayModal();
+
+    // Update the song reference in KeyboardController again after startGame sets window.currentSong
+    KeyboardController._songRef = window.currentSong;
+
+     // Ensure layout adjustment happens *after* keyboard is likely constructed by startGame
+     setTimeout(() => {
+      adjustLyricContentPosition();
+    }, 250); // Slightly longer delay
   });
 
-  // Show custom keyboard on all platforms
-  const oskbElement = document.getElementById('oskb');
-  if (oskbElement) {
-    oskbElement.style.display = 'block';
-  }
+  // Keyboard display is handled within KeyboardController.construct called by startGame
+  // const oskbElement = document.getElementById('oskb');
+  // if (oskbElement) { ... }
 
-  // Ensure the keyboard is visible and properly sized
-  if (oskbElement) {
-    oskbElement.style.display = 'block';
-    
-    // Force a layout recalculation
-    setTimeout(() => {
-      // Position the lyrics after keyboard is rendered
-      adjustLyricContentPosition();
-      
-      // Force browser to recalculate layout
-      oskbElement.style.display = 'none';
-      void oskbElement.offsetHeight; // Force reflow
-      oskbElement.style.display = 'block';
-      
-      // Reposition lyrics again
-      adjustLyricContentPosition();
-    }, 200);
-  }
-  
   // Add event listeners previously in HTML
   const mainMuteButton = document.getElementById('muteButton');
   if (mainMuteButton) {
@@ -1148,10 +1063,14 @@ function init() {
   
   const howToPlayModalElement = document.getElementById('howToPlay');
   const playButton = howToPlayModalElement.querySelector('.modal-footer .btn-primary');
-  playButton.addEventListener('click', () => {
-    if (window.debugLog) window.debugLog('Play button clicked in How To Play modal');
-    focusFirstUnfilledLyric();
-  });
+  if (playButton) { // Ensure playButton exists
+      playButton.addEventListener('click', () => {
+        if (window.debugLog) window.debugLog('Play button clicked in How To Play modal');
+        focusFirstUnfilledLyric();
+      });
+  } else {
+      debugLog("ERROR: Play button not found in How To Play modal.");
+  }
 }
 
 function displayConcedeModal(song) {
@@ -1274,35 +1193,16 @@ function concede(song) {
       debugLog("GAME DEBUG: After calling updateMuteButtonUI(true) on concede.");
   }
   
-  // Disable the lifeline button
-  var lifelineButton = document.getElementById("lifelineButton");
-  if (lifelineButton) {
-    lifelineButton.classList.add("disabled");
-  }
-  
-  // More thoroughly disable the keyboard lifeline button
-  var keyboardLifelineButton = document.getElementById("keyboardLifelineButton");
-  if (keyboardLifelineButton) {
-    // Add both disabled class and aria-disabled attribute
-    keyboardLifelineButton.classList.add("disabled");
-    keyboardLifelineButton.setAttribute("aria-disabled", "true");
-    
-    // Also remove the event listener by cloning and replacing the node
-    const newButton = keyboardLifelineButton.cloneNode(true);
-    keyboardLifelineButton.parentNode.replaceChild(newButton, keyboardLifelineButton);
-    
-    // Apply disabled styling
-    newButton.style.opacity = "0.5";
-    newButton.style.cursor = "not-allowed";
-    newButton.style.pointerEvents = "none";
-  }
+  // Disable the keyboard lifeline button via the controller
+  KeyboardController.disableLifelineButton();
 
   // Reveal all lyrics
   for (var i = 0; i < song.lyrics.length; i++) {
     var input = document.getElementById("lyricInput" + i);
-    if (input && !input.classList.contains("lyricle-lyrics-input-correct")) {
+    // Ensure input exists and isn't already correct (check parent class too)
+    if (input && !input.classList.contains("lyricle-lyrics-input-correct") && !input.parentElement.classList.contains("lyricle-lyrics-input-correct")) {
       input.innerHTML = song.lyrics[i].content;
-      input.parentElement.classList.add("lyricle-lyrics-input-noguess");
+      input.parentElement.classList.add("lyricle-lyrics-input-noguess"); // Use noguess style
       setLyricBoxBorderBottomStyle(input, {
         width: 4,
         color1: 255,
@@ -1334,49 +1234,45 @@ async function populateAlertsDiv() {
   }, 3000);
 }
 
-// Function to update the lifeline display both in the keyboard and elsewhere
+// Function to update the lifeline display (now primarily calls KeyboardController)
 function updateLifelineDisplay() {
-  // Update keyboard lifeline number
-  const keyboardLifelineNumber = document.getElementById("keyboardLifelineNumber");
-  if (keyboardLifelineNumber) {
-    keyboardLifelineNumber.innerText = lifelines;
-  }
-  
-  // Update the keyboard lifeline button appearance based on lifelines remaining
-  const keyboardLifelineButton = document.getElementById("keyboardLifelineButton");
-  if (keyboardLifelineButton) {
-    // Reset classes first
-    keyboardLifelineButton.classList.remove("btn-danger");
-    
-    // Apply appropriate styling based on lifelines
-    if (lifelines === 1) {
-      keyboardLifelineButton.classList.add("btn-danger");
-    } else if (lifelines === 0) {
-      // Change heart icon to broken heart when lifelines reach zero
-      const lifelineIcon = keyboardLifelineButton.querySelector("i");
-      if (lifelineIcon) {
-        lifelineIcon.classList.remove("fa-heart");
-        lifelineIcon.classList.add("fa-heart-crack");
-      }
-      
-      // Hide the number since the cracked heart indicates no lifelines
-      if (keyboardLifelineNumber) {
-        keyboardLifelineNumber.style.display = "none";
-      }
-    }
-  }
-  
-  // Also update the original lifeline button number if it exists
+  // Call the KeyboardController's method to update its display
+  KeyboardController.updateLifelineDisplay(lifelines);
+
+  // Keep updating the original button only if it exists (for non-keyboard scenario, though unlikely now)
+  const originalLifelineButton = document.getElementById("lifelineButton");
   const originalLifelineNumber = document.getElementById("lifelineButtonNumber");
-  if (originalLifelineNumber) {
-    originalLifelineNumber.innerText = lifelines;
+  if (originalLifelineButton && originalLifelineNumber) {
+      originalLifelineNumber.innerText = lifelines;
+      // Apply styling similar to keyboard button if needed
+      if (lifelines === 1) {
+         originalLifelineButton.classList.add("btn-danger");
+      } else {
+         originalLifelineButton.classList.remove("btn-danger");
+      }
+      if (lifelines <= 0) {
+          var lifelineIcon = originalLifelineButton.querySelector("i");
+          if (lifelineIcon) {
+              lifelineIcon.classList.remove("fa-heart");
+              lifelineIcon.classList.add("fa-heart-crack");
+          }
+          originalLifelineNumber.style.display = "none";
+      } else {
+          // Ensure icon is normal heart and number is visible if lifelines > 0
+           var lifelineIcon = originalLifelineButton.querySelector("i");
+           if (lifelineIcon) {
+               lifelineIcon.classList.remove("fa-heart-crack");
+               lifelineIcon.classList.add("fa-heart");
+           }
+           originalLifelineNumber.style.display = "inline"; // Or appropriate display value
+      }
   }
 }
 
 // Modified useLifeline function to properly apply lifelines
-function useLifeline(song, button) {
+function useLifeline(song, button) { // button parameter might be the keyboard button now
   // If lifelines is 0, show concede modal
-  if (lifelines === 0) {
+  if (lifelines <= 0) { // Check <= 0 just in case
     displayConcedeModal(song);
     return;
   }
@@ -1386,262 +1282,110 @@ function useLifeline(song, button) {
     Stopwatch.start();
   }
 
-  // Increment the input counter
+  // Increment the input counter via Stats
   Stats.incrementInputCounter();
-  
+
   // Decrement the lifelines remaining
   lifelines--;
 
-  // Update all lifeline displays
+  // Update all lifeline displays (Keyboard and potentially old button)
   updateLifelineDisplay();
 
   // Actually apply the lifeline to reveal characters in all lyric boxes
-  if (lifelines >= 0) {
-    // Calculate how many characters to reveal based on lifelines used
-    const charsToReveal = startingLifelines - lifelines;
-    
-    // Loop through each lyric input to apply the hint
-    for (var i = 0; i < song.lyrics.length; i++) {
-      // Get the lyricInput element
-      var lyricInput = document.getElementById("lyricInput" + i);
+  // Calculate how many characters to reveal based on lifelines used
+  const charsToReveal = startingLifelines - lifelines;
 
-      // Skip lyrics that don't need to be guessed or are already correct
-      if (!lyricInput || 
-          !song.lyrics[i].toGuess || 
-          lyricInput.parentElement.classList.contains("lyricle-lyrics-input-correct")) {
-        continue;
-      }
+  // Loop through each lyric input to apply the hint
+  for (var i = 0; i < song.lyrics.length; i++) {
+    // Get the lyricInput element
+    var lyricInput = document.getElementById("lyricInput" + i);
 
-      // Get the actual content without special characters
-      const correctWord = song.lyrics[i].content;
-      const correctLetters = correctWord.replace(/[^a-zA-Z]/g, '');
-      
-      // Skip single letter words
-      if (correctLetters.length <= 1) {
-        continue;
-      }
-      
-      // Calculate how many letters we can reveal without completing the word
-      const maxRevealable = correctLetters.length - 1;
-      const lettersToReveal = Math.min(charsToReveal, maxRevealable);
-      
-      // Build revealed string by taking letters from the original word
-      let revealedString = '';
-      let letterCount = 0;
-      for (let j = 0; j < correctWord.length && letterCount < lettersToReveal; j++) {
-        if (/[a-zA-Z]/.test(correctWord[j])) {
+    // Skip lyrics that don't need to be guessed or are already correct
+    if (!lyricInput ||
+        !song.lyrics[i].toGuess ||
+        lyricInput.parentElement.classList.contains("lyricle-lyrics-input-correct")) {
+      continue;
+    }
+
+    // Get the actual content without special characters
+    const correctWord = song.lyrics[i].content;
+    const correctLetters = correctWord.replace(/[^a-zA-Z]/g, '');
+
+    // Skip single letter words
+    if (correctLetters.length <= 1) {
+      continue;
+    }
+
+    // Calculate how many letters we can reveal without completing the word
+    const maxRevealable = correctLetters.length - 1;
+    const lettersToReveal = Math.min(charsToReveal, maxRevealable);
+
+    // Build revealed string by taking letters from the original word
+    let revealedString = '';
+    let letterCount = 0;
+    for (let j = 0; j < correctWord.length && letterCount < lettersToReveal; j++) {
+      // Only reveal letters
+      if (/[a-zA-Z]/.test(correctWord[j])) {
           revealedString += correctWord[j];
           letterCount++;
-        }
-      }
-
-      // Set the revealed characters in the input
-      lyricInput.innerText = revealedString;
-      
-      // Check if this completes the word
-      checkCorrectness(lyricInput, song);
-    }
-  }
-
-  // Apply button-specific styling for the original lifeline button if it was used
-  if (button && button.id !== "keyboardLifelineButton") {
-    if (lifelines === 1) {
-      button.classList.add("btn-danger");
-    }
-
-    if (lifelines === 0) {
-      button.classList.remove("btn-danger");
-      
-      // Change heart icon to broken heart when lifelines reach zero
-      var lifelineIcon = button.querySelector("i");
-      if (lifelineIcon) {
-        lifelineIcon.classList.remove("fa-heart");
-        lifelineIcon.classList.add("fa-heart-crack");
-      }
-      
-      // Remove the lifeline number since the cracked heart already indicates no lifelines
-      var lifelineNumber = button.querySelector(".lyricle-lifeline-number");
-      if (lifelineNumber) {
-        lifelineNumber.style.display = "none";
+      } else {
+          // Include non-letters if they appear before the revealed letter count is met
+           if (j < lettersToReveal) { // A bit simplified, might need refinement
+               revealedString += correctWord[j];
+           }
       }
     }
+
+    // Set the revealed characters in the input
+    lyricInput.innerText = revealedString;
+
+    // Update border based on new (incomplete) input
+     const comparableInput = revealedString
+        .replace(/([^a-zA-Z0-9\s\u00C0-\u017F])/g, "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/\p{Diacritic}/gu, '');
+    const percentageCorrect = getPercentageCorrect(comparableInput, song.lyrics[i].contentComparable);
+    const opacity = 1.00 - percentageCorrect;
+
+    // Check if the *active* input is the one we just changed
+    const isActive = KeyboardController.activeInputElement === lyricInput;
+
+    setLyricBoxBorderBottomStyle(lyricInput, {
+        width: 4,
+        color1: isActive ? 0 : 255,    // Blue if active, white otherwise
+        color2: isActive ? 115 : 255,
+        color3: isActive ? 255 : 255,
+        opacity: opacity
+    });
+
+
+    // Check if this *happened* to complete the word (unlikely with hint logic, but possible)
+    checkCorrectness(lyricInput, song);
   }
+
+  // Styling based on remaining lifelines is handled within updateLifelineDisplay
 }
 
-// Function to construct the custom keyboard
-function constructCustomKeyboard() {
-  debugLog("Constructing custom keyboard");
-  
-  // First row (QWERTYUIOP)
-  const row1Keys = ["q", "w", "e", "r", "t", "y", "u", "i", "o", "p"];
-  const row1Container = document.getElementById("oskbRow1Col1");
-  row1Container.innerHTML = "";
-  
-  row1Keys.forEach(key => {
-    const keyButton = document.createElement("div");
-    keyButton.className = "lyricle-key";
-    keyButton.textContent = key;
-    keyButton.dataset.key = key;
-    keyButton.addEventListener("click", handleKeyPress);
-    row1Container.appendChild(keyButton);
-  });
-  
-  // Second row (ASDFGHJKL)
-  const row2Keys = ["a", "s", "d", "f", "g", "h", "j", "k", "l"];
-  const row2Container = document.getElementById("oskbRow2Col1");
-  row2Container.innerHTML = "";
-  
-  row2Keys.forEach(key => {
-    const keyButton = document.createElement("div");
-    keyButton.className = "lyricle-key";
-    keyButton.textContent = key;
-    keyButton.dataset.key = key;
-    keyButton.addEventListener("click", handleKeyPress);
-    row2Container.appendChild(keyButton);
-  });
-  
-  // Third row (Lifeline + ZXCVBNM + Backspace)
-  const row3Container = document.getElementById("oskbRow3Col1");
-  row3Container.innerHTML = "";
-  
-  // Make sure row3 is initially visible
-  const row3 = document.getElementById("oskbRow3");
-  if (row3) {
-    row3.style.display = "flex";
-    row3.style.visibility = "visible";
-    row3.style.opacity = "1";
-  }
-  
-  // Add Lifeline button
-  const lifelineKey = document.createElement("div");
-  lifelineKey.className = "lyricle-key special-key wide-key lyricle-keyboard-lifeline";
-  lifelineKey.id = "keyboardLifelineButton";
-  lifelineKey.dataset.key = "Lifeline";
-  
-  // Create heart icon
-  const heartIcon = document.createElement("i");
-  heartIcon.className = "fas fa-heart";
-  lifelineKey.appendChild(heartIcon);
-  
-  // Create the lifeline number
-  const lifelineNumber = document.createElement("span");
-  lifelineNumber.id = "keyboardLifelineNumber";
-  lifelineNumber.className = "lyricle-keyboard-lifeline-number";
-  lifelineNumber.innerText = lifelines;
-  lifelineKey.appendChild(lifelineNumber);
-  
-  lifelineKey.addEventListener("click", function() {
-    if (window.currentSong && !endTime) {
-      debugLog("Lifeline button clicked");
-      useLifeline(window.currentSong, this);
-    } else {
-      debugLog("Lifeline button clicked but no active game");
-    }
-  });
-  
-  row3Container.appendChild(lifelineKey);
-  
-  // Add letter keys
-  const row3Keys = ["z", "x", "c", "v", "b", "n", "m"];
-  row3Keys.forEach(key => {
-    const keyButton = document.createElement("div");
-    keyButton.className = "lyricle-key";
-    keyButton.textContent = key;
-    keyButton.dataset.key = key;
-    keyButton.addEventListener("click", handleKeyPress);
-    row3Container.appendChild(keyButton);
-  });
-  
-  // Add Backspace key
-  const backspaceKey = document.createElement("div");
-  backspaceKey.className = "lyricle-key special-key backspace-key";
-  backspaceKey.innerHTML = '<i class="fas fa-delete-left"></i>';
-  backspaceKey.dataset.key = "Backspace";
-  backspaceKey.addEventListener("click", handleKeyPress);
-  row3Container.appendChild(backspaceKey);
-  
-  // Prevent native keyboard on mobile
-  document.addEventListener('focusin', preventNativeKeyboard);
-  
-  // Update the lifeline display
-  updateLifelineDisplay();
-  
-  // Force a layout recalculation to ensure all rows are visible
-  setTimeout(() => {
-    const oskbElement = document.getElementById('oskb');
-    if (oskbElement) {
-      // Log the keyboard height for debugging
-      debugLog("Keyboard height after construction: " + oskbElement.offsetHeight + "px");
-      
-      // Force a reflow to ensure all content is properly laid out
-      oskbElement.style.display = 'none';
-      void oskbElement.offsetHeight;
-      oskbElement.style.display = 'block';
-      
-      // Make sure all rows are visible
-      const rows = oskbElement.querySelectorAll('.lyricle-oskb-row');
-      rows.forEach(row => {
-        row.style.visibility = 'visible';
-        row.style.display = 'flex';
-      });
-      
-      // Update positions
-      adjustLyricContentPosition();
-    }
-  }, 100);
-}
-
-// Handle key presses from the custom keyboard
-function handleKeyPress(event) {
-  // Get the key that was pressed
-  const key = event.currentTarget.dataset.key;
-  
-  // Make sure we have an active input element
-  if (!activeInputElement) {
-    // If no input is focused, try to focus the first unfilled lyric box
-    focusFirstUnfilledLyric();
-    if (!activeInputElement) return;
-  }
-  
-  // Update input counter
-  Stats.incrementInputCounter();
-  
-  // Process the key press
-  if (key === "Backspace") {
-    // Handle backspace - remove the last character
-    let text = activeInputElement.innerText;
-    if (text.length > 0) {
-      activeInputElement.innerText = text.slice(0, -1);
-      checkCorrectness(activeInputElement, window.currentSong);
-    }
-  } else if (key === "Enter") {
-    // Handle enter - move to next lyric box
-    selectNextInput(activeInputElement, focusedBoxIndex);
-  } else {
-    // Handle regular characters
-    // Only add the character if we haven't reached max length
-    const lyric = window.currentSong.lyrics[focusedBoxIndex];
-    if (activeInputElement.innerText.length < lyric.content.length) {
-      activeInputElement.innerText += key;
-      checkCorrectness(activeInputElement, window.currentSong);
-    }
-  }
-}
-
-// Update the focusFirstUnfilledLyric function to be more robust
+// Update the focusFirstUnfilledLyric function to be more robust and use KeyboardController
 function focusFirstUnfilledLyric() {
-    const lyrics = window.currentSong.lyrics;
+    // Use the song reference from the controller if available, otherwise fallback to window
+    const currentSong = KeyboardController._songRef || window.currentSong;
+    if (!currentSong) {
+        debugLog("Cannot focus first unfilled lyric: No current song reference.");
+        return;
+    }
+    const lyrics = currentSong.lyrics;
     for (let i = 0; i < lyrics.length; i++) {
         if (lyrics[i].toGuess) {
             const input = document.getElementById(`lyricInput${i}`);
+            // Check parent class as well for correctness
             if (input && !input.parentElement.classList.contains("lyricle-lyrics-input-correct")) {
-                // Set as active input
-                activeInputElement = input;
-                focusedBoxIndex = i;
-                
-                // Focus and trigger the focus listener for proper styling
+                // Focus the input element directly
                 input.focus();
-                lyricBoxFocusListener(input, window.currentSong);
+                // Manually call the focus listener to update styling and KeyboardController state
+                lyricBoxFocusListener(input, currentSong);
+                debugLog(`Focused first unfilled lyric: lyricInput${i}`);
                 break;
             }
         }
