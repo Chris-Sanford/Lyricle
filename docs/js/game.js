@@ -12,7 +12,7 @@ import { debugLog } from './debug.js';
 import { isMobileDevice, splitLineForDisplay, getDayInt, sanitizeInput } from './helpers.js';
 import { useLifeline } from './lifelines.js';
 
-// Global Variables
+// **************** Global Variables ****************
 var lastLine = 0; // initialize lastLine to 0, make variable global so it can be accessed by all functions
 var startingLifelines = 3; // initialize starting lifelines to 3, make variable global so it can be accessed by all functions
 var lifelines = 0;
@@ -27,8 +27,7 @@ for (var i = 97; i <= 122; i++) {
 }
 allowedCharacters.push("'"); // Allow apostrophes although they will be filtered out in the comparison
 
-// Object and Element Constructors
-
+// **************** UI Element Constructors ****************
 function constructLifelineButton(song) {
   // Lifeline button creation is now handled by KeyboardController.construct
   // We just need to ensure the display is updated initially.
@@ -67,308 +66,6 @@ function constructRandomButton() {
   icon.classList.add("fa-solid", "fa-dice");
   button.appendChild(icon);
   button.addEventListener("click", getRandomSong);
-}
-
-function calculateOptimizedLyricBoxWidth(lyricContent, customBuffer) {
-  // Slightly increase the buffer for better word separation
-  var widthBuffer = customBuffer !== undefined ? customBuffer : 6;
-
-  // Create a div
-  var div = document.createElement("div");
-  div.style.visibility = "hidden";
-  div.style.fontSize = "min(1.3em, 60px)";
-  div.style.width = "max-content";
-  div.innerText = lyricContent;
-  document.body.appendChild(div);
-  var width = div.clientWidth;
-  div.remove();
-  
-  // Add a slight extra buffer for words that might need it
-  // Words that are likely to blend visually with neighbors: shorter words, 
-  // words ending with 'f', 't', etc.
-  if (lyricContent.length < 5 || /[ftsrl]$/i.test(lyricContent.trim())) {
-    widthBuffer += 1; // Add just 1px extra for these cases
-  }
-  
-  return width + widthBuffer;
-}
-
-// Update constructLyricInputBoxes to properly handle keyboard input on all devices
-function constructLyricInputBoxes(song, lyricsGridContainer) {
-  // Reset container
-  lyricsGridContainer.innerHTML = '';
-  lyricsGridContainer.style.width = "100%";
-  lyricsGridContainer.style.maxWidth = "100%";
-  lyricsGridContainer.style.margin = "0 auto";
-  
-  var lineIndex = 0;
-  var lyricsToDisplay = song.lyrics.filter(lyric => lyric.lineIndex === lineIndex);
-
-  while (lyricsToDisplay != null && lyricsToDisplay.length > 0) {
-    // Create a new row for each line
-    var row = document.createElement("div");
-    row.classList.add("row", "lyricle-lyrics-row");
-    row.style.maxWidth = "100%";
-    row.style.width = "100%";
-    row.style.marginTop = "0.15em";
-    row.style.marginBottom = "0.15em";
-    lyricsGridContainer.appendChild(row);
-
-    // Create a column for the row
-    var col = document.createElement("div");
-    col.classList.add("col", "lyricle-lyrics-col", "lyricle-lyrics-flex-wrap");
-    col.style.maxWidth = "100%";
-    col.style.margin = "0 auto";
-    col.style.padding = "0 3px";
-    row.appendChild(col);
-
-    // Create each lyric box in the line
-    for (var i = 0; i < lyricsToDisplay.length; i++) {
-      // Create the container div
-      var div = document.createElement("div");
-      div.id = "lyricInputDiv" + lyricsToDisplay[i].boxIndex;
-      div.classList.add("lyricle-lyrics-div");
-
-      // Handle special characters
-      if (lyricsToDisplay[i].isSpecial) {
-        div.classList.add("lyricle-lyrics-div-special");
-        if (lyricsToDisplay[i].spaceLeft) {
-          div.classList.add("lyricle-lyrics-div-space-left");
-        }
-        if (lyricsToDisplay[i].spaceRight) {
-          div.classList.add("lyricle-lyrics-div-space-right");
-        }
-      }
-
-      // Calculate optimal width for the lyric box
-      var widthBuffer = 5;
-      var width = calculateOptimizedLyricBoxWidth(lyricsToDisplay[i].content, widthBuffer);
-      div.style.width = width + "px";
-      div.style.maxWidth = "calc(100vw - 25px)";
-      div.style.marginLeft = "3px";
-      div.style.marginRight = "3px";
-
-      // Create the input element
-      var input = document.createElement("span");
-      input.classList.add("input", "lyricle-lyrics-input");
-      input.role = "textbox";
-      input.id = "lyricInput" + lyricsToDisplay[i].boxIndex;
-      
-      // Add event listeners
-      input.addEventListener("click", function(event) {
-        // Set active input via KeyboardController
-        KeyboardController.setActiveInput(this);
-        
-        // Call focus listener to handle styling
-        lyricBoxFocusListener(this, song);
-      });
-      
-      // Always make contentEditable true for desktop, but handle mobile via KeyboardController
-      if (isMobileDevice() && KeyboardController.isEnabled()) {
-        input.contentEditable = false;
-      } else {
-        input.contentEditable = "true";
-      }
-      
-      // Handle focus events
-      input.addEventListener("focus", function(event) {
-        // Set active input via KeyboardController
-        KeyboardController.setActiveInput(this);
-        
-        lyricBoxFocusListener(this, song);
-      });
-      
-      // Always include keyboard event listeners for desktop (or if custom keyboard is disabled)
-      input.addEventListener("keydown", function(event) {
-        // Only run desktop handler if custom keyboard isn't active or it's not mobile
-        if (!KeyboardController.isEnabled() || !isMobileDevice()) {
-           lyricBoxKeyDownListener(event, song);
-        }
-      });
-      
-      input.addEventListener("input", function() {
-         // Only run desktop handler if custom keyboard isn't active or it's not mobile
-         if (!KeyboardController.isEnabled() || !isMobileDevice()) {
-            lyricBoxInputListener(song);
-         }
-      });
-
-      // Handle non-guessable words
-      if (!lyricsToDisplay[i].toGuess) {
-        input.innerText = lyricsToDisplay[i].content;
-        div.classList.add("lyricle-lyrics-input-noguess");
-        div.style.borderBottom = "4px solid rgba(255, 255, 255, 0.001)";
-        input.disabled = true;
-        input.contentEditable = false;
-      } else {
-        div.style.borderBottom = "4px solid rgba(255, 255, 255, 0.99)";
-      }
-
-      div.appendChild(input);
-      col.appendChild(div);
-    }
-
-    lineIndex++;
-    lyricsToDisplay = song.lyrics.filter(lyric => lyric.lineIndex === lineIndex);
-  }
-
-  // Add resize handlers
-  window.addEventListener('resize', function() {
-    adjustLyricLineHeights();
-    adjustLyricContentPosition();
-  });
-  
-  // Adjust layout after a short delay to ensure everything is rendered
-  setTimeout(function() {
-    adjustLyricLineHeights();
-    adjustLyricContentPosition();
-  }, 100);
-}
-
-// Update the preventNativeKeyboard function to only apply to mobile devices
-// function preventNativeKeyboard(event) { ... }
-
-// NEW: Function to adjust lyric line heights based on content wrapping
-function adjustLyricLineHeights() {
-  const lyricsRows = document.querySelectorAll('.lyricle-lyrics-row');
-  
-  lyricsRows.forEach(row => {
-    const col = row.querySelector('.lyricle-lyrics-col');
-    if (!col) return;
-    
-    // Reset height to auto first to measure actual content
-    row.style.height = 'auto';
-    row.style.minHeight = 'auto';
-    
-    // Get actual content height with minimal padding
-    const contentHeight = col.offsetHeight;
-    // Reduce padding from 10px to just 2px
-    const newHeight = contentHeight + 2 + 'px';
-    
-    // Set the new height
-    row.style.height = newHeight;
-    row.style.minHeight = newHeight;
-  });
-}
-
-// Update the adjustLyricContentPosition function to account for the larger keyboard
-function adjustLyricContentPosition() {
-  // Get key elements
-  const songTitle = document.getElementById('songTitle');
-  const lyricsContainer = document.getElementById('lyrics');
-  const lyricsGrid = document.getElementById('lyricsGrid');
-  const oskbContainer = document.getElementById('oskb');
-  
-  if (!songTitle || !lyricsContainer || !lyricsGrid || !oskbContainer) return;
-  
-  // Calculate available height between song title and keyboard
-  const viewportHeight = window.innerHeight;
-  const songTitleBottom = songTitle.getBoundingClientRect().bottom;
-  
-  // Get the actual keyboard height including all rows
-  const oskbHeight = oskbContainer.offsetHeight;
-  debugLog("Keyboard height: " + oskbHeight + "px");
-  
-  // Calculate the available space with a buffer
-  const availableHeight = viewportHeight - songTitleBottom - oskbHeight - 15;
-  
-  // Set the lyrics container height
-  lyricsContainer.style.height = `${availableHeight}px`;
-  
-  // Ensure the lyrics container is properly positioned
-  lyricsContainer.style.position = "relative";
-  lyricsContainer.style.left = "0";
-  lyricsContainer.style.right = "0";
-  lyricsContainer.style.width = "100%";
-  
-  // Measure the lyrics grid height
-  const lyricsGridHeight = lyricsGrid.offsetHeight;
-  
-  // Center the lyrics grid vertically in the available space
-  if (lyricsGridHeight < availableHeight) {
-    const verticalMargin = Math.max(5, Math.floor((availableHeight - lyricsGridHeight) / 2));
-    lyricsGrid.style.marginTop = `${verticalMargin}px`;
-    lyricsGrid.style.marginBottom = `${verticalMargin}px`;
-  } else {
-    // If content is too tall for centering, just use minimal top margin
-    lyricsGrid.style.marginTop = '5px';
-    lyricsGrid.style.marginBottom = '5px';
-  }
-  
-  // Ensure positioning is correct
-  lyricsGrid.style.position = 'relative';
-  lyricsGrid.style.top = '0';
-  lyricsGrid.style.transform = 'none';
-  
-  // Check for horizontal overflow
-  checkAndPreventHorizontalOverflow();
-  
-  // Log layout details for debugging
-  debugLog(`Layout: 
-    - Viewport height: ${viewportHeight}px
-    - Song title bottom: ${songTitleBottom}px
-    - Keyboard height: ${oskbHeight}px
-    - Available height: ${availableHeight}px
-    - Lyrics grid height: ${lyricsGridHeight}px`);
-}
-
-// NEW: Function to detect and fix horizontal overflow
-function checkAndPreventHorizontalOverflow() {
-  const lyricsRows = document.querySelectorAll('.lyricle-lyrics-row');
-  const viewportWidth = window.innerWidth;
-  
-  lyricsRows.forEach(row => {
-    const col = row.querySelector('.lyricle-lyrics-col');
-    if (!col) return;
-    
-    const children = col.children;
-    let totalRowWidth = 0;
-    
-    // Update margin calculation to match our new spacing
-    for (let i = 0; i < children.length; i++) {
-      totalRowWidth += children[i].offsetWidth + 6; // Increased from 4px to 6px per item
-    }
-    
-    if (totalRowWidth > viewportWidth) {
-      col.style.flexWrap = 'wrap';
-      col.style.maxWidth = '100%';
-      col.style.justifyContent = 'center';
-    }
-  });
-}
-
-// Add a new function for explicit user-triggered playback
-function playAudioWithUserInteraction() {
-  debugLog("playAudioWithUserInteraction (game.js wrapper) called");
-  AudioController.playWithUserInteraction(); // Delegate to AudioController
-}
-
-// Update toggleMuteSongPreview to use AudioController
-function toggleMuteSongPreview() {
-  debugLog("GAME DEBUG: toggleMuteSongPreview called in game.js"); // Log entry
-  // Pass the UI update function as a callback
-  AudioController.toggleMute(updateMuteButtonUI);
-
-  // If the user just unmuted, and the game is complete, attempt playback via interaction
-  if (!AudioController.isMuted() && endTime) {
-      debugLog("GAME DEBUG: toggleMuteSongPreview - Game completed and user unmuted, attempting playback via interaction.");
-      AudioController.playWithUserInteraction();
-  }
-}
-
-// Add a new helper function to update mute button UI
-function updateMuteButtonUI(isMuted) {
-  const mainIcon = document.getElementById("muteButtonIcon");
-  const modalIcon = document.getElementById("muteButtonIcon2");
-  const className = isMuted ? "fa-solid fa-volume-xmark" : "fas fa-volume-up";
-
-  if (mainIcon) {
-    mainIcon.className = className;
-  }
-  if (modalIcon) {
-    modalIcon.className = className;
-  }
-  debugLog(`UI Update: Mute buttons set to ${isMuted ? 'muted' : 'unmuted'} icon`);
 }
 
 function constructGameCompleteModal(song, elapsedTime) { // Add elapsedTime parameter
@@ -531,7 +228,326 @@ function constructGameCompleteModal(song, elapsedTime) { // Add elapsedTime para
   modalInstance.show();
 }
 
-// Button Functions
+function calculateOptimizedLyricBoxWidth(lyricContent, customBuffer) {
+  // Slightly increase the buffer for better word separation
+  var widthBuffer = customBuffer !== undefined ? customBuffer : 6;
+
+  // Create a div
+  var div = document.createElement("div");
+  div.style.visibility = "hidden";
+  div.style.fontSize = "min(1.3em, 60px)";
+  div.style.width = "max-content";
+  div.innerText = lyricContent;
+  document.body.appendChild(div);
+  var width = div.clientWidth;
+  div.remove();
+  
+  // Add a slight extra buffer for words that might need it
+  // Words that are likely to blend visually with neighbors: shorter words, 
+  // words ending with 'f', 't', etc.
+  if (lyricContent.length < 5 || /[ftsrl]$/i.test(lyricContent.trim())) {
+    widthBuffer += 1; // Add just 1px extra for these cases
+  }
+  
+  return width + widthBuffer;
+}
+
+// Update constructLyricInputBoxes to properly handle keyboard input on all devices
+function constructLyricInputBoxes(song, lyricsGridContainer) {
+  // Reset container
+  lyricsGridContainer.innerHTML = '';
+  lyricsGridContainer.style.width = "100%";
+  lyricsGridContainer.style.maxWidth = "100%";
+  lyricsGridContainer.style.margin = "0 auto";
+  
+  var lineIndex = 0;
+  var lyricsToDisplay = song.lyrics.filter(lyric => lyric.lineIndex === lineIndex);
+
+  while (lyricsToDisplay != null && lyricsToDisplay.length > 0) {
+    // Create a new row for each line
+    var row = document.createElement("div");
+    row.classList.add("row", "lyricle-lyrics-row");
+    row.style.maxWidth = "100%";
+    row.style.width = "100%";
+    row.style.marginTop = "0.15em";
+    row.style.marginBottom = "0.15em";
+    lyricsGridContainer.appendChild(row);
+
+    // Create a column for the row
+    var col = document.createElement("div");
+    col.classList.add("col", "lyricle-lyrics-col", "lyricle-lyrics-flex-wrap");
+    col.style.maxWidth = "100%";
+    col.style.margin = "0 auto";
+    col.style.padding = "0 3px";
+    row.appendChild(col);
+
+    // Create each lyric box in the line
+    for (var i = 0; i < lyricsToDisplay.length; i++) {
+      // Create the container div
+      var div = document.createElement("div");
+      div.id = "lyricInputDiv" + lyricsToDisplay[i].boxIndex;
+      div.classList.add("lyricle-lyrics-div");
+
+      // Handle special characters
+      if (lyricsToDisplay[i].isSpecial) {
+        div.classList.add("lyricle-lyrics-div-special");
+        if (lyricsToDisplay[i].spaceLeft) {
+          div.classList.add("lyricle-lyrics-div-space-left");
+        }
+        if (lyricsToDisplay[i].spaceRight) {
+          div.classList.add("lyricle-lyrics-div-space-right");
+        }
+      }
+
+      // Calculate optimal width for the lyric box
+      var widthBuffer = 5;
+      var width = calculateOptimizedLyricBoxWidth(lyricsToDisplay[i].content, widthBuffer);
+      div.style.width = width + "px";
+      div.style.maxWidth = "calc(100vw - 25px)";
+      div.style.marginLeft = "3px";
+      div.style.marginRight = "3px";
+
+      // Create the input element
+      var input = document.createElement("span");
+      input.classList.add("input", "lyricle-lyrics-input");
+      input.role = "textbox";
+      input.id = "lyricInput" + lyricsToDisplay[i].boxIndex;
+      
+      // Add event listeners
+      input.addEventListener("click", function(event) {
+        // Set active input via KeyboardController
+        KeyboardController.setActiveInput(this);
+        
+        // Call focus listener to handle styling
+        lyricBoxFocusListener(this, song);
+      });
+      
+      // Always make contentEditable true for desktop, but handle mobile via KeyboardController
+      if (isMobileDevice() && KeyboardController.isEnabled()) {
+        input.contentEditable = false;
+      } else {
+        input.contentEditable = "true";
+      }
+      
+      // Handle focus events
+      input.addEventListener("focus", function(event) {
+        // Set active input via KeyboardController
+        KeyboardController.setActiveInput(this);
+        
+        lyricBoxFocusListener(this, song);
+      });
+      
+      // Always include keyboard event listeners for desktop (or if custom keyboard is disabled)
+      input.addEventListener("keydown", function(event) {
+        // Only run desktop handler if custom keyboard isn't active or it's not mobile
+        if (!KeyboardController.isEnabled() || !isMobileDevice()) {
+           lyricBoxKeyDownListener(event, song);
+        }
+      });
+      
+      input.addEventListener("input", function() {
+         // Only run desktop handler if custom keyboard isn't active or it's not mobile
+         if (!KeyboardController.isEnabled() || !isMobileDevice()) {
+            lyricBoxInputListener(song);
+         }
+      });
+
+      // Handle non-guessable words
+      if (!lyricsToDisplay[i].toGuess) {
+        input.innerText = lyricsToDisplay[i].content;
+        div.classList.add("lyricle-lyrics-input-noguess");
+        div.style.borderBottom = "4px solid rgba(255, 255, 255, 0.001)";
+        input.disabled = true;
+        input.contentEditable = false;
+      } else {
+        div.style.borderBottom = "4px solid rgba(255, 255, 255, 0.99)";
+      }
+
+      div.appendChild(input);
+      col.appendChild(div);
+    }
+
+    lineIndex++;
+    lyricsToDisplay = song.lyrics.filter(lyric => lyric.lineIndex === lineIndex);
+  }
+
+  // Add resize handlers
+  window.addEventListener('resize', function() {
+    adjustLyricLineHeights();
+    adjustLyricContentPosition();
+  });
+  
+  // Adjust layout after a short delay to ensure everything is rendered
+  setTimeout(function() {
+    adjustLyricLineHeights();
+    adjustLyricContentPosition();
+  }, 100);
+}
+
+async function populateAlertsDiv() {
+  const alertsDiv = document.getElementById("alerts");
+  const alertHTML = `
+    <div class="alert alert-warning" role="alert">
+      <span id="alertText">Select a lyric before using a lifeline!</span>
+    </div>
+  `;
+  alertsDiv.innerHTML = alertHTML;
+
+  // Remove the alert after 3 seconds
+  setTimeout(() => {
+    alertsDiv.innerHTML = '';
+  }, 3000);
+}
+
+// **************** UI Element Constructor Helpers ****************
+// Update the preventNativeKeyboard function to only apply to mobile devices
+// function preventNativeKeyboard(event) { ... }
+
+// NEW: Function to adjust lyric line heights based on content wrapping
+function adjustLyricLineHeights() {
+  const lyricsRows = document.querySelectorAll('.lyricle-lyrics-row');
+  
+  lyricsRows.forEach(row => {
+    const col = row.querySelector('.lyricle-lyrics-col');
+    if (!col) return;
+    
+    // Reset height to auto first to measure actual content
+    row.style.height = 'auto';
+    row.style.minHeight = 'auto';
+    
+    // Get actual content height with minimal padding
+    const contentHeight = col.offsetHeight;
+    // Reduce padding from 10px to just 2px
+    const newHeight = contentHeight + 2 + 'px';
+    
+    // Set the new height
+    row.style.height = newHeight;
+    row.style.minHeight = newHeight;
+  });
+}
+
+// Update the adjustLyricContentPosition function to account for the larger keyboard
+function adjustLyricContentPosition() {
+  // Get key elements
+  const songTitle = document.getElementById('songTitle');
+  const lyricsContainer = document.getElementById('lyrics');
+  const lyricsGrid = document.getElementById('lyricsGrid');
+  const oskbContainer = document.getElementById('oskb');
+  
+  if (!songTitle || !lyricsContainer || !lyricsGrid || !oskbContainer) return;
+  
+  // Calculate available height between song title and keyboard
+  const viewportHeight = window.innerHeight;
+  const songTitleBottom = songTitle.getBoundingClientRect().bottom;
+  
+  // Get the actual keyboard height including all rows
+  const oskbHeight = oskbContainer.offsetHeight;
+  debugLog("Keyboard height: " + oskbHeight + "px");
+  
+  // Calculate the available space with a buffer
+  const availableHeight = viewportHeight - songTitleBottom - oskbHeight - 15;
+  
+  // Set the lyrics container height
+  lyricsContainer.style.height = `${availableHeight}px`;
+  
+  // Ensure the lyrics container is properly positioned
+  lyricsContainer.style.position = "relative";
+  lyricsContainer.style.left = "0";
+  lyricsContainer.style.right = "0";
+  lyricsContainer.style.width = "100%";
+  
+  // Measure the lyrics grid height
+  const lyricsGridHeight = lyricsGrid.offsetHeight;
+  
+  // Center the lyrics grid vertically in the available space
+  if (lyricsGridHeight < availableHeight) {
+    const verticalMargin = Math.max(5, Math.floor((availableHeight - lyricsGridHeight) / 2));
+    lyricsGrid.style.marginTop = `${verticalMargin}px`;
+    lyricsGrid.style.marginBottom = `${verticalMargin}px`;
+  } else {
+    // If content is too tall for centering, just use minimal top margin
+    lyricsGrid.style.marginTop = '5px';
+    lyricsGrid.style.marginBottom = '5px';
+  }
+  
+  // Ensure positioning is correct
+  lyricsGrid.style.position = 'relative';
+  lyricsGrid.style.top = '0';
+  lyricsGrid.style.transform = 'none';
+  
+  // Check for horizontal overflow
+  checkAndPreventHorizontalOverflow();
+  
+  // Log layout details for debugging
+  debugLog(`Layout: 
+    - Viewport height: ${viewportHeight}px
+    - Song title bottom: ${songTitleBottom}px
+    - Keyboard height: ${oskbHeight}px
+    - Available height: ${availableHeight}px
+    - Lyrics grid height: ${lyricsGridHeight}px`);
+}
+
+// NEW: Function to detect and fix horizontal overflow
+function checkAndPreventHorizontalOverflow() {
+  const lyricsRows = document.querySelectorAll('.lyricle-lyrics-row');
+  const viewportWidth = window.innerWidth;
+  
+  lyricsRows.forEach(row => {
+    const col = row.querySelector('.lyricle-lyrics-col');
+    if (!col) return;
+    
+    const children = col.children;
+    let totalRowWidth = 0;
+    
+    // Update margin calculation to match our new spacing
+    for (let i = 0; i < children.length; i++) {
+      totalRowWidth += children[i].offsetWidth + 6; // Increased from 4px to 6px per item
+    }
+    
+    if (totalRowWidth > viewportWidth) {
+      col.style.flexWrap = 'wrap';
+      col.style.maxWidth = '100%';
+      col.style.justifyContent = 'center';
+    }
+  });
+}
+
+// Add a new function for explicit user-triggered playback
+function playAudioWithUserInteraction() {
+  debugLog("playAudioWithUserInteraction (game.js wrapper) called");
+  AudioController.playWithUserInteraction(); // Delegate to AudioController
+}
+
+// **************** Audio Controller Functions ****************
+// Update toggleMuteSongPreview to use AudioController
+function toggleMuteSongPreview() {
+  debugLog("GAME DEBUG: toggleMuteSongPreview called in game.js"); // Log entry
+  // Pass the UI update function as a callback
+  AudioController.toggleMute(updateMuteButtonUI);
+
+  // If the user just unmuted, and the game is complete, attempt playback via interaction
+  if (!AudioController.isMuted() && endTime) {
+      debugLog("GAME DEBUG: toggleMuteSongPreview - Game completed and user unmuted, attempting playback via interaction.");
+      AudioController.playWithUserInteraction();
+  }
+}
+
+// Add a new helper function to update mute button UI
+function updateMuteButtonUI(isMuted) {
+  const mainIcon = document.getElementById("muteButtonIcon");
+  const modalIcon = document.getElementById("muteButtonIcon2");
+  const className = isMuted ? "fa-solid fa-volume-xmark" : "fas fa-volume-up";
+
+  if (mainIcon) {
+    mainIcon.className = className;
+  }
+  if (modalIcon) {
+    modalIcon.className = className;
+  }
+  debugLog(`UI Update: Mute buttons set to ${isMuted ? 'muted' : 'unmuted'} icon`);
+}
+
+// **************** UI Button Functions ****************
 function getRandomSong() {
   // Select a random song from the song data and start the game
   var seed = Math.floor(Math.random() * allSongData.length)
@@ -549,7 +565,7 @@ function getRandomSong() {
   startGame(songData);
 }
 
-// Listeners
+// **************** UI Element Listeners ****************
 function lyricBoxKeyDownListener(event, song) {
   // If the game is complete, don't allow any input
   if (Stopwatch.endTime) {
@@ -685,75 +701,9 @@ function lyricBoxFocusListener(input, song) {
   }
 }
 
-// Supporting Functions
-function startGame(songData) { // Loads main game with song lyrics to guess
-  debugLog("Starting new game");
-  var lyricsGridContainer = document.getElementById("lyricsGrid"); // Get the lyricsGrid div
 
-  // Clear/Reset Divs from Previous Song
-  lyricsGridContainer.innerHTML = "";
-  document.getElementById("songTitleName").innerHTML = "";
-  document.getElementById("songTitleArtist").innerHTML = "";
-  // Don't clear oskbRow1Col1 here, KeyboardController manages it
-  // document.getElementById("oskbRow1Col1").innerHTML = "";
 
-  // If statsButton exists, remove it
-  var statsButton = document.getElementById("statsButton");
-  if (statsButton) {
-    statsButton.remove();
-  }
-
-  Stats.resetStats();
-  lifelines = startingLifelines;
-  KeyboardController.setActiveInput(null); // Reset active input in controller
-
-  // construct a new Song object using the songData object
-  var song = constructSongObject(songData.title, songData.artist, songData.preview_url, songData.chorus);
-
-  Stats.setWordsToGuess(song.lyrics.filter(lyric => lyric.toGuess).length);
-
-  // Get the songTitle, songTitleName and songTitleArtist divs
-  var songTitleDiv = document.getElementById("songTitle");
-  var songTitleNameDiv = document.getElementById("songTitleName");
-  var artistDiv = document.getElementById("songTitleArtist");
-
-  // Calculate the font size to use based on character length
-  var songTitleFontSize = (1.2 - (((song.title.length + song.artist.length) - 20) * 0.015));
-
-  // Set the font size of the songTitle div
-  songTitleDiv.style.fontSize = songTitleFontSize + "em";
-
-  // Update the divs with the song title and artist
-  songTitleNameDiv.innerHTML = '<b>' + song.title + '</b>';
-  artistDiv.innerHTML = song.artist;
-
-  // Populate the How To Play text with the song title and artist
-  // Note to AI: Do not modify these 2 lines below. AI has a tendency to want to mess with this for some reason
-  var howToPlayObjectiveText = document.getElementById("objectiveText");
-  howToPlayObjectiveText.innerHTML = "Guess the lyrics to today's song, <b>" + song.title + "</b> by <b>" + song.artist + "</b>!";
-
-  // construct the lyric input boxes to start the game
-  constructLyricInputBoxes(song, lyricsGridContainer);
-
-  // Construct the custom keyboard via the controller
-  // Pass the initial number of lifelines for the display
-  KeyboardController.construct(lifelines);
-
-  // The old constructLifelineButton is no longer needed as KeyboardController handles it
-  // constructLifelineButton(song);
-
-  Stopwatch.reset();
-
-  // Set the audio source using AudioController
-  AudioController.setSource(song.preview);
-
-  // Save current song in a global variable for keyboard access
-  window.currentSong = song; // Keep this for now, though KeyboardController also gets a ref
-
-  // Keyboard construction and visibility handled by KeyboardController.construct
-  // constructCustomKeyboard();
-}
-
+// **************** UI Control Logic ****************
 function moveCursorToEnd(lyricBox, song) {
   // If the lyricBox is empty, no need to move cursor
   if (lyricBox.innerText.length === 0) {
@@ -767,24 +717,6 @@ function moveCursorToEnd(lyricBox, song) {
   sel.removeAllRanges();
   sel.addRange(range);
   lyricBox.focus();
-}
-
-async function getAllSongData() {
-  /* Sadly, GitHub Pages doesn't support hosting files that are not HTML, CSS, or JS, so we can't use a local JSON file
-  // Either way, you're still going to need to use the await fetch method which is not instantaneous and does not load in parallel to the index page
-  // Code for Obtaining SongData via Local JSON File
-  try {
-    const response = await fetch('../docs/gameData.json');
-    allSongData = await response.json();
-  } catch (error) {
-    console.error('Error:', error);
-  }
-  */
-
-  // Code for Obtaining SongData via HTTP Request
-  var jsonUrl = 'https://pub-9d70620f0c724e4595b80ff107d19f59.r2.dev/gameData.json'
-  const response = await fetch(jsonUrl);
-  allSongData = await response.json();
 }
 
 function getPercentageCorrect(input, secret) {
@@ -899,61 +831,6 @@ function selectNextInput(input, boxIndex) {
   }
 }
 
-function completeGame(song) {
-  Stopwatch.stop();
-  const elapsedTime = (Stopwatch.endTime - Stopwatch.startTime) / 1000; // Use properties
-  debugLog(`GAME DEBUG: completeGame called. Elapsed time: ${elapsedTime.toFixed(2)}s`);
-
-  // Try to play the audio automatically when game completes using AudioController
-  debugLog(`GAME DEBUG: Checking audio state before playing preview. AudioController.isMuted(): ${AudioController.isMuted()}`);
-  if (!AudioController.isMuted()) {
-      debugLog("GAME DEBUG: AudioController is NOT muted. Attempting to play preview.");
-      // Update UI immediately just in case
-      debugLog("GAME DEBUG: Calling updateMuteButtonUI(false) before playPreview timeout.");
-      updateMuteButtonUI(false);
-      // Small delay before playing to ensure other UI updates/state changes settle
-      setTimeout(() => {
-          debugLog("GAME DEBUG: Inside setTimeout for playPreview. Calling AudioController.playPreview().");
-          AudioController.playPreview();
-          debugLog("GAME DEBUG: After calling AudioController.playPreview().");
-      }, 100);
-  } else {
-      debugLog("GAME DEBUG: AudioController IS muted. Skipping playPreview.");
-      // Ensure UI reflects the muted state
-      debugLog("GAME DEBUG: Calling updateMuteButtonUI(true).");
-      updateMuteButtonUI(true);
-      debugLog("GAME DEBUG: After calling updateMuteButtonUI(true).");
-  }
-
-  // Disable the keyboard lifeline button via the controller
-  KeyboardController.disableLifelineButton();
-
-  var allCorrect = Stats.wordsCorrect === Stats.wordsToGuess; // Use Stats properties
-  if (allCorrect) {
-    // Do Nothing
-  } else {
-    // populate every incorrect input box with the correct word
-    for (var i = 0; i < song.lyrics.length; i++) {
-      var input = document.getElementById("lyricInput" + i);
-      if (input && !input.classList.contains("lyricle-lyrics-input-correct")) { // Check parent too
-        input.innerHTML = song.lyrics[i].content;
-        input.parentElement.classList.add("lyricle-lyrics-input-noguess"); // Use noguess style for revealed
-        setLyricBoxBorderBottomStyle(input, {
-          width: 4,
-          color1: 255,
-          color2: 255,
-          color3: 255,
-          opacity: 0.001
-        });
-        input.disabled = true; // Disable revealed inputs
-        input.contentEditable = false;
-      }
-    }
-  }
-
-  constructGameCompleteModal(song, elapsedTime); // Pass elapsedTime
-}
-
 function displayGameCompleteModal() {
   var modalElement = document.getElementById("gameCompleteModal");
   var modalInstance = new bootstrap.Modal(modalElement);
@@ -988,86 +865,6 @@ function displayHowToPlayModal() {
     // Focus first unfilled lyric after modal is hidden
     focusFirstUnfilledLyric();
   });
-}
-
-// Update init function to handle both desktop and mobile correctly and init KeyboardController
-function init() {
-  var songData; // Declare songData here
-  // Dark Mode Implementation
-  if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-    document.documentElement.setAttribute('data-bs-theme', 'dark');
-    let darkmode = true;
-  }
-  
-  // Detect if user is on mobile
-  const isMobile = isMobileDevice();
-  debugLog("Device detection: " + (isMobile ? "Mobile device" : "Desktop device"));
-  
-  // Initialize AudioController
-  AudioController.init();
-
-  // Initialize KeyboardController
-  const keyboardCallbacks = {
-      useLifeline: useLifeline, // Pass the game.js function
-      checkCorrectness: checkCorrectness, // Pass the game.js function
-      selectNextInput: selectNextInput, // Pass the game.js function
-      focusFirstUnfilledLyric: focusFirstUnfilledLyric, // Pass the game.js function
-      updateLifelineDisplay: updateLifelineDisplay, // Pass the game.js function (which calls controller)
-      isGameComplete: () => !!Stopwatch.endTime, // Provide a way to check game status
-      // getLifelines: () => lifelines // Provide getter for current lifelines
-  };
-  // Pass callbacks, and references to the song object (initially null) and Stats
-  KeyboardController.init(keyboardCallbacks, window.currentSong, Stats);
-
-  // Get day int and load song data
-  var day;
-  day = getDayInt();
-
-  getAllSongData().then(() => {
-    songData = allSongData[day]; // Get the song data for the day
-    // if songData is null (because today's int is higher than the length of allSongData), select an object at a random integer index from allSongData
-    if (songData == null) {
-      songData = allSongData[Math.floor(Math.random() * allSongData.length)];
-    }
-    // Update the song reference in KeyboardController *before* starting game
-    KeyboardController._songRef = window.currentSong; // Directly update, or add a setter
-
-    startGame(songData);
-    constructRandomButton(); // Add random button from the beginning
-    displayHowToPlayModal();
-
-    // Update the song reference in KeyboardController again after startGame sets window.currentSong
-    KeyboardController._songRef = window.currentSong;
-
-     // Ensure layout adjustment happens *after* keyboard is likely constructed by startGame
-     setTimeout(() => {
-      adjustLyricContentPosition();
-    }, 250); // Slightly longer delay
-  });
-
-  // Keyboard display is handled within KeyboardController.construct called by startGame
-  // const oskbElement = document.getElementById('oskb');
-  // if (oskbElement) { ... }
-
-  // Add event listeners previously in HTML
-  const mainMuteButton = document.getElementById('muteButton');
-  if (mainMuteButton) {
-      mainMuteButton.addEventListener('click', toggleMuteSongPreview);
-      debugLog("GAME DEBUG: Added click listener to main muteButton."); // Log listener addition
-  } else {
-      debugLog("GAME DEBUG: ERROR - Main muteButton not found during init.");
-  }
-  
-  const howToPlayModalElement = document.getElementById('howToPlay');
-  const playButton = howToPlayModalElement.querySelector('.modal-footer .btn-primary');
-  if (playButton) { // Ensure playButton exists
-      playButton.addEventListener('click', () => {
-        if (window.debugLog) window.debugLog('Play button clicked in How To Play modal');
-        focusFirstUnfilledLyric();
-      });
-  } else {
-      debugLog("ERROR: Play button not found in How To Play modal.");
-  }
 }
 
 function displayConcedeModal(song) {
@@ -1163,6 +960,209 @@ function displayConcedeModal(song) {
   modalInstance.show();
 }
 
+// Update the focusFirstUnfilledLyric function to be more robust and use KeyboardController
+function focusFirstUnfilledLyric() {
+  // Use the song reference from the controller if available, otherwise fallback to window
+  const currentSong = KeyboardController._songRef || window.currentSong;
+  if (!currentSong) {
+      debugLog("Cannot focus first unfilled lyric: No current song reference.");
+      return;
+  }
+  const lyrics = currentSong.lyrics;
+  for (let i = 0; i < lyrics.length; i++) {
+      if (lyrics[i].toGuess) {
+          const input = document.getElementById(`lyricInput${i}`);
+          // Check parent class as well for correctness
+          if (input && !input.parentElement.classList.contains("lyricle-lyrics-input-correct")) {
+              // Focus the input element directly
+              input.focus();
+              // Manually call the focus listener to update styling and KeyboardController state
+              lyricBoxFocusListener(input, currentSong);
+              debugLog(`Focused first unfilled lyric: lyricInput${i}`);
+              break;
+          }
+      }
+  }
+}
+
+// Function to update the lifeline display (now primarily calls KeyboardController)
+function updateLifelineDisplay() {
+  // Call the KeyboardController's method to update its display
+  KeyboardController.updateLifelineDisplay(lifelines);
+
+  // Keep updating the original button only if it exists (for non-keyboard scenario, though unlikely now)
+  const originalLifelineButton = document.getElementById("lifelineButton");
+  const originalLifelineNumber = document.getElementById("lifelineButtonNumber");
+  if (originalLifelineButton && originalLifelineNumber) {
+      originalLifelineNumber.innerText = lifelines;
+      // Apply styling similar to keyboard button if needed
+      if (lifelines === 1) {
+         originalLifelineButton.classList.add("btn-danger");
+      } else {
+         originalLifelineButton.classList.remove("btn-danger");
+      }
+      if (lifelines <= 0) {
+          var lifelineIcon = originalLifelineButton.querySelector("i");
+          if (lifelineIcon) {
+              lifelineIcon.classList.remove("fa-heart");
+              lifelineIcon.classList.add("fa-heart-crack");
+          }
+          originalLifelineNumber.style.display = "none";
+      } else {
+          // Ensure icon is normal heart and number is visible if lifelines > 0
+           var lifelineIcon = originalLifelineButton.querySelector("i");
+           if (lifelineIcon) {
+               lifelineIcon.classList.remove("fa-heart-crack");
+               lifelineIcon.classList.add("fa-heart");
+           }
+           originalLifelineNumber.style.display = "inline"; // Or appropriate display value
+      }
+  }
+}
+
+// **************** Song Data Functions ****************
+async function getAllSongData() {
+  /* Sadly, GitHub Pages doesn't support hosting files that are not HTML, CSS, or JS, so we can't use a local JSON file
+  // Either way, you're still going to need to use the await fetch method which is not instantaneous and does not load in parallel to the index page
+  // Code for Obtaining SongData via Local JSON File
+  try {
+    const response = await fetch('../docs/gameData.json');
+    allSongData = await response.json();
+  } catch (error) {
+    console.error('Error:', error);
+  }
+  */
+
+  // Code for Obtaining SongData via HTTP Request
+  var jsonUrl = 'https://pub-9d70620f0c724e4595b80ff107d19f59.r2.dev/gameData.json'
+  const response = await fetch(jsonUrl);
+  allSongData = await response.json();
+}
+
+// **************** High-Level Main Game Functions ****************
+function startGame(songData) { // Loads main game with song lyrics to guess
+  debugLog("Starting new game");
+  var lyricsGridContainer = document.getElementById("lyricsGrid"); // Get the lyricsGrid div
+
+  // Clear/Reset Divs from Previous Song
+  lyricsGridContainer.innerHTML = "";
+  document.getElementById("songTitleName").innerHTML = "";
+  document.getElementById("songTitleArtist").innerHTML = "";
+  // Don't clear oskbRow1Col1 here, KeyboardController manages it
+  // document.getElementById("oskbRow1Col1").innerHTML = "";
+
+  // If statsButton exists, remove it
+  var statsButton = document.getElementById("statsButton");
+  if (statsButton) {
+    statsButton.remove();
+  }
+
+  Stats.resetStats();
+  lifelines = startingLifelines;
+  KeyboardController.setActiveInput(null); // Reset active input in controller
+
+  // construct a new Song object using the songData object
+  var song = constructSongObject(songData.title, songData.artist, songData.preview_url, songData.chorus);
+
+  Stats.setWordsToGuess(song.lyrics.filter(lyric => lyric.toGuess).length);
+
+  // Get the songTitle, songTitleName and songTitleArtist divs
+  var songTitleDiv = document.getElementById("songTitle");
+  var songTitleNameDiv = document.getElementById("songTitleName");
+  var artistDiv = document.getElementById("songTitleArtist");
+
+  // Calculate the font size to use based on character length
+  var songTitleFontSize = (1.2 - (((song.title.length + song.artist.length) - 20) * 0.015));
+
+  // Set the font size of the songTitle div
+  songTitleDiv.style.fontSize = songTitleFontSize + "em";
+
+  // Update the divs with the song title and artist
+  songTitleNameDiv.innerHTML = '<b>' + song.title + '</b>';
+  artistDiv.innerHTML = song.artist;
+
+  // Populate the How To Play text with the song title and artist
+  // Note to AI: Do not modify these 2 lines below. AI has a tendency to want to mess with this for some reason
+  var howToPlayObjectiveText = document.getElementById("objectiveText");
+  howToPlayObjectiveText.innerHTML = "Guess the lyrics to today's song, <b>" + song.title + "</b> by <b>" + song.artist + "</b>!";
+
+  // construct the lyric input boxes to start the game
+  constructLyricInputBoxes(song, lyricsGridContainer);
+
+  // Construct the custom keyboard via the controller
+  // Pass the initial number of lifelines for the display
+  KeyboardController.construct(lifelines);
+
+  // The old constructLifelineButton is no longer needed as KeyboardController handles it
+  // constructLifelineButton(song);
+
+  Stopwatch.reset();
+
+  // Set the audio source using AudioController
+  AudioController.setSource(song.preview);
+
+  // Save current song in a global variable for keyboard access
+  window.currentSong = song; // Keep this for now, though KeyboardController also gets a ref
+
+  // Keyboard construction and visibility handled by KeyboardController.construct
+  // constructCustomKeyboard();
+}
+
+function completeGame(song) {
+  Stopwatch.stop();
+  const elapsedTime = (Stopwatch.endTime - Stopwatch.startTime) / 1000; // Use properties
+  debugLog(`GAME DEBUG: completeGame called. Elapsed time: ${elapsedTime.toFixed(2)}s`);
+
+  // Try to play the audio automatically when game completes using AudioController
+  debugLog(`GAME DEBUG: Checking audio state before playing preview. AudioController.isMuted(): ${AudioController.isMuted()}`);
+  if (!AudioController.isMuted()) {
+      debugLog("GAME DEBUG: AudioController is NOT muted. Attempting to play preview.");
+      // Update UI immediately just in case
+      debugLog("GAME DEBUG: Calling updateMuteButtonUI(false) before playPreview timeout.");
+      updateMuteButtonUI(false);
+      // Small delay before playing to ensure other UI updates/state changes settle
+      setTimeout(() => {
+          debugLog("GAME DEBUG: Inside setTimeout for playPreview. Calling AudioController.playPreview().");
+          AudioController.playPreview();
+          debugLog("GAME DEBUG: After calling AudioController.playPreview().");
+      }, 100);
+  } else {
+      debugLog("GAME DEBUG: AudioController IS muted. Skipping playPreview.");
+      // Ensure UI reflects the muted state
+      debugLog("GAME DEBUG: Calling updateMuteButtonUI(true).");
+      updateMuteButtonUI(true);
+      debugLog("GAME DEBUG: After calling updateMuteButtonUI(true).");
+  }
+
+  // Disable the keyboard lifeline button via the controller
+  KeyboardController.disableLifelineButton();
+
+  var allCorrect = Stats.wordsCorrect === Stats.wordsToGuess; // Use Stats properties
+  if (allCorrect) {
+    // Do Nothing
+  } else {
+    // populate every incorrect input box with the correct word
+    for (var i = 0; i < song.lyrics.length; i++) {
+      var input = document.getElementById("lyricInput" + i);
+      if (input && !input.classList.contains("lyricle-lyrics-input-correct")) { // Check parent too
+        input.innerHTML = song.lyrics[i].content;
+        input.parentElement.classList.add("lyricle-lyrics-input-noguess"); // Use noguess style for revealed
+        setLyricBoxBorderBottomStyle(input, {
+          width: 4,
+          color1: 255,
+          color2: 255,
+          color3: 255,
+          opacity: 0.001
+        });
+        input.disabled = true; // Disable revealed inputs
+        input.contentEditable = false;
+      }
+    }
+  }
+
+  constructGameCompleteModal(song, elapsedTime); // Pass elapsedTime
+}
+
 function concede(song) {
   // Stop the stopwatch if it's running
   Stopwatch.stop();
@@ -1216,79 +1216,84 @@ function concede(song) {
   constructGameCompleteModal(song, elapsedTime); // Pass elapsedTime
 }
 
-async function populateAlertsDiv() {
-  const alertsDiv = document.getElementById("alerts");
-  const alertHTML = `
-    <div class="alert alert-warning" role="alert">
-      <span id="alertText">Select a lyric before using a lifeline!</span>
-    </div>
-  `;
-  alertsDiv.innerHTML = alertHTML;
-
-  // Remove the alert after 3 seconds
-  setTimeout(() => {
-    alertsDiv.innerHTML = '';
-  }, 3000);
-}
-
-// Function to update the lifeline display (now primarily calls KeyboardController)
-function updateLifelineDisplay() {
-  // Call the KeyboardController's method to update its display
-  KeyboardController.updateLifelineDisplay(lifelines);
-
-  // Keep updating the original button only if it exists (for non-keyboard scenario, though unlikely now)
-  const originalLifelineButton = document.getElementById("lifelineButton");
-  const originalLifelineNumber = document.getElementById("lifelineButtonNumber");
-  if (originalLifelineButton && originalLifelineNumber) {
-      originalLifelineNumber.innerText = lifelines;
-      // Apply styling similar to keyboard button if needed
-      if (lifelines === 1) {
-         originalLifelineButton.classList.add("btn-danger");
-      } else {
-         originalLifelineButton.classList.remove("btn-danger");
-      }
-      if (lifelines <= 0) {
-          var lifelineIcon = originalLifelineButton.querySelector("i");
-          if (lifelineIcon) {
-              lifelineIcon.classList.remove("fa-heart");
-              lifelineIcon.classList.add("fa-heart-crack");
-          }
-          originalLifelineNumber.style.display = "none";
-      } else {
-          // Ensure icon is normal heart and number is visible if lifelines > 0
-           var lifelineIcon = originalLifelineButton.querySelector("i");
-           if (lifelineIcon) {
-               lifelineIcon.classList.remove("fa-heart-crack");
-               lifelineIcon.classList.add("fa-heart");
-           }
-           originalLifelineNumber.style.display = "inline"; // Or appropriate display value
-      }
+// Update init function to handle both desktop and mobile correctly and init KeyboardController
+function init() {
+  var songData; // Declare songData here
+  // Dark Mode Implementation
+  if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    document.documentElement.setAttribute('data-bs-theme', 'dark');
+    let darkmode = true;
   }
-}
+  
+  // Detect if user is on mobile
+  const isMobile = isMobileDevice();
+  debugLog("Device detection: " + (isMobile ? "Mobile device" : "Desktop device"));
+  
+  // Initialize AudioController
+  AudioController.init();
 
-// Update the focusFirstUnfilledLyric function to be more robust and use KeyboardController
-function focusFirstUnfilledLyric() {
-    // Use the song reference from the controller if available, otherwise fallback to window
-    const currentSong = KeyboardController._songRef || window.currentSong;
-    if (!currentSong) {
-        debugLog("Cannot focus first unfilled lyric: No current song reference.");
-        return;
+  // Initialize KeyboardController
+  const keyboardCallbacks = {
+      useLifeline: useLifeline, // Pass the game.js function
+      checkCorrectness: checkCorrectness, // Pass the game.js function
+      selectNextInput: selectNextInput, // Pass the game.js function
+      focusFirstUnfilledLyric: focusFirstUnfilledLyric, // Pass the game.js function
+      updateLifelineDisplay: updateLifelineDisplay, // Pass the game.js function (which calls controller)
+      isGameComplete: () => !!Stopwatch.endTime, // Provide a way to check game status
+      // getLifelines: () => lifelines // Provide getter for current lifelines
+  };
+  // Pass callbacks, and references to the song object (initially null) and Stats
+  KeyboardController.init(keyboardCallbacks, window.currentSong, Stats);
+
+  // Get day int and load song data
+  var day;
+  day = getDayInt();
+
+  getAllSongData().then(() => {
+    songData = allSongData[day]; // Get the song data for the day
+    // if songData is null (because today's int is higher than the length of allSongData), select an object at a random integer index from allSongData
+    if (songData == null) {
+      songData = allSongData[Math.floor(Math.random() * allSongData.length)];
     }
-    const lyrics = currentSong.lyrics;
-    for (let i = 0; i < lyrics.length; i++) {
-        if (lyrics[i].toGuess) {
-            const input = document.getElementById(`lyricInput${i}`);
-            // Check parent class as well for correctness
-            if (input && !input.parentElement.classList.contains("lyricle-lyrics-input-correct")) {
-                // Focus the input element directly
-                input.focus();
-                // Manually call the focus listener to update styling and KeyboardController state
-                lyricBoxFocusListener(input, currentSong);
-                debugLog(`Focused first unfilled lyric: lyricInput${i}`);
-                break;
-            }
-        }
-    }
+    // Update the song reference in KeyboardController *before* starting game
+    KeyboardController._songRef = window.currentSong; // Directly update, or add a setter
+
+    startGame(songData);
+    constructRandomButton(); // Add random button from the beginning
+    displayHowToPlayModal();
+
+    // Update the song reference in KeyboardController again after startGame sets window.currentSong
+    KeyboardController._songRef = window.currentSong;
+
+     // Ensure layout adjustment happens *after* keyboard is likely constructed by startGame
+     setTimeout(() => {
+      adjustLyricContentPosition();
+    }, 250); // Slightly longer delay
+  });
+
+  // Keyboard display is handled within KeyboardController.construct called by startGame
+  // const oskbElement = document.getElementById('oskb');
+  // if (oskbElement) { ... }
+
+  // Add event listeners previously in HTML
+  const mainMuteButton = document.getElementById('muteButton');
+  if (mainMuteButton) {
+      mainMuteButton.addEventListener('click', toggleMuteSongPreview);
+      debugLog("GAME DEBUG: Added click listener to main muteButton."); // Log listener addition
+  } else {
+      debugLog("GAME DEBUG: ERROR - Main muteButton not found during init.");
+  }
+  
+  const howToPlayModalElement = document.getElementById('howToPlay');
+  const playButton = howToPlayModalElement.querySelector('.modal-footer .btn-primary');
+  if (playButton) { // Ensure playButton exists
+      playButton.addEventListener('click', () => {
+        if (window.debugLog) window.debugLog('Play button clicked in How To Play modal');
+        focusFirstUnfilledLyric();
+      });
+  } else {
+      debugLog("ERROR: Play button not found in How To Play modal.");
+  }
 }
 
 window.onload = init; // upon loading the page, initialize the game
