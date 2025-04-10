@@ -1,4 +1,5 @@
 import { debugLog } from './debug.js';
+import { updateMuteButtonUI } from './ui/control.js';
 
 const AudioController = {
   audio: null,
@@ -279,5 +280,17 @@ const AudioController = {
   }
 };
 
+function toggleMuteSongPreview() {
+  debugLog("GAME DEBUG: toggleMuteSongPreview called in game.js"); // Log entry
+  // Pass the UI update function as a callback
+  AudioController.toggleMute(updateMuteButtonUI);
+
+  // If the user just unmuted, and the game is complete, attempt playback via interaction
+  if (!AudioController.isMuted() && endTime) {
+      debugLog("GAME DEBUG: toggleMuteSongPreview - Game completed and user unmuted, attempting playback via interaction.");
+      AudioController.playWithUserInteraction();
+  }
+}
+
 // Export the controller
-export { AudioController };
+export { AudioController, toggleMuteSongPreview };

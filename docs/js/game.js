@@ -3,7 +3,7 @@
 // Import song-related classes and functions
 import { Song, Lyric, constructSongObject, constructLyricObjects } from './song.js';
 // Import the new AudioController
-import { AudioController } from './audio.js';
+import { AudioController, toggleMuteSongPreview } from './audio.js';
 // Import the KeyboardController
 import { KeyboardController } from './keyboard.js';
 // Import debugLog
@@ -518,35 +518,6 @@ function playAudioWithUserInteraction() {
   AudioController.playWithUserInteraction(); // Delegate to AudioController
 }
 
-// **************** Audio Controller Functions ****************
-// Update toggleMuteSongPreview to use AudioController
-function toggleMuteSongPreview() {
-  debugLog("GAME DEBUG: toggleMuteSongPreview called in game.js"); // Log entry
-  // Pass the UI update function as a callback
-  AudioController.toggleMute(updateMuteButtonUI);
-
-  // If the user just unmuted, and the game is complete, attempt playback via interaction
-  if (!AudioController.isMuted() && endTime) {
-      debugLog("GAME DEBUG: toggleMuteSongPreview - Game completed and user unmuted, attempting playback via interaction.");
-      AudioController.playWithUserInteraction();
-  }
-}
-
-// Add a new helper function to update mute button UI
-function updateMuteButtonUI(isMuted) {
-  const mainIcon = document.getElementById("muteButtonIcon");
-  const modalIcon = document.getElementById("muteButtonIcon2");
-  const className = isMuted ? "fa-solid fa-volume-xmark" : "fas fa-volume-up";
-
-  if (mainIcon) {
-    mainIcon.className = className;
-  }
-  if (modalIcon) {
-    modalIcon.className = className;
-  }
-  debugLog(`UI Update: Mute buttons set to ${isMuted ? 'muted' : 'unmuted'} icon`);
-}
-
 // **************** UI Button Functions ****************
 function getRandomSong() {
   // Select a random song from the song data and start the game
@@ -700,8 +671,6 @@ function lyricBoxFocusListener(input, song) {
     sel.addRange(range);
   }
 }
-
-
 
 // **************** UI Control Logic ****************
 function moveCursorToEnd(lyricBox, song) {
