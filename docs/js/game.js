@@ -26,10 +26,6 @@ for (var i = 97; i <= 122; i++) {
 }
 allowedCharacters.push("'"); // Allow apostrophes although they will be filtered out in the comparison
 
-// Global Variables for keyboard functionality
-// var activeInputElement = null;
-// var customKeyboardEnabled = true;
-
 // Object and Element Constructors
 
 function constructLifelineButton(song) {
