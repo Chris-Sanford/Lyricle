@@ -693,7 +693,7 @@ function lyricBoxFocusListener(input, song) {
 
   // Apply focused style (blue) only to the current input
   setLyricBoxBorderBottomStyle(input, {
-    width: 4,
+    width: 6,
     color1: 0,
     color2: 115,
     color3: 255,
