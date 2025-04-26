@@ -60,6 +60,10 @@ The game is completed once all lyrics have been successfully guessed, or the pla
 
 Once the game is completed, the `Game Complete` modal is launched with various statistics on the player's performance. If `AudioControl` is `enabled`, then the song preview plays.
 
+# Conceding
+
+The player is able to concede once they've exhausted all of their lifelines. Upon utilization of the final remaining lifeline, the lifeline heart icon is cracked and has a slight red tint to indicate a dangerous and irreversible action. The button is still clickable, but opens a modal that asks the player if they'd like to concede, reminding them that it will end the game. If the player concedes, the game is over and the game completion modal appears.
+
 # Lyric Guessing Experience
 
 ## Keyboards
