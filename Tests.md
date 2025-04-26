@@ -6,6 +6,8 @@ This document describes the test processes/flows that must be executed in order 
 
 The below are the features to test in isolation, as opposed to full flows that need to be tested sequentially. Perhaps these we can test automatically but flows might need to be executed manually once we've confirmed the feature we're working on is working as intended.
 
+BE SURE TO TEST ALL OF THESE ON BOTH DESKTOP AND MOBILE. And ideally, multiple browsers.
+
 ## Startup
 
 - Clicking `Play`, `X`, or outside of the `How To Play` modal dismisses the modal
@@ -28,7 +30,9 @@ It is critical that input events both from a native keyboard and the on-screen k
 
 ## Game Completion
 
+- Song preview plays upon game completion, assuming audio is enabled/unmuted
 - `Disable/Mute` and `Enable/Unmute` audio buttons successfully alter audio playback
+- The Game Completion button appears in the top left and the modal is dismissable and re-openable
 
 ## On-Screen Keyboard
 
