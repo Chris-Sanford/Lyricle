@@ -6,7 +6,7 @@
     padding: 0.3em 0;
     background-color: transparent;
     position: fixed;
-    bottom: 5px;
+    bottom: 15px;
     left: 0;
     right: 0;
     z-index: 1000;
@@ -159,7 +159,7 @@
 @media screen and (max-width: 767px) {
     .lyricle-oskb {
         display: flex !important;
-        bottom: 5px;
+        bottom: 15px;
     }
     
     .lyricle-key {
