@@ -74,3 +74,4 @@ The transparency of the underline for each lyric is proportional to the percenta
 
 When a player selects an incomplete lyric that already has content in it, the cursor/insertion point always jumps to the end of the existing content in the lyric input box to ensure an intuitive flow for the lyric input experience.
 
+The character length of the content of an incomplete lyric input box cannot exceed the character length of the content of the secret, correct lyric to guess. For example, if the secret lyric is `they`, then the maximum character length of the lyric input box is 4 characters. Any attempt to input characters beyond that limit is ignored, and the existing content of the input box prior to the out of bounds input attempt is kept. For example, if the box currently contains `howd`, any attempt to input additional content will be dropped. Players can select and delete the existing content to make space.
