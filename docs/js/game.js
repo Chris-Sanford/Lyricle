@@ -1039,7 +1039,6 @@ function updateLifelineDisplay() {
   const originalLifelineButton = document.getElementById("lifelineButton");
   const originalLifelineNumber = document.getElementById("lifelineButtonNumber");
   if (originalLifelineButton && originalLifelineNumber) {
-      originalLifelineNumber.innerText = lifelines;
       // Apply styling similar to keyboard button if needed
       if (lifelines === 1) {
          originalLifelineButton.classList.add("btn-danger");
@@ -1052,7 +1051,7 @@ function updateLifelineDisplay() {
               lifelineIcon.classList.remove("fa-heart");
               lifelineIcon.classList.add("fa-heart-crack");
           }
-          originalLifelineNumber.style.display = "none";
+          originalLifelineNumber.innerText = ''; // Set to empty string instead of hiding
           // Keep button clickable but with visual indication
           originalLifelineButton.style.cursor = "pointer";
           originalLifelineButton.style.pointerEvents = "auto";
@@ -1066,7 +1065,7 @@ function updateLifelineDisplay() {
               lifelineIcon.classList.remove("fa-heart-crack");
               lifelineIcon.classList.add("fa-heart");
           }
-          originalLifelineNumber.style.display = "inline"; // Or appropriate display value
+          originalLifelineNumber.innerText = lifelines; // Set lifeline number for counts > 0
       }
   }
 }

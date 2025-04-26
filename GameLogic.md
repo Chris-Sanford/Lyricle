@@ -54,6 +54,8 @@ For example:
 - A lyric of `the` will be given only `th`, and not `e` since it would complete the lyric
 - A lyric of `that` will be given `tha` which will exhaust all lifelines but not complete the lyric
 
+The lifelines heart button indicates how many remaining lifelines are left. It shows 3, 2, and 1. Once no lifelines remain, the number is removed and the heart button is shown as cracked. It does not display `0`.
+
 # Game Completion
 
 The game is completed once all lyrics have been successfully guessed, or the player concedes. The player concedes by clicking the broken heart button after utilizing all lifelines.

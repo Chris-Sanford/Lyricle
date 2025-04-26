@@ -368,13 +368,14 @@ export const KeyboardController = {
         if (lifelineCount <= 0) {
           // Change to cracked heart when no lifelines remain
           heartIcon.className = 'fas fa-heart-crack';
+          // Remove the number display when no lifelines remain
+          lifelineCountElement.innerText = '';
         } else {
           // Ensure it's a normal heart if we have lifelines
           heartIcon.className = 'fas fa-heart';
+          // Update the number display
+          lifelineCountElement.innerText = lifelineCount;
         }
-        
-        // Update the number display
-        lifelineCountElement.innerText = lifelineCount;
         
         debugLog(`Keyboard lifeline display updated to: ${lifelineCount}`);
       } else {
