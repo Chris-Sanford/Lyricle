@@ -88,7 +88,7 @@ function useLifeline(song, button, callbacks) { // Receive callbacks instead of 
       const isActive = callbacks.isActiveInput && callbacks.isActiveInput(lyricInput);
   
       callbacks.setLyricBoxBorderBottomStyle(lyricInput, {
-          width: isActive ? 6 : 4,    // 8px for active input, 4px for inactive
+          width: isActive ? 4 : 4,    // 8px for active input, 4px for inactive
           color1: isActive ? 0 : 255,    // Blue if active, white otherwise
           color2: isActive ? 115 : 255,
           color3: isActive ? 255 : 255,

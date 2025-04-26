@@ -7,6 +7,14 @@
 /* highlight an element as your cursor hovers over */
 /* *:hover { outline:2px solid rgb(0, 255, 0); } */
 
+/* Global removal of focus outlines for contenteditable elements */
+[contenteditable], [contenteditable]:focus, [contenteditable]:focus-visible {
+    outline: none !important;
+    box-shadow: none !important;
+    -webkit-box-shadow: none !important;
+    -webkit-tap-highlight-color: transparent !important;
+}
+
 /* Base HTML elements */
 html, body {
     height: 100%;

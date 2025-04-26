@@ -64,6 +64,14 @@
     box-sizing: border-box;
     max-width: calc(100vw - 25px);
     letter-spacing: 0.01em;
+    /* Remove any outlines when the div is focused */
+    outline: none !important;
+}
+
+/* Remove outline when parent div has focus-within state */
+.lyricle-lyrics-div:focus-within {
+    outline: none !important;
+    box-shadow: none !important;
 }
 
 .lyricle-lyrics-div-special {
@@ -94,11 +102,22 @@
     -webkit-touch-callout: none;
     user-select: none;
     -webkit-tap-highlight-color: transparent;
+    /* Remove default focus outline */
+    outline: none !important;
 }
 
 /* Prevent iOS from showing text selection */
 .lyricle-lyrics-input::selection {
     background: transparent;
+}
+
+/* Remove focus outline for all browsers */
+.lyricle-lyrics-input:focus,
+.lyricle-lyrics-input:focus-visible,
+.lyricle-lyrics-input:focus-within {
+    outline: none !important;
+    box-shadow: none !important;
+    border: none !important;
 }
 
 .lyricle-lyrics-input-noguess {
