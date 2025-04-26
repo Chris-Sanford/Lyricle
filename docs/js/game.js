@@ -592,8 +592,34 @@ function lyricBoxInputListener(song) {
 
   // Get lyricBox element using activeElement
   var lyricBox = document.activeElement;
+  
+  // Get the index of the lyric from the input element ID
+  var lyricIndex = parseInt(lyricBox.id.replace("lyricInput", ""));
+  
+  // Define a variable containing the lyric object that the lyricBox corresponds to
+  var lyric = song.lyrics[lyricIndex];
+  
+  // Check if input exceeds maximum length and trim if necessary
+  if (lyricBox.innerText.length > lyric.content.length) {
+    lyricBox.innerText = lyricBox.innerText.substring(0, lyric.content.length);
+    
+    // Move cursor to end after trimming
+    const range = document.createRange();
+    const sel = window.getSelection();
+    
+    if (!lyricBox.firstChild) {
+      lyricBox.appendChild(document.createTextNode(''));
+    }
+    
+    const textNode = lyricBox.firstChild || lyricBox;
+    const length = lyricBox.innerText.length;
+    range.setStart(textNode, length);
+    range.collapse(true);
+    sel.removeAllRanges();
+    sel.addRange(range);
+  }
 
-  // If the input value is greater than the length of the secret word, don't allow any more characters
+  // Check correctness
   checkCorrectness(lyricBox, song);
 }
 
