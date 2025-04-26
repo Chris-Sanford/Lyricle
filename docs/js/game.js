@@ -12,6 +12,8 @@ import { debugLog } from './debug.js';
 import { isMobileDevice, splitLineForDisplay, getDayInt, sanitizeInput } from './helpers.js';
 // Import the updated useLifeline function
 import { useLifeline } from './lifelines.js';
+// Import the audio-unlock function
+import { unlockAudio } from './audio-unlock.js';
 
 // **************** Global Variables ****************
 var lastLine = 0; // initialize lastLine to 0, make variable global so it can be accessed by all functions
@@ -1228,6 +1230,8 @@ function completeGame(song) {
   debugLog(`GAME DEBUG: Checking audio state before playing preview. AudioController.isMuted(): ${AudioController.isMuted()}`);
   if (!AudioController.isMuted()) {
       debugLog("GAME DEBUG: AudioController is NOT muted. Attempting to play preview.");
+      // Reset the autoplay attempted flag to ensure we can try again
+      AudioController.resetAutoplayAttempted();
       // Small delay before playing to ensure other UI updates/state changes settle
       setTimeout(() => {
           debugLog("GAME DEBUG: Inside setTimeout for playPreview. Calling AudioController.playPreview().");
@@ -1278,6 +1282,8 @@ function concede(song) {
     debugLog(`GAME DEBUG: Checking audio state before playing preview on concede. AudioController.isMuted(): ${AudioController.isMuted()}`);
     if (!AudioController.isMuted()) {
         debugLog("GAME DEBUG: AudioController is NOT muted on concede. Attempting to play preview.");
+        // Reset the autoplay attempted flag to ensure we can try again
+        AudioController.resetAutoplayAttempted();
         // Small delay before playing
         setTimeout(() => {
           try {
@@ -1454,6 +1460,22 @@ function init() {
   } else {
       debugLog("ERROR: Play button not found in How To Play modal.");
   }
+
+  // For iOS, add a click handler to the document to unlock audio
+  document.body.addEventListener('click', function() {
+    // Try to unlock audio immediately on first user interaction
+    if (AudioController.audio && !AudioController.audioContextUnlocked) {
+      unlockAudio();
+    }
+  }, { passive: true });
+  
+  // Also try to unlock when user taps on mute button
+  document.getElementById('muteButton').addEventListener('click', function() {
+    // The toggleMuteSongPreview function will now handle unlocking as well
+    if (AudioController.audio) {
+      unlockAudio();
+    }
+  }, { passive: true });
 }
 
 window.onload = function() {
