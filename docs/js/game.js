@@ -956,13 +956,39 @@ function displayConcedeModal(song) {
   concedeButton.classList.add("btn", "btn-danger");
   concedeButton.innerText = "Concede";
   concedeButton.addEventListener("click", function() {
-    // Close the modal
-    var concedeModalElement = document.getElementById("concedeModal");
-    var concedeModalInstance = bootstrap.Modal.getInstance(concedeModalElement);
-    concedeModalInstance.hide();
+    // Blur button first to prevent aria-hidden warning
+    concedeButton.blur();
+    document.activeElement.blur();
     
-    // End the game
-    concede(song);
+    // Use a small delay to ensure focus is properly cleared before hiding the modal
+    setTimeout(() => {
+      try {
+        // Close the modal
+        var concedeModalElement = document.getElementById("concedeModal");
+        if (concedeModalElement) {
+          var concedeModalInstance = bootstrap.Modal.getInstance(concedeModalElement);
+          if (concedeModalInstance) {
+            concedeModalInstance.hide();
+          } else {
+            concedeModalElement.classList.remove('show');
+            concedeModalElement.style.display = 'none';
+            concedeModalElement.setAttribute('aria-hidden', 'true');
+            document.body.classList.remove('modal-open');
+            
+            // Remove any backdrop
+            const backdrops = document.getElementsByClassName('modal-backdrop');
+            while (backdrops.length > 0) {
+              backdrops[0].parentNode.removeChild(backdrops[0]);
+            }
+          }
+        }
+      } catch (modalError) {
+        debugLog("Error hiding concede modal: " + modalError.message);
+      }
+      
+      // End the game
+      concede(song);
+    }, 50);
   });
   modalFooter.appendChild(concedeButton);
 
@@ -1157,9 +1183,6 @@ function completeGame(song) {
   debugLog(`GAME DEBUG: Checking audio state before playing preview. AudioController.isMuted(): ${AudioController.isMuted()}`);
   if (!AudioController.isMuted()) {
       debugLog("GAME DEBUG: AudioController is NOT muted. Attempting to play preview.");
-      // Update UI immediately just in case
-      debugLog("GAME DEBUG: Calling updateMuteButtonUI(false) before playPreview timeout.");
-      updateMuteButtonUI(false);
       // Small delay before playing to ensure other UI updates/state changes settle
       setTimeout(() => {
           debugLog("GAME DEBUG: Inside setTimeout for playPreview. Calling AudioController.playPreview().");
@@ -1168,10 +1191,6 @@ function completeGame(song) {
       }, 100);
   } else {
       debugLog("GAME DEBUG: AudioController IS muted. Skipping playPreview.");
-      // Ensure UI reflects the muted state
-      debugLog("GAME DEBUG: Calling updateMuteButtonUI(true).");
-      updateMuteButtonUI(true);
-      debugLog("GAME DEBUG: After calling updateMuteButtonUI(true).");
   }
 
   // Disable the keyboard lifeline button via the controller
@@ -1204,56 +1223,72 @@ function completeGame(song) {
 }
 
 function concede(song) {
-  // Stop the stopwatch if it's running
-  Stopwatch.stop();
-  const elapsedTime = Stopwatch.endTime ? (Stopwatch.endTime - Stopwatch.startTime) / 1000 : 0; // Use properties
-  debugLog(`GAME DEBUG: concede called. Elapsed time: ${elapsedTime.toFixed(2)}s`);
-  
-  // Try to play the audio automatically, similar to completeGame, using AudioController
-  debugLog(`GAME DEBUG: Checking audio state before playing preview on concede. AudioController.isMuted(): ${AudioController.isMuted()}`);
-  if (!AudioController.isMuted()) {
-      debugLog("GAME DEBUG: AudioController is NOT muted on concede. Attempting to play preview.");
-      // Update UI immediately
-      debugLog("GAME DEBUG: Calling updateMuteButtonUI(false) before playPreview timeout on concede.");
-      updateMuteButtonUI(false);
-      // Small delay before playing
-      setTimeout(() => {
-          debugLog("GAME DEBUG: Inside setTimeout for playPreview on concede. Calling AudioController.playPreview().");
-          AudioController.playPreview();
-          debugLog("GAME DEBUG: After calling AudioController.playPreview() on concede.");
-      }, 100);
-  } else {
-      debugLog("GAME DEBUG: AudioController IS muted on concede. Skipping playPreview.");
-      // Ensure UI reflects the muted state
-      debugLog("GAME DEBUG: Calling updateMuteButtonUI(true) on concede.");
-      updateMuteButtonUI(true);
-      debugLog("GAME DEBUG: After calling updateMuteButtonUI(true) on concede.");
-  }
-  
-  // Disable the keyboard lifeline button via the controller
-  KeyboardController.disableLifelineButton();
+  try {
+    // Stop the stopwatch if it's running
+    Stopwatch.stop();
+    const elapsedTime = Stopwatch.endTime ? (Stopwatch.endTime - Stopwatch.startTime) / 1000 : 0; // Use properties
+    debugLog(`GAME DEBUG: concede called. Elapsed time: ${elapsedTime.toFixed(2)}s`);
+    
+    // Try to play the audio automatically, similar to completeGame, using AudioController
+    debugLog(`GAME DEBUG: Checking audio state before playing preview on concede. AudioController.isMuted(): ${AudioController.isMuted()}`);
+    if (!AudioController.isMuted()) {
+        debugLog("GAME DEBUG: AudioController is NOT muted on concede. Attempting to play preview.");
+        // Small delay before playing
+        setTimeout(() => {
+          try {
+            debugLog("GAME DEBUG: Inside setTimeout for playPreview on concede. Calling AudioController.playPreview().");
+            AudioController.playPreview();
+            debugLog("GAME DEBUG: After calling AudioController.playPreview() on concede.");
+          } catch (audioError) {
+            debugLog("GAME DEBUG: Error playing audio preview on concede: " + audioError.message);
+          }
+        }, 100);
+    } else {
+        debugLog("GAME DEBUG: AudioController IS muted on concede. Skipping playPreview.");
+    }
+    
+    // Disable the keyboard lifeline button via the controller
+    try {
+      KeyboardController.disableLifelineButton();
+    } catch (keyboardError) {
+      debugLog("GAME DEBUG: Error disabling keyboard lifeline button: " + keyboardError.message);
+    }
 
-  // Reveal all lyrics
-  for (var i = 0; i < song.lyrics.length; i++) {
-    var input = document.getElementById("lyricInput" + i);
-    // Ensure input exists and isn't already correct (check parent class too)
-    if (input && !input.classList.contains("lyricle-lyrics-input-correct") && !input.parentElement.classList.contains("lyricle-lyrics-input-correct")) {
-      input.innerHTML = song.lyrics[i].content;
-      input.parentElement.classList.add("lyricle-lyrics-input-noguess"); // Use noguess style
-      setLyricBoxBorderBottomStyle(input, {
-        width: 4,
-        color1: 255,
-        color2: 255,
-        color3: 255,
-        opacity: 0.001
-      });
-      input.disabled = true;
-      input.contentEditable = false;
+    // Reveal all lyrics
+    for (var i = 0; i < song.lyrics.length; i++) {
+      try {
+        var input = document.getElementById("lyricInput" + i);
+        // Ensure input exists and isn't already correct (check parent class too)
+        if (input && !input.classList.contains("lyricle-lyrics-input-correct") && !input.parentElement.classList.contains("lyricle-lyrics-input-correct")) {
+          input.innerHTML = song.lyrics[i].content;
+          input.parentElement.classList.add("lyricle-lyrics-input-noguess"); // Use noguess style
+          setLyricBoxBorderBottomStyle(input, {
+            width: 4,
+            color1: 255,
+            color2: 255,
+            color3: 255,
+            opacity: 0.001
+          });
+          input.disabled = true;
+          input.contentEditable = false;
+        }
+      } catch (lyricError) {
+        debugLog("GAME DEBUG: Error revealing lyric at index " + i + ": " + lyricError.message);
+      }
+    }
+    
+    // Show the game complete modal
+    constructGameCompleteModal(song, elapsedTime); // Pass elapsedTime
+  } catch (error) {
+    debugLog("GAME DEBUG: Critical error in concede function: " + error.message);
+    // Failsafe - try to show game complete modal even if other parts fail
+    try {
+      constructGameCompleteModal(song, 0);
+    } catch (modalError) {
+      debugLog("GAME DEBUG: Failed to show game complete modal: " + modalError.message);
+      alert("Game completed, but there was an error displaying the results.");
     }
   }
-  
-  // Show the game complete modal
-  constructGameCompleteModal(song, elapsedTime); // Pass elapsedTime
 }
 
 // Update init function to handle both desktop and mobile correctly and init KeyboardController
