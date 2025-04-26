@@ -24,6 +24,8 @@ The below are the features to test in isolation, as opposed to full flows that n
 - Upon successful completion of a lyric guess, the next unfinished lyric is focused
 - Upon focusing of a lyric input box, the cursor insertion point is set to the end of the current text content
 
+It is critical that input events both from a native keyboard and the on-screen keyboard give the same experience, BOTH on desktop and mobile. For example, both the native and OSKB should ensure that, when a lyric is completed, the next lyric is focused and the insertion point is set at the end of the text content.
+
 ## Game Completion
 
 - `Disable/Mute` and `Enable/Unmute` audio buttons successfully alter audio playback

@@ -314,6 +314,13 @@ export const KeyboardController = {
       // Check correctness after input
       if (_callbacks.checkCorrectness) {
           _callbacks.checkCorrectness(this.activeInputElement, currentSong);
+          
+          // Check if the input is now complete (marked as correct)
+          if (this.activeInputElement.classList.contains("lyricle-lyrics-input-correct")) {
+              debugLog("Mobile keyboard: Input is now correct, checking for next input focus");
+              // The selectNextInput function will be called by checkCorrectness if it's correct,
+              // so we don't need to call it again here.
+          }
       }
     }
   },
@@ -331,10 +338,20 @@ export const KeyboardController = {
           (target.classList.contains('lyricle-lyrics-input') || 
            target.classList.contains('lyricle-lyrics-input-first'))) {
           
-          // Disable the contentEditable for mobile, but still allow focus
+          // Set this as the active input in the controller
+          this.setActiveInput(target);
+          
+          // Disable the contentEditable for mobile to prevent native keyboard
           setTimeout(() => {
-              target.contentEditable = false;
-              debugLog("Prevented native keyboard on mobile for " + target.id);
+              // Only disable contentEditable if not already marked as correct
+              if (!target.classList.contains('lyricle-lyrics-input-correct') && 
+                  !target.parentElement.classList.contains('lyricle-lyrics-input-correct')) {
+                  target.contentEditable = false;
+                  debugLog("Prevented native keyboard on mobile for " + target.id);
+                  
+                  // Make sure the input still has focus for visual highlighting
+                  target.focus();
+              }
           }, 0);
       }
   },

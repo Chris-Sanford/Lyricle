@@ -825,6 +825,15 @@ function checkCorrectness(lyricBox, song) {
     });
     lyricBox.disabled = true;
     lyricBox.contentEditable = false;
+    
+    // Important: If we're on mobile and using custom keyboard, clear the KeyboardController's active input reference
+    // since this one is now complete
+    if (isMobileDevice() && window.KeyboardController && window.KeyboardController.isEnabled() && 
+        window.KeyboardController.activeInputElement === lyricBox) {
+      debugLog("Clearing KeyboardController active input reference as it's now complete");
+      // We'll set a new active input in selectNextInput
+    }
+    
     if (Stats.incrementWordsCorrect()) { // if all words are correct
       completeGame(song); // call function that executes game completion code
     }
@@ -833,16 +842,53 @@ function checkCorrectness(lyricBox, song) {
 }
 
 function selectNextInput(input, boxIndex) {
-  // 
+  debugLog(`selectNextInput called with input ID: ${input.id}, boxIndex: ${boxIndex}`);
+  
   var nextInputIndex = boxIndex + 1; // set the nextInputIndex to the boxIndex + 1
   var nextInput = document.getElementById("lyricInput" + (nextInputIndex)); // get the next sibling element (nextSiblingElement doesn't work here)
   while (nextInput && nextInput.disabled) { // loop until we find the next non-disabled sibling element
     nextInputIndex ++; // increment the nextInputIndex by 1
-    nextInput = document.getElementById("lyricInput" + (nextInputIndex));; // get the next sibling element
+    nextInput = document.getElementById("lyricInput" + (nextInputIndex)); // get the next sibling element
   }
+  
   if (nextInput) {
     // if there is a next input box (i.e. we're not at the end of the song)
-    nextInput.focus(); // focus on the next input box
+    debugLog(`Found next input: lyricInput${nextInputIndex}`);
+    
+    // Focus the next input box
+    nextInput.focus();
+    
+    // Also manually set it as active in KeyboardController for mobile devices
+    if (window.KeyboardController) {
+      window.KeyboardController.setActiveInput(nextInput);
+      
+      // Make sure cursor is at the end for native keyboard users
+      if (nextInput.innerText.length > 0) {
+        // Move cursor to end via range selection
+        const range = document.createRange();
+        const sel = window.getSelection();
+        
+        // Create a text node if one doesn't exist
+        if (!nextInput.firstChild) {
+          nextInput.appendChild(document.createTextNode(''));
+        }
+        
+        // Set cursor position to end
+        const textNode = nextInput.firstChild || nextInput;
+        const length = nextInput.innerText.length;
+        range.setStart(textNode, length);
+        range.collapse(true);
+        sel.removeAllRanges();
+        sel.addRange(range);
+      }
+    }
+    
+    // Highlight the focused input with the proper styling via the focus listener
+    if (window.currentSong) {
+      lyricBoxFocusListener(nextInput, window.currentSong);
+    }
+  } else {
+    debugLog("No next input found - either at end of lyrics or all completed");
   }
 }
 
