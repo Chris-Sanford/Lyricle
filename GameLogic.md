@@ -49,9 +49,9 @@ When a player uses a lifeline, the next correct LETTER (NOT CHARACTER, which mea
 - Lifelines do not populate letters into lyrics that would otherwise be completed by usage of the lifeline.
 
 For example:
-- A singular lyric of `I` will not be affected by usage of a lifeline because it's a singe letter
-- A lyric of `me` will be given only `m` but will not be affected by subsequent usage of lifelines
-- A lyric of `the` will be given only `th`, but not `e` since it would complete the lyric
+- A singular lyric of `I` will not be affected by usage of a lifeline because it's a single letter
+- A lyric of `me` will only ever be given `m` and will not be affected by subsequent usage of lifelines
+- A lyric of `the` will be given only `th`, and not `e` since it would complete the lyric
 - A lyric of `that` will be given `tha` which will exhaust all lifelines but not complete the lyric
 
 # Game Completion
