@@ -27,3 +27,7 @@ The below are the features to test in isolation, as opposed to full flows that n
 ## Game Completion
 
 - `Disable/Mute` and `Enable/Unmute` audio buttons successfully alter audio playback
+
+## On-Screen Keyboard
+
+- Every button in the on-screen keyboard works both on desktop and mobile
