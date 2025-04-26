@@ -12,10 +12,12 @@
     z-index: 1000;
     overflow: visible;
     box-sizing: border-box;
-    display: flex;
+    display: flex !important;
     flex-direction: column;
     justify-content: space-around;
     padding-bottom: 10px;
+    visibility: visible !important;
+    opacity: 1 !important;
 }
 
 .lyricle-oskb-row {
@@ -23,15 +25,20 @@
     max-width: 600px;
     height: auto;
     margin: 0.1em auto;
-    display: flex;
+    display: flex !important;
     justify-content: center;
     padding: 0;
     box-sizing: border-box;
+    visibility: visible !important;
+    opacity: 1 !important;
 }
 
 .lyricle-oskb-col {
     margin: 0px;
     padding: 0px;
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
 }
 
 /* Keyboard key styles */
@@ -39,7 +46,7 @@
     background-color: rgba(80, 80, 80, 0.95);
     border-radius: 6px;
     margin: 0.12em;
-    display: flex;
+    display: flex !important;
     justify-content: center;
     align-items: center;
     font-size: 1.1em;
@@ -53,33 +60,43 @@
     width: 40px;
     box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.3);
     border: 1px solid rgba(100, 100, 100, 0.5);
+    visibility: visible !important;
+    opacity: 1 !important;
 }
 
 /* Special keys styling */
 .lyricle-keyboard-lifeline {
     position: relative;
     background-color: rgba(90, 90, 90, 0.95);
-    display: flex;
+    display: flex !important;
     justify-content: center;
     align-items: center;
     border: 1px solid rgba(120, 120, 120, 0.5);
+    visibility: visible !important;
+    opacity: 1 !important;
 }
 
 .backspace-key {
     background-color: rgba(90, 90, 90, 0.95);
     border: 1px solid rgba(120, 120, 120, 0.5);
+    visibility: visible !important;
+    opacity: 1 !important;
 }
 
 /* Heart icon and number */
 .lyricle-keyboard-lifeline i {
     font-size: 1.5em;
     color: rgba(255, 255, 255, 0.9);
+    visibility: visible !important;
+    opacity: 1 !important;
 }
 
 /* Cracked heart with red tint for zero lifelines */
 .lyricle-keyboard-lifeline i.fa-heart-crack {
     color: rgba(255, 180, 180, 0.9); /* Light red tint */
     text-shadow: 0 0 3px rgba(255, 0, 0, 0.5); /* Red glow */
+    visibility: visible !important;
+    opacity: 1 !important;
 }
 
 .lyricle-keyboard-lifeline-number {
@@ -92,10 +109,12 @@
     font-weight: 900;
     text-shadow: 0px 0px 3px rgba(255, 255, 255, 0.7);
     -webkit-text-stroke: 0.7px rgba(255, 255, 255, 0.8);
+    visibility: visible !important;
+    opacity: 1 !important;
 }
 
 /* Active state */
-.lyricle-key:active {
+.lyricle-key:active, .lyricle-key.active {
     background-color: rgba(120, 120, 120, 0.95);
     transform: scale(0.95);
     box-shadow: 0px 0px 1px rgba(0, 0, 0, 0.2);
@@ -124,4 +143,30 @@
     opacity: 1 !important;
     justify-content: center !important;
     flex-wrap: nowrap !important;
+}
+
+/* Special styling for wide keys */
+.wide-key {
+    min-width: 60px !important;
+}
+
+/* Ensure special-key has proper styling */
+.special-key {
+    background-color: rgba(90, 90, 90, 0.95) !important;
+}
+
+/* Fix for mobile devices */
+@media screen and (max-width: 767px) {
+    .lyricle-oskb {
+        display: flex !important;
+    }
+    
+    .lyricle-key {
+        min-width: 8% !important;
+        height: 40px !important;
+    }
+    
+    .wide-key {
+        min-width: 12% !important;
+    }
 } 

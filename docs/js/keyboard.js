@@ -6,7 +6,7 @@ let _callbacks = {};
 let _songRef = null; // Reference to the current song object
 let _statsRef = null; // Reference to the Stats object
 
-const KeyboardController = {
+export const KeyboardController = {
   activeInputElement: null,
   focusedBoxIndex: null,
   customKeyboardEnabled: true, // Default, can be configured
@@ -94,7 +94,29 @@ const KeyboardController = {
     keyButton.className = "lyricle-key";
     keyButton.textContent = text;
     keyButton.dataset.key = key;
-    keyButton.addEventListener("click", this.handleKeyPress.bind(this));
+    
+    // Add event listener with explicit binding
+    const boundHandler = (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      debugLog(`Key pressed: ${key}`);
+      this.handleKeyPress(event);
+    };
+    
+    keyButton.addEventListener("click", boundHandler);
+    
+    // Add touchstart/touchend for mobile
+    keyButton.addEventListener("touchstart", (e) => {
+      e.preventDefault();
+      keyButton.classList.add("active");
+    });
+    
+    keyButton.addEventListener("touchend", (e) => {
+      e.preventDefault();
+      keyButton.classList.remove("active");
+      boundHandler(e);
+    });
+    
     return keyButton;
   },
 
@@ -104,7 +126,29 @@ const KeyboardController = {
     keyButton.className = "lyricle-key " + additionalClasses.join(" ");
     keyButton.innerHTML = innerHTML;
     keyButton.dataset.key = key;
-    keyButton.addEventListener("click", this.handleKeyPress.bind(this));
+    
+    // Add event listener with explicit binding
+    const boundHandler = (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      debugLog(`Special key pressed: ${key}`);
+      this.handleKeyPress(event);
+    };
+    
+    keyButton.addEventListener("click", boundHandler);
+    
+    // Add touchstart/touchend for mobile
+    keyButton.addEventListener("touchstart", (e) => {
+      e.preventDefault();
+      keyButton.classList.add("active");
+    });
+    
+    keyButton.addEventListener("touchend", (e) => {
+      e.preventDefault();
+      keyButton.classList.remove("active");
+      boundHandler(e);
+    });
+    
     return keyButton;
   },
 
@@ -193,7 +237,9 @@ const KeyboardController = {
 
   // Handle key presses from the custom keyboard
   handleKeyPress(event) {
+    debugLog("Key press detected");
     const key = event.currentTarget.dataset.key;
+    debugLog(`Key pressed: ${key}`);
 
     if (!this.activeInputElement) {
       debugLog("Keyboard key pressed, but no active input. Attempting focus.");
@@ -221,7 +267,7 @@ const KeyboardController = {
         debugLog("Warning: Stats reference or incrementInputCounter not available.");
     }
 
-    const currentSong = _songRef; // Use the reference
+    const currentSong = _songRef || window.currentSong; // Try both sources
     if (!currentSong) {
       debugLog("Error: currentSong reference is null in handleKeyPress.");
       return;
@@ -249,160 +295,144 @@ const KeyboardController = {
           debugLog(`Error: Cannot find lyric at index ${this.focusedBoxIndex}`);
           return;
       }
-       if (!lyric.toGuess) {
-           debugLog("Attempted to type in a non-guessable word. Ignoring.");
-           return; // Don't allow typing in non-guess words
-       }
-       // Check length against the *actual* content, not comparable
-       if (this.activeInputElement.innerText.length < lyric.content.length) {
-           this.activeInputElement.innerText += key;
-           if (_callbacks.checkCorrectness) {
-               _callbacks.checkCorrectness(this.activeInputElement, currentSong);
-           }
-       } else {
-            debugLog("Max length reached for this input.");
-       }
+      
+      // Check if word is guessable
+      if (!lyric.toGuess) {
+          debugLog("Attempted to type in a non-guessable word. Ignoring.");
+          return;
+      }
+      
+      // Check if we're at the character limit before adding the character
+      if (this.activeInputElement.innerText.length >= lyric.content.length) {
+          debugLog(`Max length reached for this input (${this.activeInputElement.innerText.length} >= ${lyric.content.length}). Ignoring input.`);
+          return;
+      }
+      
+      // Add the character to the active input only if within character limit
+      this.activeInputElement.innerText += key;
+      
+      // Check correctness after input
+      if (_callbacks.checkCorrectness) {
+          _callbacks.checkCorrectness(this.activeInputElement, currentSong);
+      }
     }
   },
 
-  // Prevent native keyboard on mobile if custom keyboard is active
+  // Prevent native keyboard on mobile
   preventNativeKeyboard(event) {
-    // Check if the focused element is one of our lyric inputs
-    if (this.customKeyboardEnabled && isMobileDevice() && event.target.classList.contains('lyricle-lyrics-input')) {
-      debugLog(`Preventing native keyboard for focus on: ${event.target.id}`);
-      // We need to manage the active element ourselves
-      this.setActiveInput(event.target);
-
-      // Prevent the default focus action which would show the keyboard
-      event.preventDefault();
-      event.stopPropagation();
-
-      // Blur immediately after focus to hide native keyboard,
-      // but keep our internal reference (activeInputElement)
-      setTimeout(() => event.target.blur(), 0);
-      return false; // Indicate prevention occurred
-    }
-    // Allow focus/keyboard for other elements
-    return true;
-  },
-
-  // Method to explicitly set the active input element from game.js
-  setActiveInput(inputElement) {
-      if (inputElement && inputElement.id.startsWith("lyricInput")) {
-          this.activeInputElement = inputElement;
-          this.focusedBoxIndex = parseInt(inputElement.id.replace("lyricInput", ""));
-          debugLog(`KeyboardController active input set: ${inputElement.id}, index: ${this.focusedBoxIndex}`);
-      } else if (inputElement === null) {
-          this.activeInputElement = null;
-          this.focusedBoxIndex = null;
-          debugLog("KeyboardController active input cleared.");
-      } else {
-           debugLog(`KeyboardController setActiveInput called with non-lyric element or invalid element: ${inputElement?.id}`);
-           // Optionally clear the active input if it's not a lyric box
-           // this.activeInputElement = null;
-           // this.focusedBoxIndex = null;
+      // Only apply this for mobile devices
+      if (!isMobileDevice() || !this.isEnabled()) {
+          return; // Do nothing on desktop or if custom keyboard is disabled
+      }
+      
+      // Check if target is a lyric input
+      const target = event.target;
+      if (target && target.classList && 
+          (target.classList.contains('lyricle-lyrics-input') || 
+           target.classList.contains('lyricle-lyrics-input-first'))) {
+          
+          // Disable the contentEditable for mobile, but still allow focus
+          setTimeout(() => {
+              target.contentEditable = false;
+              debugLog("Prevented native keyboard on mobile for " + target.id);
+          }, 0);
       }
   },
 
-  // Method to update the lifeline button display (called by game.js)
+  // Method to set the active input element
+  setActiveInput(inputElement) {
+    debugLog(`Setting active input: ${inputElement ? inputElement.id : 'null'}`);
+    this.activeInputElement = inputElement;
+    
+    // If an input is set, determine its box index and update controller state
+    if (inputElement) {
+      const idMatch = inputElement.id.match(/lyricInput(\d+)/);
+      this.focusedBoxIndex = idMatch ? parseInt(idMatch[1]) : null;
+      debugLog(`Set focusedBoxIndex to: ${this.focusedBoxIndex}`);
+    } else {
+      this.focusedBoxIndex = null;
+    }
+  },
+
+  // Method to update the lifeline display
   updateLifelineDisplay(lifelineCount) {
-    const keyboardLifelineNumber = document.getElementById("keyboardLifelineNumber");
-    const keyboardLifelineButton = document.getElementById("keyboardLifelineButton");
-
-    if (keyboardLifelineButton && keyboardLifelineNumber) {
-        keyboardLifelineNumber.innerText = lifelineCount;
-        keyboardLifelineNumber.style.display = "inline"; // Ensure number is visible by default
-
-        // Reset classes and styles
-        keyboardLifelineButton.classList.remove("btn-danger"); // Assuming this class was used for warning
-        keyboardLifelineButton.style.opacity = "1";
-        keyboardLifelineButton.style.cursor = "pointer";
-        keyboardLifelineButton.style.pointerEvents = "auto";
-        keyboardLifelineButton.removeAttribute("aria-disabled");
-
-        const lifelineIcon = keyboardLifelineButton.querySelector("i");
-        if (lifelineIcon) {
-            // Ensure icon is standard heart by default
-            lifelineIcon.classList.remove("fa-heart-crack");
-            lifelineIcon.classList.add("fa-heart");
+    try {
+      // Target the lifeline button within the keyboard
+      const lifelineButton = document.getElementById('keyboardLifelineButton');
+      const lifelineCountElement = document.getElementById('keyboardLifelineNumber');
+      
+      if (lifelineButton && lifelineCountElement) {
+        // Update the heart icon based on remaining lifelines
+        const heartIcon = lifelineButton.querySelector('i');
+        
+        if (lifelineCount <= 0) {
+          // Change to cracked heart when no lifelines remain
+          heartIcon.className = 'fas fa-heart-crack';
+        } else {
+          // Ensure it's a normal heart if we have lifelines
+          heartIcon.className = 'fas fa-heart';
         }
-
-        // Apply specific styles based on count
-        if (lifelineCount === 1) {
-            // Maybe add a warning style if desired (e.g., btn-danger from Bootstrap)
-            // keyboardLifelineButton.classList.add("btn-danger"); // Example
-            debugLog("Lifeline count is 1 - applying warning style (if any defined).");
-        } else if (lifelineCount <= 0) {
-            debugLog("Lifeline count is 0 or less - applying cracked heart style with red tint.");
-            if (lifelineIcon) {
-                lifelineIcon.classList.remove("fa-heart");
-                lifelineIcon.classList.add("fa-heart-crack");
-            }
-            // Hide number but keep button clickable
-            keyboardLifelineNumber.style.display = "none";
-            // Make sure the button is still clickable (unlike disableLifelineButton)
-            keyboardLifelineButton.style.cursor = "pointer";
-            keyboardLifelineButton.style.pointerEvents = "auto";
-            keyboardLifelineButton.removeAttribute("aria-disabled");
-        }
-    } else {
-         debugLog("Warning: Keyboard lifeline button or number element not found for update.");
+        
+        // Update the number display
+        lifelineCountElement.innerText = lifelineCount;
+        
+        debugLog(`Keyboard lifeline display updated to: ${lifelineCount}`);
+      } else {
+        debugLog("WARNING: Keyboard lifeline button or count element not found!");
+      }
+    } catch (e) {
+      debugLog("ERROR in updateLifelineDisplay: " + e.message);
     }
   },
 
-  // Method to disable the lifeline button (called by game.js on game end/concede)
+  // Method to disable the lifeline button
   disableLifelineButton(isZeroLifelines = false) {
-    const keyboardLifelineButton = document.getElementById("keyboardLifelineButton");
-    if (keyboardLifelineButton) {
-        debugLog(`Disabling keyboard lifeline button. Is zero lifelines: ${isZeroLifelines}`);
-        keyboardLifelineButton.classList.add("disabled"); // Visual cue via CSS if defined
-        keyboardLifelineButton.setAttribute("aria-disabled", "true");
-        keyboardLifelineButton.style.opacity = "0.5";
-        keyboardLifelineButton.style.cursor = "not-allowed";
-        keyboardLifelineButton.style.pointerEvents = "none"; // Prevent clicks
-
-        // If disabling because count is zero, ensure cracked heart is shown
+    try {
+      // Target the lifeline button within the keyboard
+      const lifelineButton = document.getElementById('keyboardLifelineButton');
+      
+      if (lifelineButton) {
+        // Update the heart icon to cracked if necessary
         if (isZeroLifelines) {
-             const lifelineIcon = keyboardLifelineButton.querySelector("i");
-             const keyboardLifelineNumber = document.getElementById("keyboardLifelineNumber");
-             if (lifelineIcon) {
-                 lifelineIcon.classList.remove("fa-heart");
-                 lifelineIcon.classList.add("fa-heart-crack");
-             }
-             if(keyboardLifelineNumber) {
-                keyboardLifelineNumber.style.display = "none";
-             }
+          const heartIcon = lifelineButton.querySelector('i');
+          if (heartIcon) {
+            heartIcon.className = 'fas fa-heart-crack';
+          }
         }
-
-        // Attempt to remove the click listener cleanly (more robust than clone/replace)
-         // This assumes the listener was added as described in _createLifelineButton
-         // If listener was added differently, this might need adjustment.
-         // Note: Direct removal requires keeping a reference to the exact listener function.
-         // Since we used an arrow function bound in _createLifelineButton, direct removal is tricky.
-         // The pointerEvents: none approach is generally sufficient.
-    } else {
-         debugLog("Warning: Keyboard lifeline button not found for disabling.");
+        
+        // Style the button as disabled - using opacity/graying out
+        lifelineButton.style.opacity = '0.5';
+        lifelineButton.style.pointerEvents = 'none'; // Remove pointer events to disable interaction
+        
+        debugLog("Keyboard lifeline button disabled");
+      } else {
+        debugLog("WARNING: Keyboard lifeline button not found for disabling!");
+      }
+    } catch (e) {
+      debugLog("ERROR in disableLifelineButton: " + e.message);
     }
   },
 
-   // Getter to check if the custom keyboard is considered enabled
+  // Check if the custom keyboard is enabled
   isEnabled() {
     return this.customKeyboardEnabled;
   },
 
-  // Method to potentially toggle the keyboard on/off if needed later
+  // Set keyboard enabled/disabled state
   setEnabled(enabled) {
-    this.customKeyboardEnabled = !!enabled; // Coerce to boolean
-    debugLog(`Custom keyboard ${this.customKeyboardEnabled ? 'enabled' : 'disabled'}`);
-    // Add any UI changes needed when toggling (e.g., show/hide keyboard)
-    const oskbElement = document.getElementById('oskb');
-     if (oskbElement) {
-         oskbElement.style.display = this.customKeyboardEnabled ? 'block' : 'none';
-         // May need to trigger adjustLyricContentPosition from game.js after this
-     }
+    this.customKeyboardEnabled = enabled;
+    return this.customKeyboardEnabled;
   },
 
+  // Make song reference available
+  get _songRef() {
+    return _songRef;
+  },
+  
+  set _songRef(songRef) {
+    _songRef = songRef;
+  }
 };
 
-// Export the controller for use in game.js
-export { KeyboardController };
+// Add it to window for diagnostic access and fallback
+window.KeyboardController = KeyboardController;

@@ -1411,4 +1411,38 @@ function init() {
   }
 }
 
-window.onload = init; // upon loading the page, initialize the game
+window.onload = function() {
+  // First ensure the KeyboardController is available
+  if (typeof KeyboardController === 'undefined') {
+    console.error("KeyboardController not found - attempting to load it dynamically");
+    
+    // Create a safety fallback for KeyboardController
+    window.KeyboardController = window.KeyboardController || {
+      init: () => console.log("Using fallback KeyboardController.init"),
+      construct: () => console.log("Using fallback KeyboardController.construct"),
+      setActiveInput: () => {},
+      updateLifelineDisplay: () => {},
+      isEnabled: () => true,
+      _songRef: null
+    };
+  }
+  
+  // Call the regular init function
+  init();
+  
+  // Add a safety timeout to ensure keyboard is constructed
+  setTimeout(() => {
+    const oskb = document.getElementById('oskb');
+    if (oskb) {
+      const row1 = document.getElementById('oskbRow1Col1');
+      const row2 = document.getElementById('oskbRow2Col1');
+      const row3 = document.getElementById('oskbRow3Col1');
+      
+      // If any row is empty, reconstruct the keyboard
+      if (!row1.children.length || !row2.children.length || !row3.children.length) {
+        console.log("Keyboard rows empty - reconstructing keyboard");
+        KeyboardController.construct(window.lifelines || 3);
+      }
+    }
+  }, 1000);
+};
