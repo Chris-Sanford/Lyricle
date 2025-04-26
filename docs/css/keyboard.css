@@ -6,7 +6,7 @@
     padding: 0.3em 0;
     background-color: transparent;
     position: fixed;
-    bottom: 0;
+    bottom: 5px;
     left: 0;
     right: 0;
     z-index: 1000;
@@ -56,8 +56,8 @@
     user-select: none;
     transition: background-color 0.1s, transform 0.1s;
     text-transform: uppercase;
-    height: 40px;
-    width: 40px;
+    height: 42px;
+    width: 42px;
     box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.3);
     border: 1px solid rgba(100, 100, 100, 0.5);
     visibility: visible !important;
@@ -159,11 +159,12 @@
 @media screen and (max-width: 767px) {
     .lyricle-oskb {
         display: flex !important;
+        bottom: 5px;
     }
     
     .lyricle-key {
         min-width: 8% !important;
-        height: 40px !important;
+        height: 42px !important;
     }
     
     .wide-key {
