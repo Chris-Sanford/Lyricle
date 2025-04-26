@@ -1,28 +1,34 @@
+import { debugLog } from './debug.js';
+
 // Modified useLifeline function to properly apply lifelines
-function useLifeline(song, button) { // button parameter might be the keyboard button now
+function useLifeline(song, button, callbacks) { // Receive callbacks instead of using globals directly
+    // Get the lifelines from the callbacks
+    const lifelines = callbacks.getLifelines();
+    const startingLifelines = callbacks.getStartingLifelines();
+    
     // If lifelines is 0, show concede modal
     if (lifelines <= 0) { // Check <= 0 just in case
-      displayConcedeModal(song);
+      callbacks.displayConcedeModal(song);
       return;
     }
   
     // If the stopwatch hasn't been started, start it
-    if (!Stopwatch.startTime) {
-      Stopwatch.start();
+    if (callbacks.isStopwatchStarted && !callbacks.isStopwatchStarted()) {
+      callbacks.startStopwatch();
     }
   
     // Increment the input counter via Stats
-    Stats.incrementInputCounter();
+    callbacks.incrementInputCounter();
   
     // Decrement the lifelines remaining
-    lifelines--;
+    callbacks.decrementLifelines();
   
     // Update all lifeline displays (Keyboard and potentially old button)
-    updateLifelineDisplay();
+    callbacks.updateLifelineDisplay();
   
     // Actually apply the lifeline to reveal characters in all lyric boxes
     // Calculate how many characters to reveal based on lifelines used
-    const charsToReveal = startingLifelines - lifelines;
+    const charsToReveal = startingLifelines - callbacks.getLifelines();
   
     // Loop through each lyric input to apply the hint
     for (var i = 0; i < song.lyrics.length; i++) {
@@ -74,13 +80,13 @@ function useLifeline(song, button) { // button parameter might be the keyboard b
           .toLowerCase()
           .normalize("NFD")
           .replace(/\p{Diacritic}/gu, '');
-      const percentageCorrect = getPercentageCorrect(comparableInput, song.lyrics[i].contentComparable);
+      const percentageCorrect = callbacks.getPercentageCorrect(comparableInput, song.lyrics[i].contentComparable);
       const opacity = 1.00 - percentageCorrect;
   
       // Check if the *active* input is the one we just changed
-      const isActive = KeyboardController.activeInputElement === lyricInput;
+      const isActive = callbacks.isActiveInput && callbacks.isActiveInput(lyricInput);
   
-      setLyricBoxBorderBottomStyle(lyricInput, {
+      callbacks.setLyricBoxBorderBottomStyle(lyricInput, {
           width: 4,
           color1: isActive ? 0 : 255,    // Blue if active, white otherwise
           color2: isActive ? 115 : 255,
@@ -88,12 +94,12 @@ function useLifeline(song, button) { // button parameter might be the keyboard b
           opacity: opacity
       });
   
-  
-      // Check if this *happened* to complete the word (unlikely with hint logic, but possible)
-      checkCorrectness(lyricInput, song);
+      // Check if this *happened* to complete the word
+      callbacks.checkCorrectness(lyricInput, song);
     }
   
     // Styling based on remaining lifelines is handled within updateLifelineDisplay
+    debugLog("Lifeline applied successfully");
 }
 
 export { useLifeline };

@@ -126,14 +126,27 @@ const KeyboardController = {
     lifelineKey.appendChild(lifelineNumber);
 
     lifelineKey.addEventListener("click", () => {
-      // Only call lifeline callback if game isn't ended (check via _callbacks or internal state if needed)
-       if (_callbacks.useLifeline && _songRef) {
-           debugLog("Keyboard lifeline button clicked");
-           // Pass 'this' (the button element) for potential styling in the callback
-           _callbacks.useLifeline(_songRef, lifelineKey);
-       } else {
-           debugLog("Keyboard lifeline button clicked but no active game/callback");
-       }
+      debugLog("Lifeline button clicked - checking if callback and song are available");
+      
+      // Get the song reference - try multiple approaches
+      let song = _songRef;
+      if (!song) {
+        debugLog("No _songRef available, trying window.currentSong");
+        song = window.currentSong;
+      }
+      
+      // Only call lifeline callback if all requirements are met
+      if (_callbacks && _callbacks.useLifeline && song) {
+        debugLog("Lifeline requirements met - executing useLifeline callback");
+        // Pass the song reference and button element for potential styling in the callback
+        _callbacks.useLifeline(song, lifelineKey);
+      } else {
+        // Log detailed diagnostic info
+        debugLog(`Keyboard lifeline button clicked but not all requirements met:
+          - _callbacks exists: ${!!_callbacks}
+          - useLifeline callback exists: ${_callbacks && !!_callbacks.useLifeline}
+          - song reference exists: ${!!song}`);
+      }
     });
     return lifelineKey;
   },

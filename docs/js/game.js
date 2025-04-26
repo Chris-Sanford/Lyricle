@@ -10,6 +10,7 @@ import { KeyboardController } from './keyboard.js';
 import { debugLog } from './debug.js';
 // Import helper functions
 import { isMobileDevice, splitLineForDisplay, getDayInt, sanitizeInput } from './helpers.js';
+// Import the updated useLifeline function
 import { useLifeline } from './lifelines.js';
 
 // **************** Global Variables ****************
@@ -956,8 +957,12 @@ function focusFirstUnfilledLyric() {
 
 // Function to update the lifeline display (now primarily calls KeyboardController)
 function updateLifelineDisplay() {
+  debugLog(`Updating lifeline display. Current lifelines: ${lifelines}`);
+  
   // Call the KeyboardController's method to update its display
-  KeyboardController.updateLifelineDisplay(lifelines);
+  if (KeyboardController && typeof KeyboardController.updateLifelineDisplay === 'function') {
+    KeyboardController.updateLifelineDisplay(lifelines);
+  }
 
   // Keep updating the original button only if it exists (for non-keyboard scenario, though unlikely now)
   const originalLifelineButton = document.getElementById("lifelineButton");
@@ -1055,6 +1060,24 @@ function startGame(songData) { // Loads main game with song lyrics to guess
   var howToPlayObjectiveText = document.getElementById("objectiveText");
   howToPlayObjectiveText.innerHTML = "Guess the lyrics to today's song, <b>" + song.title + "</b> by <b>" + song.artist + "</b>!";
 
+  // Save current song in a global variable for keyboard access
+  window.currentSong = song;
+  
+  // CRITICAL: Update KeyboardController internal song reference directly
+  // This is important for lifeline functionality
+  if (typeof KeyboardController !== 'undefined') {
+    // Using internal variable approach (not recommended but keeping with existing pattern)
+    if (window.KeyboardController) window.KeyboardController._songRef = song;
+    
+    // Use the actual module reference
+    try {
+      debugLog("Directly updating KeyboardController._songRef");
+      KeyboardController._songRef = song;
+    } catch (e) {
+      debugLog("Error updating KeyboardController song reference: " + e.message);
+    }
+  }
+
   // construct the lyric input boxes to start the game
   constructLyricInputBoxes(song, lyricsGridContainer);
 
@@ -1062,19 +1085,16 @@ function startGame(songData) { // Loads main game with song lyrics to guess
   // Pass the initial number of lifelines for the display
   KeyboardController.construct(lifelines);
 
-  // The old constructLifelineButton is no longer needed as KeyboardController handles it
-  // constructLifelineButton(song);
+  // Check one more time that song reference is set in KeyboardController
+  if (!KeyboardController._songRef) {
+    debugLog("WARNING: KeyboardController._songRef is still not set after construct. Setting it one more time.");
+    KeyboardController._songRef = song;
+  }
 
   Stopwatch.reset();
 
   // Set the audio source using AudioController
   AudioController.setSource(song.preview);
-
-  // Save current song in a global variable for keyboard access
-  window.currentSong = song; // Keep this for now, though KeyboardController also gets a ref
-
-  // Keyboard construction and visibility handled by KeyboardController.construct
-  // constructCustomKeyboard();
 }
 
 function completeGame(song) {
@@ -1201,48 +1221,88 @@ function init() {
   // Initialize AudioController
   AudioController.init();
 
-  // Initialize KeyboardController
+  // Make sure KeyboardController is accessible
+  if (!KeyboardController) {
+    debugLog("ERROR: KeyboardController module not properly loaded!");
+  } else {
+    debugLog("KeyboardController module is available");
+  }
+
+  // Create comprehensive callbacks for KeyboardController
   const keyboardCallbacks = {
-      useLifeline: useLifeline, // Pass the game.js function
-      checkCorrectness: checkCorrectness, // Pass the game.js function
-      selectNextInput: selectNextInput, // Pass the game.js function
-      focusFirstUnfilledLyric: focusFirstUnfilledLyric, // Pass the game.js function
-      updateLifelineDisplay: updateLifelineDisplay, // Pass the game.js function (which calls controller)
-      isGameComplete: () => !!Stopwatch.endTime, // Provide a way to check game status
-      // getLifelines: () => lifelines // Provide getter for current lifelines
+      // Create a wrapper for useLifeline that provides all necessary context
+      useLifeline: (song, button) => {
+          debugLog("Using lifeline via keyboard callback with song: " + song.title);
+          // Call the imported useLifeline with all needed callbacks
+          useLifeline(song, button, {
+              getLifelines: () => lifelines,
+              getStartingLifelines: () => startingLifelines,
+              decrementLifelines: () => { 
+                debugLog(`Decrementing lifelines from ${lifelines} to ${lifelines-1}`);
+                lifelines--; 
+              },
+              displayConcedeModal: displayConcedeModal,
+              isStopwatchStarted: () => Stopwatch.startTime !== null,
+              startStopwatch: () => Stopwatch.start(),
+              incrementInputCounter: () => Stats.incrementInputCounter(),
+              updateLifelineDisplay: updateLifelineDisplay,
+              getPercentageCorrect: getPercentageCorrect,
+              isActiveInput: (input) => KeyboardController.activeInputElement === input,
+              setLyricBoxBorderBottomStyle: setLyricBoxBorderBottomStyle,
+              checkCorrectness: checkCorrectness
+          });
+      },
+      checkCorrectness: checkCorrectness,
+      selectNextInput: selectNextInput,
+      focusFirstUnfilledLyric: focusFirstUnfilledLyric,
+      updateLifelineDisplay: updateLifelineDisplay,
+      isGameComplete: () => !!Stopwatch.endTime
   };
-  // Pass callbacks, and references to the song object (initially null) and Stats
-  KeyboardController.init(keyboardCallbacks, window.currentSong, Stats);
+  
+  // Initialize the KeyboardController
+  try {
+    debugLog("Initializing KeyboardController with callbacks");
+    KeyboardController.init(keyboardCallbacks, window.currentSong, Stats);
+    debugLog("KeyboardController initialized successfully");
+  } catch (e) {
+    debugLog("ERROR initializing KeyboardController: " + e.message);
+  }
 
   // Get day int and load song data
   var day;
   day = getDayInt();
 
+  // Load song data and start game
   getAllSongData().then(() => {
+    debugLog("Song data loaded, starting game...");
     songData = allSongData[day]; // Get the song data for the day
+    
     // if songData is null (because today's int is higher than the length of allSongData), select an object at a random integer index from allSongData
     if (songData == null) {
       songData = allSongData[Math.floor(Math.random() * allSongData.length)];
     }
-    // Update the song reference in KeyboardController *before* starting game
-    KeyboardController._songRef = window.currentSong; // Directly update, or add a setter
 
+    // Start the game with the selected song
     startGame(songData);
-    constructRandomButton(); // Add random button from the beginning
+    
+    // Add the random button
+    constructRandomButton();
+    
+    // Show the how to play modal
     displayHowToPlayModal();
 
-    // Update the song reference in KeyboardController again after startGame sets window.currentSong
-    KeyboardController._songRef = window.currentSong;
+    // Final check to ensure KeyboardController has the correct song reference
+    debugLog("Final check of KeyboardController._songRef");
+    if (KeyboardController._songRef !== window.currentSong) {
+      debugLog("WARNING: KeyboardController._songRef mismatch - fixing");
+      KeyboardController._songRef = window.currentSong;
+    }
 
-     // Ensure layout adjustment happens *after* keyboard is likely constructed by startGame
-     setTimeout(() => {
+    // Ensure layout adjustment happens *after* keyboard is likely constructed by startGame
+    setTimeout(() => {
       adjustLyricContentPosition();
     }, 250); // Slightly longer delay
   });
-
-  // Keyboard display is handled within KeyboardController.construct called by startGame
-  // const oskbElement = document.getElementById('oskb');
-  // if (oskbElement) { ... }
 
   // Add event listeners previously in HTML
   const mainMuteButton = document.getElementById('muteButton');

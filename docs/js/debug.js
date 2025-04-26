@@ -10,7 +10,7 @@ export let debugMode = true;
  */
 export function debugLog(message, category = 'AUDIO') {
     if (debugMode) {
-        console.log(`${category} DEBUG: ${message}`);
+        console.log(`DEBUG: ${message}`);
     }
 }
 
