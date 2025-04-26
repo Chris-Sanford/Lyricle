@@ -38,6 +38,8 @@ If the song preview ends after the game has completed, `enabling AudioControl` w
 
 `Enabling` and `Disabling` `AudioControl` is possible by clicking the speaker icon either in the control bar or in the `Game Complete` modal. The icon on display represents the current state of the audio.
 
+Song playback must NOT BE POSSIBLE until AFTER the game is completed.
+
 # Lifelines
 
 Players are given 3 lifelines up front. The lifeline is usable through the dedicated on-screen keyboard button.
