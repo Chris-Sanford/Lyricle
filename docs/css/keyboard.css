@@ -21,8 +21,8 @@
 }
 
 .lyricle-oskb-row {
-    width: 98%;
-    max-width: 600px;
+    width: 100%; /* Full width for rows */
+    max-width: 100%; /* No maximum width constraint */
     height: auto;
     margin: 0.1em auto;
     display: flex !important;
@@ -31,6 +31,14 @@
     box-sizing: border-box;
     visibility: visible !important;
     opacity: 1 !important;
+}
+
+/* All rows should be the same width */
+#oskbRow1, #oskbRow2, #oskbRow3 {
+    width: 100%;
+    max-width: 100%;
+    margin: 0.1em auto;
+    padding: 0 10px; /* Add some padding on the sides */
 }
 
 .lyricle-oskb-col {
@@ -56,31 +64,81 @@
     user-select: none;
     transition: background-color 0.1s, transform 0.1s;
     text-transform: uppercase;
-    height: 45px;
-    width: 45px;
+    height: 45px; /* Decreased height */
+    width: 43px !important; /* Decreased width */
+    min-width: 43px !important;
+    max-width: 43px !important;
+    flex: 0 0 43px !important; /* Don't allow keys to grow or shrink */
     box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.3);
     border: 1px solid rgba(100, 100, 100, 0.5);
     visibility: visible !important;
     opacity: 1 !important;
 }
 
-/* Special keys styling */
+/* Eliminate any row-specific sizing */
+#oskbRow1Col1 .lyricle-key,
+#oskbRow2Col1 .lyricle-key,
+#oskbRow3Col1 .lyricle-key {
+    width: 43px !important;
+    min-width: 43px !important;
+    max-width: 43px !important;
+    flex: 0 0 43px !important;
+}
+
+/* Set each row to an appropriate size for the number of keys */
+#oskbRow1 {
+    width: 465px; /* 10 keys × 43px + margins */
+    max-width: 95%;
+}
+
+#oskbRow2 {
+    width: 419px; /* 9 keys × 43px + margins */
+    max-width: 90%;
+}
+
+#oskbRow3 {
+    width: 419px; /* 9 keys × 43px + margins (7 letter keys + 2 special keys) */
+    max-width: 90%;
+}
+
+/* Force consistent key distribution */
+#oskbRow1Col1, #oskbRow2Col1, #oskbRow3Col1 {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    justify-content: center !important;
+    flex-wrap: nowrap !important;
+    width: 100%;
+    gap: 0.2em;
+}
+
+/* Special styling for the lifeline and backspace keys */
+.backspace-key,
+.lyricle-keyboard-lifeline {
+    width: 43px !important;
+    min-width: 43px !important;
+    max-width: 43px !important;
+    flex: 0 0 43px !important;
+    background-color: rgba(90, 90, 90, 0.95);
+    border: 1px solid rgba(120, 120, 120, 0.5);
+}
+
+/* Special styling for lifeline key */
 .lyricle-keyboard-lifeline {
     position: relative;
-    background-color: rgba(90, 90, 90, 0.95);
     display: flex !important;
     justify-content: center;
     align-items: center;
-    border: 1px solid rgba(120, 120, 120, 0.5);
     visibility: visible !important;
     opacity: 1 !important;
 }
 
-.backspace-key {
-    background-color: rgba(90, 90, 90, 0.95);
-    border: 1px solid rgba(120, 120, 120, 0.5);
-    visibility: visible !important;
-    opacity: 1 !important;
+/* Maintain the wide-key class for the lifeline */
+.wide-key {
+    width: 43px !important;
+    min-width: 43px !important;
+    max-width: 43px !important;
+    flex: 0 0 43px !important;
 }
 
 /* Heart icon and number */
@@ -129,6 +187,49 @@
     }
 }
 
+/* Fix for mobile devices */
+@media screen and (max-width: 767px) {
+    .lyricle-oskb {
+        display: flex !important;
+        bottom: 15px;
+    }
+    
+    .lyricle-key,
+    .wide-key,
+    .backspace-key,
+    .lyricle-keyboard-lifeline,
+    #oskbRow1Col1 .lyricle-key,
+    #oskbRow2Col1 .lyricle-key,
+    #oskbRow3Col1 .lyricle-key {
+        width: 36px !important;
+        min-width: 36px !important;
+        max-width: 36px !important;
+        flex: 0 0 36px !important;
+        height: 45px !important;
+        font-size: 0.9em !important;
+    }
+    
+    #oskbRow1 {
+        width: 388px; /* 10 keys × 36px + margins */
+        max-width: 98%;
+    }
+    
+    #oskbRow2 {
+        width: 349px; /* 9 keys × 36px + margins */
+        max-width: 90%;
+    }
+    
+    #oskbRow3 {
+        width: 349px; /* 9 keys × 36px + margins */
+        max-width: 90%;
+    }
+}
+
+/* Ensure special-key has proper styling */
+.special-key {
+    background-color: rgba(90, 90, 90, 0.95) !important;
+}
+
 /* Force visibility of all rows */
 #oskbRow1, #oskbRow2, #oskbRow3 {
     display: flex !important;
@@ -137,37 +238,7 @@
     height: auto !important;
 }
 
-#oskbRow1Col1, #oskbRow2Col1, #oskbRow3Col1 {
-    display: flex !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-    justify-content: center !important;
-    flex-wrap: nowrap !important;
-}
-
-/* Special styling for wide keys */
-.wide-key {
-    min-width: 60px !important;
-}
-
-/* Ensure special-key has proper styling */
-.special-key {
-    background-color: rgba(90, 90, 90, 0.95) !important;
-}
-
-/* Fix for mobile devices */
-@media screen and (max-width: 767px) {
-    .lyricle-oskb {
-        display: flex !important;
-        bottom: 15px;
-    }
-    
-    .lyricle-key {
-        min-width: 8% !important;
-        height: 45px !important;
-    }
-    
-    .wide-key {
-        min-width: 12% !important;
-    }
+/* Empty rule to ensure proper syntax termination */
+.keyboard-syntax-fix {
+    display: block;
 } 
