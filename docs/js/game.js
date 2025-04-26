@@ -33,6 +33,25 @@ function constructLifelineButton(song) {
   // Lifeline button creation is now handled by KeyboardController.construct
   // We just need to ensure the display is updated initially.
   updateLifelineDisplay(); // Call the game.js version which now calls the KeyboardController version
+  
+  // If standalone button exists, ensure it has the right click behavior
+  const originalLifelineButton = document.getElementById("lifelineButton");
+  if (originalLifelineButton) {
+    // Remove any existing click listeners
+    const newButton = originalLifelineButton.cloneNode(true);
+    originalLifelineButton.parentNode.replaceChild(newButton, originalLifelineButton);
+    
+    // Add click listener that checks lifelines count and calls displayConcedeModal when needed
+    newButton.addEventListener("click", function() {
+      if (lifelines <= 0) {
+        debugLog("Standalone lifeline button clicked with zero lifelines - showing concede modal");
+        displayConcedeModal(song);
+      } else {
+        useLifeline(song);
+      }
+    });
+  }
+  
   return; // No need to create the old button
 }
 
@@ -1008,14 +1027,20 @@ function updateLifelineDisplay() {
               lifelineIcon.classList.add("fa-heart-crack");
           }
           originalLifelineNumber.style.display = "none";
+          // Keep button clickable but with visual indication
+          originalLifelineButton.style.cursor = "pointer";
+          originalLifelineButton.style.pointerEvents = "auto";
+          originalLifelineButton.removeAttribute("aria-disabled");
+          // Keep button enabled but styled differently
+          originalLifelineButton.classList.remove("disabled");
       } else {
           // Ensure icon is normal heart and number is visible if lifelines > 0
-           var lifelineIcon = originalLifelineButton.querySelector("i");
-           if (lifelineIcon) {
-               lifelineIcon.classList.remove("fa-heart-crack");
-               lifelineIcon.classList.add("fa-heart");
-           }
-           originalLifelineNumber.style.display = "inline"; // Or appropriate display value
+          var lifelineIcon = originalLifelineButton.querySelector("i");
+          if (lifelineIcon) {
+              lifelineIcon.classList.remove("fa-heart-crack");
+              lifelineIcon.classList.add("fa-heart");
+          }
+          originalLifelineNumber.style.display = "inline"; // Or appropriate display value
       }
   }
 }

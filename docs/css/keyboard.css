@@ -76,6 +76,12 @@
     color: rgba(255, 255, 255, 0.9);
 }
 
+/* Cracked heart with red tint for zero lifelines */
+.lyricle-keyboard-lifeline i.fa-heart-crack {
+    color: rgba(255, 180, 180, 0.9); /* Light red tint */
+    text-shadow: 0 0 3px rgba(255, 0, 0, 0.5); /* Red glow */
+}
+
 .lyricle-keyboard-lifeline-number {
     position: absolute;
     font-size: 1em;

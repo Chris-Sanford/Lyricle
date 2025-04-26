@@ -8,6 +8,7 @@ function useLifeline(song, button, callbacks) { // Receive callbacks instead of 
     
     // If lifelines is 0, show concede modal
     if (lifelines <= 0) { // Check <= 0 just in case
+      debugLog("Lifelines are zero, showing concede modal");
       callbacks.displayConcedeModal(song);
       return;
     }

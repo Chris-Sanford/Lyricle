@@ -136,15 +136,26 @@ const KeyboardController = {
       }
       
       // Only call lifeline callback if all requirements are met
-      if (_callbacks && _callbacks.useLifeline && song) {
-        debugLog("Lifeline requirements met - executing useLifeline callback");
-        // Pass the song reference and button element for potential styling in the callback
-        _callbacks.useLifeline(song, lifelineKey);
+      if (_callbacks && song) {
+        debugLog("Lifeline button requirements met");
+        
+        // Check if we have no lifelines left - directly show concede modal
+        if (_callbacks.getLifelines && _callbacks.getLifelines() <= 0) {
+          debugLog("No lifelines left, showing concede modal");
+          if (_callbacks.displayConcedeModal) {
+            _callbacks.displayConcedeModal(song);
+          }
+        } 
+        // Otherwise use lifeline normally
+        else if (_callbacks.useLifeline) {
+          debugLog("Executing useLifeline callback");
+          // Pass the song reference and button element for potential styling in the callback
+          _callbacks.useLifeline(song, lifelineKey);
+        }
       } else {
         // Log detailed diagnostic info
         debugLog(`Keyboard lifeline button clicked but not all requirements met:
           - _callbacks exists: ${!!_callbacks}
-          - useLifeline callback exists: ${_callbacks && !!_callbacks.useLifeline}
           - song reference exists: ${!!song}`);
       }
     });
@@ -306,8 +317,8 @@ const KeyboardController = {
         keyboardLifelineButton.classList.remove("btn-danger"); // Assuming this class was used for warning
         keyboardLifelineButton.style.opacity = "1";
         keyboardLifelineButton.style.cursor = "pointer";
-         keyboardLifelineButton.style.pointerEvents = "auto";
-         keyboardLifelineButton.removeAttribute("aria-disabled");
+        keyboardLifelineButton.style.pointerEvents = "auto";
+        keyboardLifelineButton.removeAttribute("aria-disabled");
 
         const lifelineIcon = keyboardLifelineButton.querySelector("i");
         if (lifelineIcon) {
@@ -320,16 +331,19 @@ const KeyboardController = {
         if (lifelineCount === 1) {
             // Maybe add a warning style if desired (e.g., btn-danger from Bootstrap)
             // keyboardLifelineButton.classList.add("btn-danger"); // Example
-             debugLog("Lifeline count is 1 - applying warning style (if any defined).");
+            debugLog("Lifeline count is 1 - applying warning style (if any defined).");
         } else if (lifelineCount <= 0) {
-            debugLog("Lifeline count is 0 or less - applying disabled/cracked heart style.");
+            debugLog("Lifeline count is 0 or less - applying cracked heart style with red tint.");
             if (lifelineIcon) {
                 lifelineIcon.classList.remove("fa-heart");
                 lifelineIcon.classList.add("fa-heart-crack");
             }
-            // Hide number and visually disable
+            // Hide number but keep button clickable
             keyboardLifelineNumber.style.display = "none";
-            this.disableLifelineButton(true); // Visually disable
+            // Make sure the button is still clickable (unlike disableLifelineButton)
+            keyboardLifelineButton.style.cursor = "pointer";
+            keyboardLifelineButton.style.pointerEvents = "auto";
+            keyboardLifelineButton.removeAttribute("aria-disabled");
         }
     } else {
          debugLog("Warning: Keyboard lifeline button or number element not found for update.");

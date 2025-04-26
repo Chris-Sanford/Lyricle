@@ -20,4 +20,10 @@
     left: 50%;
     transform: translate(-50%, -50%);
     font-weight: bold;
+}
+
+/* Cracked heart with red tint for zero lifelines */
+.lyricle-lifeline-button i.fa-heart-crack {
+    color: rgba(255, 180, 180, 0.9); /* Light red tint */
+    text-shadow: 0 0 3px rgba(255, 0, 0, 0.5); /* Red glow */
 } 
