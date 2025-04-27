@@ -76,8 +76,6 @@ The player is able to concede once they've exhausted all of their lifelines. Upo
 
 ## Keyboards
 
-Desktop players can either type on their native hardware keyboard or use the on-screen keyboard to input lyric guesses. Mobile players will rely soley on the proprietary on-screen keyboard Lyricle provides to ensure a consistent gameplay experience without relying on their native system keyboard that has adverse affects on the viewport and thusly the overall game experience.
-
 - The native system on-screen keyboard on mobile devices never opens when playing Lyricle. All inputs on mobile must be done through the proprietary, custom on-screen keyboard provided by Lyricle. This is to ensure the visual interactive experience is consistent and reliable across devices, and to prioritize ensuring screen size and viewport real estate is optimized for the game.
 - Native keyboard input is still fully accepted on Desktop devices. This is the ideal input method for desktop users, although the custom on-screen keyboard is still available to players (especially for using the Lifelines button).
 
