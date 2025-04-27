@@ -394,12 +394,13 @@ function constructLyricInputBoxes(song, lyricsGridContainer) {
         lyricBoxFocusListener(this, song);
       });
       
-      // Always make contentEditable true unless on mobile AND custom keyboard is enabled
+      // Only disable contentEditable on mobile when custom keyboard is enabled
       if (isMobileDevice() && KeyboardController.isEnabled()) {
         input.contentEditable = false;
+        debugLog(`Setting contentEditable=false for mobile input ${input.id}`);
       } else {
         input.contentEditable = "true";
-        // Ensure native keyboard can be used
+        // Ensure native keyboard can be used on desktop
         debugLog(`Setting contentEditable=true for ${input.id}`);
       }
       
@@ -443,6 +444,15 @@ function constructLyricInputBoxes(song, lyricsGridContainer) {
 
     lineIndex++;
     lyricsToDisplay = song.lyrics.filter(lyric => lyric.lineIndex === lineIndex);
+  }
+
+  // Additional defense against native keyboard - ensure all inputs are properly configured
+  if (isMobileDevice() && KeyboardController.isEnabled()) {
+    const allInputs = document.querySelectorAll('.lyricle-lyrics-input');
+    allInputs.forEach(input => {
+      input.contentEditable = false;
+      debugLog(`Enforcing contentEditable=false for mobile on ${input.id}`);
+    });
   }
 
   // Add resize handlers
@@ -612,8 +622,11 @@ function getRandomSong() {
 
 // **************** UI Element Listeners ****************
 function lyricBoxKeyDownListener(event, song) {
+  debugLog(`KeyDown: Key='${event.key}', Code='${event.code}'`); // Added log
+
   // If the game is complete, don't allow any input
   if (Stopwatch.endTime) {
+    debugLog("KeyDown: Game complete, preventing input."); // Added log
     event.preventDefault();
     return;
   }
@@ -625,29 +638,36 @@ function lyricBoxKeyDownListener(event, song) {
 
   // Handle special keys
   if (event.key === "Tab") {
+    debugLog("KeyDown: Tab pressed, allowing default."); // Added log
     // Allow default Tab behavior for keyboard navigation
     return;
   } else if (event.key === "Enter") {
+    debugLog("KeyDown: Enter pressed, preventing default and selecting next."); // Added log
     event.preventDefault();
     selectNextInput(event.target, focusedBoxIndex);
     return;
   }
 
   // If the key or character isn't allowed, prevent the default action
-  if (!allowedKeys.includes(event.key) && !allowedCharacters.includes(event.key.toLowerCase())) {
-    event.preventDefault();
+  const isAllowedKey = allowedKeys.includes(event.key);
+  const isAllowedChar = allowedCharacters.includes(event.key.toLowerCase());
+  if (!isAllowedKey && !isAllowedChar) {
+    debugLog(`KeyDown: Disallowed key '${event.key}', preventing default.`); // Added log
+    event.preventDefault(); // Keep this to prevent unwanted characters
     return;
   }
 
-  // If the lyricBox is already at max length and the key isn't a control key, prevent input
+  // If the lyricBox is already at max length and the key isn't a control key (like Backspace), prevent input
   const lyric = song.lyrics[focusedBoxIndex];
   let inputAtMax = event.target.innerText.length >= lyric.content.length;
-  if (inputAtMax && !allowedKeys.includes(event.key)) {
-    event.preventDefault();
+  if (inputAtMax && !isAllowedKey) { // Check against isAllowedKey, not allowedKeys.includes
+    debugLog(`KeyDown: Max length reached (${event.target.innerText.length}/${lyric.content.length}) for key '${event.key}', preventing default.`); // Added log
+    event.preventDefault(); // Keep this to prevent exceeding max length
     return;
   }
 
-  // For allowed input, increment the counter
+  // For allowed input, increment the counter (no preventDefault here for characters)
+  debugLog(`KeyDown: Allowed key '${event.key}', incrementing counter.`); // Added log
   Stats.incrementInputCounter();
 }
 
@@ -1383,6 +1403,15 @@ function startGame(songData) { // Loads main game with song lyrics to guess
     // construct the lyric input boxes to start the game
     constructLyricInputBoxes(song, lyricsGridContainer);
 
+    // Additional defense against native keyboard - ensure all inputs are properly configured
+    if (isMobileDevice() && KeyboardController.isEnabled()) {
+      const allInputs = document.querySelectorAll('.lyricle-lyrics-input');
+      allInputs.forEach(input => {
+        input.contentEditable = false;
+        debugLog(`Enforcing contentEditable=false for mobile on ${input.id}`);
+      });
+    }
+
     // Construct the custom keyboard via the controller
     // Pass the initial number of lifelines for the display
     KeyboardController.construct(lifelines);
@@ -1661,6 +1690,17 @@ function init() {
   // Initialize the KeyboardController
   try {
     debugLog("Initializing KeyboardController with callbacks");
+    
+    // Ensure custom keyboard is always enabled on mobile devices
+    if (isMobileDevice()) {
+      KeyboardController.setEnabled(true);
+      debugLog("Ensuring custom keyboard is enabled for mobile device");
+    } else {
+      // Ensure custom keyboard is disabled on desktop
+      KeyboardController.setEnabled(false);
+      debugLog("Ensuring custom keyboard is disabled for desktop device");
+    }
+    
     KeyboardController.init(keyboardCallbacks, window.currentSong, Stats);
     debugLog("KeyboardController initialized successfully");
   } catch (e) {

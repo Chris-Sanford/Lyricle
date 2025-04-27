@@ -1,4 +1,5 @@
 // helpers.js
+import { debugLog } from './debug.js'; // Import debugLog
 
 // Detect mobile devices
 export function isMobileDevice() {
@@ -6,17 +7,12 @@ export function isMobileDevice() {
   const userAgent = navigator.userAgent || navigator.vendor || window.opera;
   const mobileRegex = /(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino|android|ipad|playbook|silk/i;
   
-  // Check for touch capability (most mobile devices have touchpoints > 1)
-  const hasTouchScreen = (
-    ('maxTouchPoints' in navigator && navigator.maxTouchPoints > 1) || 
-    ('msMaxTouchPoints' in navigator && navigator.msMaxTouchPoints > 1)
-  );
+  // Primarily rely on the user agent string which is more indicative of mobile OS/browsers
+  const isMobileUA = mobileRegex.test(userAgent);
+
+  debugLog(`Device Check: UA = ${userAgent}, isMobileUA = ${isMobileUA}`);
   
-  // Check screen width as an additional indicator
-  const smallScreen = window.innerWidth < 768;
-  
-  // Return true if any mobile indicators are found
-  return mobileRegex.test(userAgent) || hasTouchScreen || smallScreen;
+  return isMobileUA;
 }
 
 // Split a line for display based on max length
