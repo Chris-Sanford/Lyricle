@@ -15,6 +15,10 @@ import { useLifeline } from './lifelines.js';
 // Import the audio-unlock function
 import { unlockAudio } from './audio-unlock.js';
 
+// Initialize global game state to track game completion
+window.GAME_STATE = window.GAME_STATE || {
+  isCompleted: false
+};
 // **************** Global Variables ****************
 var lastLine = 0; // initialize lastLine to 0, make variable global so it can be accessed by all functions
 var startingLifelines = 3; // initialize starting lifelines to 3, make variable global so it can be accessed by all functions
@@ -216,16 +220,27 @@ function constructGameCompleteModal(song, elapsedTime) { // Add elapsedTime para
   muteButton.classList.add("btn", "btn-secondary", "lyricle-icon-button");
   muteButton.id = "muteButton2";
   muteButton.setAttribute("aria-label", "Toggle song preview");
-  muteButton.addEventListener("click", function() {
+  muteButton.addEventListener("click", function(e) {
     debugLog("Modal mute button clicked");
-    toggleMuteSongPreview();
-    // Try to directly play after user interaction on iOS
-    if (!AudioController.isMuted() && endTime) {
-      debugLog("Modal: Playing audio after user interaction from position: " + AudioController.getCurrentTime().toFixed(2) + "s");
-      AudioController.playWithUserInteraction();
-    } else {
-      debugLog("Modal: Not playing audio - muted: " + AudioController.isMuted() + ", game completed: " + (endTime ? "yes" : "no"));
+    
+    // First ensure audio context is unlocked for iOS
+    if (AudioController.audio && !AudioController.audioContextUnlocked) {
+      debugLog("Modal: Attempting to unlock audio from modal mute button");
+      unlockAudio();
     }
+    
+    // Then toggle mute with a slight delay
+    setTimeout(() => {
+      // Toggle the mute state which will also update UI
+      toggleMuteSongPreview();
+      
+      // No need to manually call playWithUserInteraction() - 
+      // toggleMuteSongPreview now handles playback directly when unmuting
+      debugLog("Modal: Mute state toggled, current state: " + (AudioController.isMuted() ? "muted" : "unmuted"));
+    }, 10);
+    
+    // Prevent event propagation
+    e.stopPropagation();
   });
   
   var muteButtonIcon = document.createElement("i");
@@ -276,6 +291,20 @@ function calculateOptimizedLyricBoxWidth(lyricContent, customBuffer) {
 
 // Update constructLyricInputBoxes to properly handle keyboard input on all devices
 function constructLyricInputBoxes(song, lyricsGridContainer) {
+  // Safety check for song and lyricsGridContainer
+  if (!song || !lyricsGridContainer) {
+    debugLog("ERROR: constructLyricInputBoxes called with invalid parameters: song=" + !!song + ", lyricsGridContainer=" + !!lyricsGridContainer);
+    return;
+  }
+
+  // Safety check for song.lyrics
+  if (!song.lyrics || !Array.isArray(song.lyrics)) {
+    debugLog("ERROR: song.lyrics is undefined or not an array: " + JSON.stringify(song));
+    // Create a minimal lyrics array if needed
+    song.lyrics = song.lyrics || [];
+    return;
+  }
+
   // Reset container
   lyricsGridContainer.innerHTML = '';
   lyricsGridContainer.style.width = "100%";
@@ -1120,8 +1149,7 @@ function updateLifelineDisplay() {
 
 // **************** Song Data Functions ****************
 async function getAllSongData() {
-  /* Sadly, GitHub Pages doesn't support hosting files that are not HTML, CSS, or JS, so we can't use a local JSON file
-  // Either way, you're still going to need to use the await fetch method which is not instantaneous and does not load in parallel to the index page
+  /*
   // Code for Obtaining SongData via Local JSON File
   try {
     const response = await fetch('../docs/gameData.json');
@@ -1132,99 +1160,226 @@ async function getAllSongData() {
   */
 
   // Code for Obtaining SongData via HTTP Request
-  var jsonUrl = 'https://pub-9d70620f0c724e4595b80ff107d19f59.r2.dev/gameData.json'
-  const response = await fetch(jsonUrl);
-  allSongData = await response.json();
+  try {
+    debugLog("Fetching song data from remote source...");
+    var jsonUrl = 'https://pub-9d70620f0c724e4595b80ff107d19f59.r2.dev/gameData.json';
+    
+    // Make up to 3 attempts to fetch the data
+    let response = null;
+    let fetchError = null;
+    const maxAttempts = 3;
+    
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        debugLog(`Attempt ${attempt} to fetch song data...`);
+        response = await fetch(jsonUrl);
+        
+        if (response.ok) {
+          debugLog(`Fetch succeeded on attempt ${attempt}`);
+          break; // Success! Exit the loop
+        } else {
+          throw new Error(`Network response was not ok: ${response.status} ${response.statusText}`);
+        }
+      } catch (error) {
+        fetchError = error;
+        debugLog(`Fetch attempt ${attempt} failed: ${error.message}`);
+        
+        if (attempt < maxAttempts) {
+          // Wait before retrying (increasing delay with each attempt)
+          const delay = attempt * 1000; // 1 second, 2 seconds, 3 seconds
+          debugLog(`Waiting ${delay}ms before retrying...`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+        }
+      }
+    }
+    
+    // If all attempts failed, throw the last error
+    if (!response || !response.ok) {
+      throw fetchError || new Error('Failed to fetch song data after multiple attempts');
+    }
+    
+    const data = await response.json();
+    
+    // Validate the data structure before assigning
+    if (!Array.isArray(data)) {
+      throw new Error('Received data is not an array');
+    }
+    
+    // Process and validate each song
+    const validatedData = data.map(song => {
+      // If song has chorus but no lyrics, convert chorus to lyrics
+      if (!Array.isArray(song.lyrics) && typeof song.chorus === 'string' && song.chorus.trim() !== '') {
+        try {
+          // Import the constructLyricObjects function if needed
+          // This assumes the Song module is already imported elsewhere
+          song.lyrics = constructLyricObjects(song.chorus);
+          debugLog(`Converted chorus to lyrics for song: ${song.title}`);
+        } catch (error) {
+          debugLog(`Failed to convert chorus to lyrics for song: ${song.title}. Error: ${error.message}`);
+        }
+      }
+      return song;
+    }).filter(song => {
+      // Check for title and artist
+      const hasBasicInfo = song && song.title && song.artist;
+      
+      // Check for either lyrics array or chorus string
+      const hasLyricsData = (Array.isArray(song.lyrics) && song.lyrics.length > 0) || 
+                           (typeof song.chorus === 'string' && song.chorus.trim() !== '');
+      
+      const isValid = hasBasicInfo && hasLyricsData;
+      
+      if (!isValid) {
+        debugLog(`WARNING: Filtering out invalid song data: ${JSON.stringify(song)}`);
+      }
+      return isValid;
+    });
+    
+    if (validatedData.length === 0) {
+      throw new Error('No valid songs found in data');
+    }
+    
+    allSongData = validatedData;
+    debugLog(`Successfully loaded ${allSongData.length} songs`);
+    return allSongData;
+  } catch (error) {
+    debugLog(`ERROR loading song data: ${error.message}`);
+  }
 }
 
 // **************** High-Level Main Game Functions ****************
 function startGame(songData) { // Loads main game with song lyrics to guess
-  debugLog("Starting new game");
-  var lyricsGridContainer = document.getElementById("lyricsGrid"); // Get the lyricsGrid div
-
-  // Clear/Reset Divs from Previous Song
-  lyricsGridContainer.innerHTML = "";
-  document.getElementById("songTitleName").innerHTML = "";
-  document.getElementById("songTitleArtist").innerHTML = "";
-  // Don't clear oskbRow1Col1 here, KeyboardController manages it
-  // document.getElementById("oskbRow1Col1").innerHTML = "";
-
-  // If statsButton exists, remove it
-  var statsButton = document.getElementById("statsButton");
-  if (statsButton) {
-    statsButton.remove();
+  // Check if songData is valid
+  if (!songData) {
+    debugLog("ERROR: Invalid songData provided to startGame. Cannot proceed.");
+    return;
   }
 
-  Stats.resetStats();
-  lifelines = startingLifelines;
-  KeyboardController.setActiveInput(null); // Reset active input in controller
+  debugLog("Starting game with song: " + songData.title);
 
-  // construct a new Song object using the songData object
-  var song = constructSongObject(songData.title, songData.artist, songData.preview_url, songData.chorus);
+  // Ensure GAME_STATE exists and then reset game completion state
+  if (!window.GAME_STATE) {
+    window.GAME_STATE = { isCompleted: false };
+    debugLog("GAME DEBUG: GAME_STATE was not defined, creating it now");
+  } else {
+    window.GAME_STATE.isCompleted = false;
+    debugLog("GAME DEBUG: Resetting GAME_STATE.isCompleted to false");
+  }
 
-  Stats.setWordsToGuess(song.lyrics.filter(lyric => lyric.toGuess).length);
+  try {
+    // Create local copy of song to avoid reference issues
+    const song = JSON.parse(JSON.stringify(songData));
 
-  // Get the songTitle, songTitleName and songTitleArtist divs
-  var songTitleDiv = document.getElementById("songTitle");
-  var songTitleNameDiv = document.getElementById("songTitleName");
-  var artistDiv = document.getElementById("songTitleArtist");
+    // Verify song structure
+    if (!song.lyrics || !Array.isArray(song.lyrics)) {
+      debugLog("ERROR: Song data missing lyrics array. Attempting to handle gracefully.");
+      // Create placeholder lyrics if needed
+      song.lyrics = song.lyrics || [];
+    }
 
-  // Calculate the font size to use based on character length
-  var songTitleFontSize = (1.2 - (((song.title.length + song.artist.length) - 20) * 0.015));
+    var lyricsGridContainer = document.getElementById("lyricsGrid"); // Get the lyricsGrid div
+    if (!lyricsGridContainer) {
+      debugLog("ERROR: lyricsGrid element not found in DOM");
+      return;
+    }
 
-  // Set the font size of the songTitle div
-  songTitleDiv.style.fontSize = songTitleFontSize + "em";
+    // Clear/Reset Divs from Previous Song
+    lyricsGridContainer.innerHTML = "";
+    document.getElementById("songTitleName").innerHTML = "";
+    document.getElementById("songTitleArtist").innerHTML = "";
+    // Don't clear oskbRow1Col1 here, KeyboardController manages it
+    // document.getElementById("oskbRow1Col1").innerHTML = "";
 
-  // Update the divs with the song title and artist
-  songTitleNameDiv.innerHTML = '<b>' + song.title + '</b>';
-  artistDiv.innerHTML = song.artist;
+    // If statsButton exists, remove it
+    var statsButton = document.getElementById("statsButton");
+    if (statsButton) {
+      statsButton.remove();
+    }
 
-  // Populate the How To Play text with the song title and artist
-  // Note to AI: Do not modify these 2 lines below. AI has a tendency to want to mess with this for some reason
-  var howToPlayObjectiveText = document.getElementById("objectiveText");
-  howToPlayObjectiveText.innerHTML = "Guess the lyrics to today's song, <b>" + song.title + "</b> by <b>" + song.artist + "</b>!";
+    Stats.resetStats();
+    lifelines = startingLifelines;
+    KeyboardController.setActiveInput(null); // Reset active input in controller
 
-  // Save current song in a global variable for keyboard access
-  window.currentSong = song;
-  
-  // CRITICAL: Update KeyboardController internal song reference directly
-  // This is important for lifeline functionality
-  if (typeof KeyboardController !== 'undefined') {
-    // Using internal variable approach (not recommended but keeping with existing pattern)
-    if (window.KeyboardController) window.KeyboardController._songRef = song;
+    // Get the songTitle, songTitleName and songTitleArtist divs
+    var songTitleDiv = document.getElementById("songTitle");
+    var songTitleNameDiv = document.getElementById("songTitleName");
+    var artistDiv = document.getElementById("songTitleArtist");
+
+    // Calculate the font size to use based on character length
+    var songTitleFontSize = (1.2 - (((song.title.length + song.artist.length) - 20) * 0.015));
+
+    // Set the font size of the songTitle div
+    songTitleDiv.style.fontSize = songTitleFontSize + "em";
+
+    // Update the divs with the song title and artist
+    songTitleNameDiv.innerHTML = '<b>' + song.title + '</b>';
+    artistDiv.innerHTML = song.artist;
+
+    // Populate the How To Play text with the song title and artist
+    // Note to AI: Do not modify these 2 lines below. AI has a tendency to want to mess with this for some reason
+    var howToPlayObjectiveText = document.getElementById("objectiveText");
+    howToPlayObjectiveText.innerHTML = "Guess the lyrics to today's song, <b>" + song.title + "</b> by <b>" + song.artist + "</b>!";
+
+    // Save current song in a global variable for keyboard access
+    window.currentSong = song;
     
-    // Use the actual module reference
-    try {
-      debugLog("Directly updating KeyboardController._songRef");
+    // CRITICAL: Update KeyboardController internal song reference directly
+    // This is important for lifeline functionality
+    if (typeof KeyboardController !== 'undefined') {
+      // Using internal variable approach (not recommended but keeping with existing pattern)
+      if (window.KeyboardController) window.KeyboardController._songRef = song;
+      
+      // Use the actual module reference
+      try {
+        debugLog("Directly updating KeyboardController._songRef");
+        KeyboardController._songRef = song;
+      } catch (e) {
+        debugLog("Error updating KeyboardController song reference: " + e.message);
+      }
+    }
+
+    // construct the lyric input boxes to start the game
+    constructLyricInputBoxes(song, lyricsGridContainer);
+
+    // Construct the custom keyboard via the controller
+    // Pass the initial number of lifelines for the display
+    KeyboardController.construct(lifelines);
+
+    // Check one more time that song reference is set in KeyboardController
+    if (!KeyboardController._songRef) {
+      debugLog("WARNING: KeyboardController._songRef is still not set after construct. Setting it one more time.");
       KeyboardController._songRef = song;
-    } catch (e) {
-      debugLog("Error updating KeyboardController song reference: " + e.message);
+    }
+
+    Stopwatch.reset();
+
+    // Set the audio source using AudioController
+    AudioController.setSource(song.preview);
+  } catch (error) {
+    debugLog("GAME DEBUG: Critical error in startGame function: " + error.message);
+    // Failsafe - try to show game complete modal even if other parts fail
+    try {
+      completeGame(song);
+    } catch (modalError) {
+      debugLog("GAME DEBUG: Failed to show game complete modal: " + modalError.message);
+      alert("Game completed, but there was an error displaying the results.");
     }
   }
-
-  // construct the lyric input boxes to start the game
-  constructLyricInputBoxes(song, lyricsGridContainer);
-
-  // Construct the custom keyboard via the controller
-  // Pass the initial number of lifelines for the display
-  KeyboardController.construct(lifelines);
-
-  // Check one more time that song reference is set in KeyboardController
-  if (!KeyboardController._songRef) {
-    debugLog("WARNING: KeyboardController._songRef is still not set after construct. Setting it one more time.");
-    KeyboardController._songRef = song;
-  }
-
-  Stopwatch.reset();
-
-  // Set the audio source using AudioController
-  AudioController.setSource(song.preview);
 }
 
 function completeGame(song) {
   Stopwatch.stop();
   const elapsedTime = (Stopwatch.endTime - Stopwatch.startTime) / 1000; // Use properties
   debugLog(`GAME DEBUG: completeGame called. Elapsed time: ${elapsedTime.toFixed(2)}s`);
+
+  // Ensure GAME_STATE exists and then set game completion state
+  if (!window.GAME_STATE) {
+    window.GAME_STATE = { isCompleted: true };
+    debugLog("GAME DEBUG: GAME_STATE was not defined, creating it now with isCompleted=true");
+  } else {
+    window.GAME_STATE.isCompleted = true;
+    debugLog("GAME DEBUG: Setting GAME_STATE.isCompleted to true");
+  }
 
   // Try to play the audio automatically when game completes using AudioController
   debugLog(`GAME DEBUG: Checking audio state before playing preview. AudioController.isMuted(): ${AudioController.isMuted()}`);
@@ -1277,6 +1432,15 @@ function concede(song) {
     Stopwatch.stop();
     const elapsedTime = Stopwatch.endTime ? (Stopwatch.endTime - Stopwatch.startTime) / 1000 : 0; // Use properties
     debugLog(`GAME DEBUG: concede called. Elapsed time: ${elapsedTime.toFixed(2)}s`);
+    
+    // Ensure GAME_STATE exists and then set game completion state
+    if (!window.GAME_STATE) {
+      window.GAME_STATE = { isCompleted: true };
+      debugLog("GAME DEBUG: GAME_STATE was not defined, creating it now with isCompleted=true");
+    } else {
+      window.GAME_STATE.isCompleted = true;
+      debugLog("GAME DEBUG: Setting GAME_STATE.isCompleted to true on concede");
+    }
     
     // Try to play the audio automatically, similar to completeGame, using AudioController
     debugLog(`GAME DEBUG: Checking audio state before playing preview on concede. AudioController.isMuted(): ${AudioController.isMuted()}`);
@@ -1393,7 +1557,7 @@ function init() {
       selectNextInput: selectNextInput,
       focusFirstUnfilledLyric: focusFirstUnfilledLyric,
       updateLifelineDisplay: updateLifelineDisplay,
-      isGameComplete: () => !!Stopwatch.endTime
+      isGameComplete: () => window.GAME_STATE && window.GAME_STATE.isCompleted === true
   };
   
   // Initialize the KeyboardController
@@ -1406,46 +1570,105 @@ function init() {
   }
 
   // Get day int and load song data
-  var day;
-  day = getDayInt();
+  var day = getDayInt();
+  debugLog(`Current day integer: ${day}`);
 
   // Load song data and start game
-  getAllSongData().then(() => {
-    debugLog("Song data loaded, starting game...");
-    songData = allSongData[day]; // Get the song data for the day
-    
-    // if songData is null (because today's int is higher than the length of allSongData), select an object at a random integer index from allSongData
-    if (songData == null) {
-      songData = allSongData[Math.floor(Math.random() * allSongData.length)];
-    }
+  getAllSongData()
+    .then(songDataArray => {
+      try {
+        debugLog("Song data loaded, starting game...");
+        
+        // Verify we have song data available
+        if (!allSongData || !Array.isArray(allSongData) || allSongData.length === 0) {
+          throw new Error("No song data available after loading");
+        }
+        
+        // Implement the daily rotation logic
+        let songData = null;
+        
+        // Normalize the day to be within the range of available songs
+        let adjustedDay = day;
+        if (allSongData.length > 0) {
+          // Use modulo to wrap around the array if day exceeds array length
+          adjustedDay = day % allSongData.length;
+          debugLog(`Using day ${day} (adjusted to index ${adjustedDay} for ${allSongData.length} songs)`);
+          songData = allSongData[adjustedDay];
+        }
+        
+        // If still no song data (shouldn't happen with modulo), pick a random one
+        if (!songData && allSongData.length > 0) {
+          const randomIndex = Math.floor(Math.random() * allSongData.length);
+          songData = allSongData[randomIndex];
+          debugLog(`Using random song at index ${randomIndex} as fallback`);
+        }
+        
+        // Final validation of the song data before starting
+        if (!songData || !songData.title || !songData.artist || !Array.isArray(songData.lyrics)) {
+          throw new Error("Invalid song data structure: " + JSON.stringify(songData));
+        }
 
-    // Start the game with the selected song
-    startGame(songData);
-    
-    // Add the random button
-    constructRandomButton();
-    
-    // Show the how to play modal
-    displayHowToPlayModal();
+        // Start the game with the selected song
+        startGame(songData);
+        
+        // Add the random button
+        constructRandomButton();
+        
+        // Show the how to play modal
+        displayHowToPlayModal();
 
-    // Final check to ensure KeyboardController has the correct song reference
-    debugLog("Final check of KeyboardController._songRef");
-    if (KeyboardController._songRef !== window.currentSong) {
-      debugLog("WARNING: KeyboardController._songRef mismatch - fixing");
-      KeyboardController._songRef = window.currentSong;
-    }
+        // Final check to ensure KeyboardController has the correct song reference
+        debugLog("Final check of KeyboardController._songRef");
+        if (KeyboardController._songRef !== window.currentSong) {
+          debugLog("WARNING: KeyboardController._songRef mismatch - fixing");
+          KeyboardController._songRef = window.currentSong;
+        }
 
-    // Ensure layout adjustment happens *after* keyboard is likely constructed by startGame
-    setTimeout(() => {
-      adjustLyricContentPosition();
-    }, 250); // Slightly longer delay
-  });
+        // Ensure layout adjustment happens *after* keyboard is likely constructed by startGame
+        setTimeout(() => {
+          adjustLyricContentPosition();
+        }, 250); // Slightly longer delay
+      } catch (error) {
+        debugLog("ERROR in game initialization: " + error.message);
+        // Display error to user
+        alert("There was an error loading the game. Please refresh and try again.");
+      }
+    })
+    .catch(error => {
+      debugLog("ERROR loading song data: " + error.message);
+      // Display error to user
+      alert("There was an error loading the game data. Please check your connection and try again.");
+    });
 
   // Add event listeners previously in HTML
   const mainMuteButton = document.getElementById('muteButton');
   if (mainMuteButton) {
-      mainMuteButton.addEventListener('click', toggleMuteSongPreview);
-      debugLog("GAME DEBUG: Added click listener to main muteButton."); // Log listener addition
+      // Remove any existing event listeners (in case of re-initialization)
+      mainMuteButton.replaceWith(mainMuteButton.cloneNode(true));
+      
+      // Get the fresh reference after replacement
+      const freshMuteButton = document.getElementById('muteButton');
+      
+      // Add the event listener to the fresh button
+      freshMuteButton.addEventListener('click', function(e) {
+          // This single handler will handle both toggling and ensuring audio unlock
+          debugLog("GAME DEBUG: Mute button clicked - handling toggle and unlock");
+          
+          // First ensure audio context is unlocked (for iOS)
+          if (AudioController.audio && !AudioController.audioContextUnlocked) {
+              debugLog("GAME DEBUG: Attempting to unlock audio from mute button");
+              unlockAudio();
+          }
+          
+          // Then toggle mute state with a small delay to allow unlock to process
+          setTimeout(() => {
+              toggleMuteSongPreview();
+          }, 10);
+          
+          e.stopPropagation(); // Prevent bubbling
+      });
+      
+      debugLog("GAME DEBUG: Added combined click listener to main muteButton.");
   } else {
       debugLog("GAME DEBUG: ERROR - Main muteButton not found during init.");
   }
@@ -1455,6 +1678,13 @@ function init() {
   if (playButton) { // Ensure playButton exists
       playButton.addEventListener('click', () => {
         if (window.debugLog) window.debugLog('Play button clicked in How To Play modal');
+        
+        // Try to unlock audio on this user interaction
+        if (AudioController.audio && !AudioController.audioContextUnlocked) {
+            debugLog("GAME DEBUG: Attempting to unlock audio from How To Play button");
+            unlockAudio();
+        }
+        
         focusFirstUnfilledLyric();
       });
   } else {
@@ -1467,15 +1697,10 @@ function init() {
     if (AudioController.audio && !AudioController.audioContextUnlocked) {
       unlockAudio();
     }
-  }, { passive: true });
+  }, { once: true, passive: true, capture: true }); // Use once to ensure it only fires once
   
-  // Also try to unlock when user taps on mute button
-  document.getElementById('muteButton').addEventListener('click', function() {
-    // The toggleMuteSongPreview function will now handle unlocking as well
-    if (AudioController.audio) {
-      unlockAudio();
-    }
-  }, { passive: true });
+  // Don't add duplicate event listeners to the mute button
+  // The main event handler above already handles both toggling and unlocking
 }
 
 window.onload = function() {

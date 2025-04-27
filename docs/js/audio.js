@@ -56,7 +56,14 @@ const AudioController = {
       }
     });
     // Add ended listener to potentially update UI or handle looping/replay logic if needed later
-    this.audio.addEventListener('ended', () => debugLog("Audio ENDED event triggered"));
+    this.audio.addEventListener('ended', () => {
+      debugLog("Audio ENDED event triggered");
+      // Reset UI buttons if needed for iOS
+      if (this._isGameComplete() && !this._isMuted) {
+        // Add ability to replay after ending
+        debugLog("Audio ended while unmuted and game complete - ready for replay");
+      }
+    });
     
     // Ensure audio starts paused even if metadata loads quickly
     this.audio.addEventListener('loadedmetadata', () => {
@@ -65,6 +72,16 @@ const AudioController = {
         this.audio.pause();
       }
     });
+
+    // iOS-specific handling for interruptions
+    if (typeof this.audio.addEventListener === 'function') {
+      this.audio.addEventListener('pause', () => {
+        // Detect if this was system-initiated pause (phone call, etc.)
+        if (!this._isMuted && this._isGameComplete() && !this.audio.ended) {
+          debugLog("Audio: System-initiated pause detected, marking for resume if unmuted");
+        }
+      });
+    }
   },
 
   // Sets the audio source URL
@@ -93,6 +110,11 @@ const AudioController = {
     // Only play if unmuted AND the game is complete
     if (!this.audio || this._isMuted || !isGameComplete) {
        debugLog(`AudioController: Not playing - Muted: ${this._isMuted}, Exists: ${!!this.audio}, GameComplete: ${isGameComplete}`);
+       
+       // For iOS compatibility, we still need to unlock the audio context even if we're not playing
+       if (!this.audioContextUnlocked && this.audio) {
+         this.unlockAudioContext();
+       }
        return;
     }
     
@@ -157,7 +179,7 @@ const AudioController = {
       // Attempt to unlock if needed
       if (!this.audioContextUnlocked) {
           debugLog("AudioController: Audio context not unlocked, attempting silent unlock first");
-          this.unlockAudioContext();
+          await this.unlockAudioContext();
       }
 
       // Ensure audio is loaded
@@ -173,6 +195,13 @@ const AudioController = {
                       resolve();
                   };
                   this.audio.addEventListener('canplaythrough', canPlayListener);
+                  
+                  // Add a timeout to resolve anyway if canplaythrough doesn't fire
+                  setTimeout(() => {
+                      this.audio.removeEventListener('canplaythrough', canPlayListener);
+                      debugLog("AudioController: Timed out waiting for canplaythrough, proceeding anyway");
+                      resolve();
+                  }, 3000);
               });
           } else {
               debugLog("AudioController: Preload is none, calling load() for playPreview");
@@ -190,6 +219,13 @@ const AudioController = {
                       resolve();
                   };
                   this.audio.addEventListener('canplaythrough', canPlayListener);
+                  
+                  // Add a timeout to resolve anyway if canplaythrough doesn't fire
+                  setTimeout(() => {
+                      this.audio.removeEventListener('canplaythrough', canPlayListener);
+                      debugLog("AudioController: Timed out waiting for canplaythrough after load, proceeding anyway");
+                      resolve();
+                  }, 3000);
               });
           }
       }
@@ -248,157 +284,190 @@ const AudioController = {
       // User wants to unmute
       debugLog("AUDIO DEBUG: User wants to UNMUTE.");
       this._isMuted = false;
-      this.audio.muted = false; // Unmute the element
-      // Volume will be set by the play function if/when it plays
       debugLog(`AUDIO DEBUG: Set internal state (_isMuted) to: ${this._isMuted}`);
+      
+      // Update UI first
       if (uiUpdateCallback) {
         debugLog("AUDIO DEBUG: Calling UI update callback with false (unmuted).");
         uiUpdateCallback(false); // Notify UI: isMuted = false
       }
       
-      // Attempt to unlock audio context when unmuting if not already unlocked
-      if (!this.audioContextUnlocked) {
-        this.unlockAudioContext();
-      }
-      // The calling context (game.js) should decide whether to call playWithUserInteraction now
-    }
-    debugLog(`AUDIO DEBUG: toggleMute END. Final internal state (_isMuted): ${this._isMuted}`);
-  },
-
-  // Stops playback and resets state
-  stop(resetTime = true) {
-    debugLog(`AudioController: stop called (resetTime: ${resetTime})`);
-    if (this.audio) {
-        if (!this.audio.paused) {
-            debugLog("AudioController: Pausing audio");
-            this.audio.pause();
+      // Handle audio state
+      if (this._isGameComplete()) {
+        debugLog("AUDIO DEBUG: Game is complete! Attempt to play/resume audio.");
+        
+        // First unlock audio context if needed (for iOS)
+        if (!this.audioContextUnlocked) {
+          this.unlockAudioContext();
         }
-        if (resetTime) {
-            try {
-                // Only reset time if not already at 0 to avoid unnecessary operations
-                if (this.audio.currentTime !== 0) {
-                    debugLog("AudioController: Resetting currentTime to 0");
-                    this.audio.currentTime = 0;
-                }
-            } catch (e) {
-                // Catch potential errors (e.g., if called during invalid state)
-                debugLog("AudioController: Error resetting audio time: " + e);
-            }
+        
+        // Ensure not muted
+        this.audio.muted = false;
+        this.audio.volume = 0.2;
+        
+        // If already ended or not started, reset to beginning
+        if (this.audio.ended || this.audio.currentTime === 0 || this.audio.currentTime >= this.audio.duration - 0.5) {
+          this.audio.currentTime = 0;
+          debugLog("AUDIO DEBUG: Reset to beginning");
         }
-        // Reset volume to 0 when stopped
-        this.audio.volume = 0;
-    }
-  },
-
-  // Attempts to unlock the audio context silently
-  unlockAudioContext() {
-      // Only run if audio exists and context isn't already unlocked
-      if (!this.audio || this.audioContextUnlocked) {
-        debugLog(`AudioController: Unlock not needed/possible - Exists: ${!!this.audio}, Unlocked: ${this.audioContextUnlocked}`);
-        return;
-      }
-
-      debugLog("AudioController: Attempting silent unlock");
-      const audioInstance = this.audio;
-      const originalMuted = audioInstance.muted;
-      const originalVolume = audioInstance.volume;
-      const originalTime = audioInstance.currentTime;
-
-      audioInstance.muted = false; // Must be unmuted to play
-      audioInstance.volume = 0.001; // Set very low volume
-
-      try {
-          const playPromise = audioInstance.play();
+        
+        // Try to play
+        try {
+          const playPromise = this.audio.play();
           if (playPromise !== undefined) {
-              playPromise.then(() => {
-                  // Immediately pause after playback starts
-                  audioInstance.pause();
-                  // Restore original state
-                  audioInstance.muted = originalMuted;
-                  audioInstance.volume = originalVolume;
-                  if (audioInstance.currentTime !== originalTime) {
-                      audioInstance.currentTime = originalTime;
-                  }
-                  debugLog("AudioController: Audio context likely unlocked.");
-                  this.audioContextUnlocked = true;
-              }).catch(error => {
-                  debugLog("AudioController: Unlock play() failed: " + error);
-                  // Restore original state on failure
-                  audioInstance.pause();
-                  audioInstance.muted = originalMuted;
-                  audioInstance.volume = originalVolume;
-                  if (audioInstance.currentTime !== originalTime) {
-                      audioInstance.currentTime = originalTime;
-                  }
-              });
-          } else {
-             // If playPromise is undefined, restore state
-             audioInstance.muted = originalMuted;
-             audioInstance.volume = originalVolume;
-             debugLog("AudioController: play() promise was undefined during unlock.");
+            playPromise.then(() => {
+              debugLog("AUDIO DEBUG: Successfully played/resumed on unmute!");
+              this.audioContextUnlocked = true;
+            }).catch(error => {
+              debugLog("AUDIO DEBUG: Failed to play on unmute: " + error);
+              this._handlePlaybackError();
+            });
           }
-      } catch (e) {
-          debugLog("AudioController: Exception during unlock attempt: " + e);
-           // Restore original state on exception
-           audioInstance.pause();
-           audioInstance.muted = originalMuted;
-           audioInstance.volume = originalVolume;
+        } catch (e) {
+          debugLog("AUDIO DEBUG: Exception during playback on unmute: " + e);
+          this._handlePlaybackError();
+        }
+      } else {
+        debugLog("AUDIO DEBUG: Game not complete, just updated UI without audio change");
       }
+    }
   },
   
-  // Centralized handler for playback errors
+  // Stops audio playback
+  stop(resetTime = true) {
+    if (!this.audio) return;
+    
+    debugLog("AudioController: Stopping audio" + (resetTime ? " and resetting time" : ""));
+    try {
+      // Pause the audio first
+      this.audio.pause();
+      
+      // Reset the currentTime if requested
+      if (resetTime) {
+        this.audio.currentTime = 0;
+      }
+      
+      // Apply mute state based on internal tracker
+      this.audio.muted = this._isMuted;
+      this.audio.volume = 0; // Always set volume to 0 when stopped
+      
+      debugLog(`AudioController: Audio stopped. State: paused=${this.audio.paused}, muted=${this.audio.muted}, time=${this.audio.currentTime}`);
+    } catch (e) {
+      debugLog("AudioController: Error stopping audio: " + e);
+    }
+  },
+  
+  // Unlock audio context - important for iOS
+  async unlockAudioContext() {
+    if (!this.audio || this.audioContextUnlocked) {
+      debugLog("AudioController: No need to unlock - already unlocked or no audio element");
+      return;
+    }
+    
+    debugLog("AudioController: Attempting to unlock audio context");
+    
+    try {
+      // Store original state
+      const originalMuted = this.audio.muted;
+      const originalVolume = this.audio.volume;
+      const originalTime = this.audio.currentTime;
+      const originalPaused = this.audio.paused;
+      
+      // Ensure silent before unlock attempt
+      this.audio.muted = true;
+      this.audio.volume = 0;
+      
+      // Try to play silently
+      const unlockPromise = this.audio.play();
+      if (unlockPromise !== undefined) {
+        await unlockPromise.then(() => {
+          // Success! Immediately pause and restore original state
+          debugLog("AudioController: Successfully unlocked audio context");
+          this.audioContextUnlocked = true;
+          
+          // Only pause if it was paused originally
+          if (originalPaused) {
+            this.audio.pause();
+          }
+          
+          // Restore state but respect game rules
+          this.audio.currentTime = originalTime;
+          this.audio.muted = this._isMuted || !this._isGameComplete(); // Apply mute based on game state
+          this.audio.volume = this._isMuted ? 0 : originalVolume;
+          
+          debugLog(`AudioController: Restored state after unlock: muted=${this.audio.muted}, volume=${this.audio.volume}`);
+        }).catch(err => {
+          // Couldn't unlock - this is expected in many cases
+          debugLog("AudioController: Could not unlock audio context: " + err);
+          
+          // Still restore original state
+          if (originalPaused) {
+            this.audio.pause();
+          }
+          this.audio.currentTime = originalTime;
+          this.audio.muted = originalMuted;
+          this.audio.volume = originalVolume;
+        });
+      } else {
+        // Promise wasn't returned, restore state
+        debugLog("AudioController: No promise returned from play attempt, restoring state");
+        if (originalPaused) {
+          this.audio.pause();
+        }
+        this.audio.currentTime = originalTime;
+        this.audio.muted = originalMuted;
+        this.audio.volume = originalVolume;
+      }
+    } catch (e) {
+      debugLog("AudioController: Error in unlockAudioContext: " + e);
+    }
+  },
+  
+  // Handle playback errors
   _handlePlaybackError() {
-    this._isMuted = true; // Assume mute failed if play fails
-    this.audio.muted = true;
-    this.audio.volume = 0;
-    this.audio.pause();
-    updateMuteButtonUI(true); // Update mute button to reflect state
+    debugLog("AudioController: Handling playback error");
+    try {
+      // Ensure audio is paused and muted to prevent further errors
+      this.audio.pause();
+      this.audio.muted = true;
+      this.audio.volume = 0;
+    } catch (e) {
+      debugLog("AudioController: Error in _handlePlaybackError: " + e);
+    }
   },
-
-  // Helper function to check if the game is complete
+  
+  // Helper to check if game is complete
   _isGameComplete() {
-    // Check if Stopwatch.endTime exists to determine if game is complete
-    return typeof window.Stopwatch !== 'undefined' && window.Stopwatch.endTime !== null;
+    // This function should check from your game state logic
+    return window.GAME_STATE && window.GAME_STATE.isCompleted === true;
   },
-
+  
   // Reset the autoplay attempted flag
   resetAutoplayAttempted() {
     this._autoplayAttempted = false;
     debugLog("AudioController: Reset autoplay attempted flag");
   },
-
-  // --- Getters ---
+  
+  // Public getter for mute state
   isMuted() {
-    // Use the internal state as the source of truth
     return this._isMuted;
   },
-
+  
+  // Get current time
   getCurrentTime() {
     return this.audio ? this.audio.currentTime : 0;
   },
-
+  
+  // Check if audio is loaded
   isLoaded() {
-    return this.audioLoaded;
+    return this.audioLoaded && this.audio && this.audio.readyState >= 3;
   }
 };
 
-// Handle mute button click (intended to be called directly from a user interaction event)
 function toggleMuteSongPreview() {
-  debugLog("toggleMuteSongPreview called from user interaction");
-  
-  // Toggle mute state first
+  debugLog("toggleMuteSongPreview called");
+  // Toggle mute and update UI
   AudioController.toggleMute(updateMuteButtonUI);
-  
-  // If now unmuted, attempt to play but ONLY if game is complete
-  if (!AudioController.isMuted()) {
-    if (AudioController._isGameComplete()) {
-      debugLog("Game is complete and unmuted - playing audio via user interaction");
-      AudioController.playWithUserInteraction();
-    } else {
-      debugLog("Game is not complete - not playing audio yet, just unmuted state");
-    }
-  }
 }
 
-// Export the controller
 export { AudioController, toggleMuteSongPreview };

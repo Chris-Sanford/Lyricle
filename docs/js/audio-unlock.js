@@ -19,6 +19,7 @@ function unlockAudio() {
     const originalMuted = audioInstance.muted;
     const originalVolume = audioInstance.volume;
     const originalTime = audioInstance.currentTime;
+    const wasPlaying = !audioInstance.paused;
     
     // Attempt to play while completely silent
     audioInstance.muted = true; // KEEP MUTED
@@ -29,7 +30,11 @@ function unlockAudio() {
       silentPlay.then(() => {
         // Immediately pause and restore state
         debugLog("Silent unlock play succeeded, pausing immediately");
-        audioInstance.pause();
+        
+        // Only pause if it wasn't playing before
+        if (!wasPlaying) {
+          audioInstance.pause();
+        }
         
         // Restore original state (important: restore original muted state)
         audioInstance.muted = originalMuted;
@@ -46,7 +51,9 @@ function unlockAudio() {
       }).catch(e => {
         // Failure is okay, just restore state
         debugLog("Audio unlock attempt failed (kept silent): " + e);
-        audioInstance.pause(); // Ensure it's paused
+        if (!wasPlaying) {
+          audioInstance.pause(); // Ensure it's paused only if it was originally paused
+        }
         audioInstance.muted = originalMuted;
         audioInstance.volume = originalVolume;
         if (audioInstance.currentTime !== originalTime) {
@@ -55,6 +62,9 @@ function unlockAudio() {
       });
     } else {
       // If promise is undefined, restore state
+      if (!wasPlaying) {
+        audioInstance.pause();
+      }
       audioInstance.muted = originalMuted;
       audioInstance.volume = originalVolume;
       debugLog("Silent unlock play promise was undefined.");
@@ -75,9 +85,39 @@ function unlockAudio() {
 }
 
 // Add listeners for both touch and click events - using more aggressive approach for iOS
-// Use { once: true } to ensure unlock only happens on the very first interaction
-document.addEventListener('touchstart', unlockAudio, { once: true, passive: true });
-document.addEventListener('click', unlockAudio, { once: true, passive: true });
+// Using capture phase to intercept events as early as possible
+document.addEventListener('touchstart', unlockAudio, { once: true, passive: true, capture: true });
+document.addEventListener('click', unlockAudio, { once: true, passive: true, capture: true });
+
+// For iOS Safari, we need to ensure any user gesture can potentially unlock audio
+// These additional events can help in various scenarios
+document.addEventListener('touchend', unlockAudio, { once: true, passive: true, capture: true });
+
+// Add a more resilient approach that doesn't just unlock once
+// This helps in cases where the browser might reset audio contexts
+let audioUnlockAttempts = 0;
+const MAX_UNLOCK_ATTEMPTS = 3;
+
+function tryUnlockOnInteraction(e) {
+  if (audioUnlockAttempts >= MAX_UNLOCK_ATTEMPTS || AudioController.audioContextUnlocked) {
+    // Already unlocked or max attempts reached
+    return;
+  }
+  
+  audioUnlockAttempts++;
+  debugLog(`Additional unlock attempt #${audioUnlockAttempts}`);
+  unlockAudio();
+  
+  // If we've reached max attempts, remove the listeners
+  if (audioUnlockAttempts >= MAX_UNLOCK_ATTEMPTS) {
+    document.removeEventListener('click', tryUnlockOnInteraction);
+    document.removeEventListener('touchstart', tryUnlockOnInteraction);
+  }
+}
+
+// Add backup unlock listeners that will try multiple times
+document.addEventListener('click', tryUnlockOnInteraction, { passive: true });
+document.addEventListener('touchstart', tryUnlockOnInteraction, { passive: true });
 
 // Export the unlockAudio function so it can be called directly if needed (though listeners are primary)
 export { unlockAudio }; 

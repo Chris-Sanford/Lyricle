@@ -2,6 +2,10 @@
 
 This document contains plain English descriptions of how the game functions and the core logic that drives the behavior. This is mostly to give context to an LLM when performing AI-assisted coding to prevent regressions.
 
+# Daily Song Rotation Logic
+
+The daily song rotation works by calculating the index of the current day of the year based on which day of the year it is (i.e. out of 365 days in the year). This integer is used to select a song based on the index of a song in the array of songs from the song data JSON. If the index is outside the bounds of the available array, a random song is selected from the array.
+
 # UI Display Logic
 
 ## How To Play Modal
