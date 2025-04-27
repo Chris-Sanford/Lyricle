@@ -9,7 +9,7 @@ let _statsRef = null; // Reference to the Stats object
 export const KeyboardController = {
   activeInputElement: null,
   focusedBoxIndex: null,
-  customKeyboardEnabled: true, // Default, can be configured
+  customKeyboardEnabled: false, // Changed default to false to enable native keyboard
 
   // Method to initialize the controller with necessary callbacks and references from game.js
   init(callbacks, songRef, statsRef) {
@@ -18,8 +18,13 @@ export const KeyboardController = {
     _songRef = songRef; // Store reference to the song object managed by game.js
     _statsRef = statsRef; // Store reference to the Stats object managed by game.js
 
-    // Add event listener to prevent native keyboard on mobile
-    document.addEventListener('focusin', this.preventNativeKeyboard.bind(this));
+    // Add event listener to prevent native keyboard on mobile only if custom keyboard is enabled
+    if (this.isEnabled()) {
+      document.addEventListener('focusin', this.preventNativeKeyboard.bind(this));
+      debugLog("Native keyboard prevention enabled");
+    } else {
+      debugLog("Native keyboard will be used (custom keyboard disabled)");
+    }
 
     debugLog("KeyboardController initialized.");
   },
@@ -327,8 +332,9 @@ export const KeyboardController = {
 
   // Prevent native keyboard on mobile
   preventNativeKeyboard(event) {
-      // Only apply this for mobile devices
+      // Only apply this for mobile devices and if custom keyboard is explicitly enabled
       if (!isMobileDevice() || !this.isEnabled()) {
+          debugLog("Not preventing native keyboard - either not mobile or custom keyboard disabled");
           return; // Do nothing on desktop or if custom keyboard is disabled
       }
       

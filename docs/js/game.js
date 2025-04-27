@@ -394,11 +394,13 @@ function constructLyricInputBoxes(song, lyricsGridContainer) {
         lyricBoxFocusListener(this, song);
       });
       
-      // Always make contentEditable true for desktop, but handle mobile via KeyboardController
+      // Always make contentEditable true unless on mobile AND custom keyboard is enabled
       if (isMobileDevice() && KeyboardController.isEnabled()) {
         input.contentEditable = false;
       } else {
         input.contentEditable = "true";
+        // Ensure native keyboard can be used
+        debugLog(`Setting contentEditable=true for ${input.id}`);
       }
       
       // Handle focus events
