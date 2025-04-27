@@ -40,8 +40,8 @@ function getFormattedTime() {
   return { minutes, seconds };
 }
 
-// Export functions and variables that need to be accessed by game.js
-window.Stopwatch = {
+// Export as an ES module
+export const Stopwatch = {
   start,
   stop,
   reset,
@@ -50,3 +50,6 @@ window.Stopwatch = {
   get startTime() { return startTime; },
   get endTime() { return endTime; }
 };
+
+// Also set on window for backward compatibility
+window.Stopwatch = Stopwatch;

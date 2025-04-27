@@ -14,6 +14,12 @@ import { isMobileDevice, splitLineForDisplay, getDayInt, sanitizeInput } from '.
 import { useLifeline } from './lifelines.js';
 // Import the audio-unlock function
 import { unlockAudio } from './audio-unlock.js';
+// Import Stats and Stopwatch
+import { Stats } from './stats.js';
+import { Stopwatch } from './stopwatch.js';
+
+// Ensure debugLog is available globally for any modules that might use it without importing
+window.debugLog = window.debugLog || debugLog;
 
 // **************** Global Variables ****************
 var lastLine = 0; // initialize lastLine to 0, make variable global so it can be accessed by all functions
@@ -92,173 +98,187 @@ function constructRandomButton() {
 
 function constructGameCompleteModal(song, elapsedTime) { // Add elapsedTime parameter
   debugLog("Constructing game complete modal");
-  // Random button is now created at initialization, no need to create it here
-  constructStatsButton();
-
-  // Check if modal already exists
-  var existingModal = document.getElementById("gameCompleteModal");
-  if (existingModal) {
-    existingModal.remove();
-  }
-
-  // Create the modal element
-  var modal = document.createElement("div");
-  modal.classList.add("modal", "fade");
-  modal.id = "gameCompleteModal";
-  modal.tabIndex = "-1";
-  modal.setAttribute("aria-labelledby", "gameCompleteModalLabel");
-  modal.setAttribute("aria-hidden", "true");
-
-  // Create the modal dialog
-  var modalDialog = document.createElement("div");
-  modalDialog.classList.add("modal-dialog");
-  modal.appendChild(modalDialog);
-
-  // Create the modal content
-  var modalContent = document.createElement("div");
-  modalContent.classList.add("modal-content");
-  modalDialog.appendChild(modalContent);
-
-  // Create the modal header
-  var modalHeader = document.createElement("div");
-  modalHeader.classList.add("modal-header");
-  modalContent.appendChild(modalHeader);
-
-  // Create the modal title
-  var modalTitle = document.createElement("h1");
-  modalTitle.classList.add("modal-title", "fs-5");
-  modalTitle.id = "gameCompleteModalLabel";
-  modalTitle.innerText = "Game Complete";
-  modalHeader.appendChild(modalTitle);
-
-  // Create the close button
-  var closeButton = document.createElement("button");
-  closeButton.type = "button";
-  closeButton.classList.add("btn-close");
-  closeButton.setAttribute("data-bs-dismiss", "modal");
-  closeButton.setAttribute("aria-label", "Close");
-  modalHeader.appendChild(closeButton);
-
-  // Create the modal body
-  var modalBody = document.createElement("div");
-  modalBody.classList.add("modal-body");
-  modalContent.appendChild(modalBody);
-
-  // Create the modal body content
-  var modalBodyContent = document.createElement("table");
-  modalBodyContent.classList.add("table", "table-borderless"); // Add the "table-borderless" class to remove table row outlines
-
-  // Create the table body
-  var tableBody = document.createElement("tbody");
-
-  // Create the body header
-  var bodyHeaderRow = document.createElement("tr");
-  var bodyHeaderCell = document.createElement("td");
-  bodyHeaderCell.setAttribute("colspan", "2");
-  bodyHeaderCell.innerHTML = '<span class="fs-4 fw-bold">How\'d you do?</span>';
-  bodyHeaderRow.appendChild(bodyHeaderCell);
-  tableBody.appendChild(bodyHeaderRow);
-
-  // Get completion stats
-  const stats = Stats.getCompletionStats(lifelines, elapsedTime); // Pass elapsedTime
-
-  // Create the rows and cells for each statistic
-  var percentageCorrectRow = document.createElement("tr");
-  var percentageCorrectCell1 = document.createElement("td");
-  percentageCorrectCell1.innerText = "Percentage Correct";
-  var percentageCorrectCell2 = document.createElement("td");
-  percentageCorrectCell2.innerText = `${stats.wordsCorrect} of ${stats.wordsToGuess} (${stats.percentageComplete}%)`;
-  percentageCorrectRow.appendChild(percentageCorrectCell1);
-  percentageCorrectRow.appendChild(percentageCorrectCell2);
-  tableBody.appendChild(percentageCorrectRow);
-
-  var lifelinesRemainingRow = document.createElement("tr");
-  var lifelinesRemainingCell1 = document.createElement("td");
-  lifelinesRemainingCell1.innerText = "Lifelines Remaining";
-  var lifelinesRemainingCell2 = document.createElement("td");
-  lifelinesRemainingCell2.innerText = lifelines + " of 3";
-  lifelinesRemainingRow.appendChild(lifelinesRemainingCell1);
-  lifelinesRemainingRow.appendChild(lifelinesRemainingCell2);
-  tableBody.appendChild(lifelinesRemainingRow);
-
-  var totalTimeRow = document.createElement("tr");
-  var totalTimeCell1 = document.createElement("td");
-  totalTimeCell1.innerText = "Time to Completion";
-  var totalTimeCell2 = document.createElement("td");
-  // Format the elapsed time nicely
-  const minutes = Math.floor(stats.elapsedTime / 60);
-  const seconds = Math.floor(stats.elapsedTime % 60);
-  totalTimeCell2.innerText = `${minutes} minute${minutes !== 1 ? 's' : ''} and ${seconds} second${seconds !== 1 ? 's' : ''}`;
-  totalTimeRow.appendChild(totalTimeCell1);
-  totalTimeRow.appendChild(totalTimeCell2);
-  tableBody.appendChild(totalTimeRow);
-
-  var totalInputsRow = document.createElement("tr");
-  var totalInputsCell1 = document.createElement("td");
-  totalInputsCell1.innerText = "Total Inputs";
-  var totalInputsCell2 = document.createElement("td");
-  totalInputsCell2.innerText = stats.inputCounter;
-  totalInputsRow.appendChild(totalInputsCell1);
-  totalInputsRow.appendChild(totalInputsCell2);
-  tableBody.appendChild(totalInputsRow);
-
-  modalBodyContent.appendChild(tableBody);
-  modalBody.appendChild(modalBodyContent);
-
-  // Create the modal footer
-  var modalFooter = document.createElement("div");
-  modalFooter.classList.add("modal-footer", "d-flex", "justify-content-center");
-  modalContent.appendChild(modalFooter);
-
-  // Populate the modal footer with a mute button - reverted to simple icon style
-  var muteButton = document.createElement("button");
-  muteButton.type = "button";
-  muteButton.classList.add("btn", "btn-secondary", "lyricle-icon-button");
-  muteButton.id = "muteButton2";
-  muteButton.setAttribute("aria-label", "Toggle song preview");
-  muteButton.addEventListener("click", function(e) {
-    debugLog("Modal mute button clicked");
-    
-    // First ensure audio context is unlocked for iOS
-    if (AudioController.audio && !AudioController.audioContextUnlocked) {
-      debugLog("Modal: Attempting to unlock audio from modal mute button");
-      unlockAudio();
+  
+  try {
+    // Validate parameters
+    if (!song || !Array.isArray(song.lyrics)) {
+      debugLog("WARNING: constructGameCompleteModal called with invalid song object");
+      // Use a simple fallback approach
+      elapsedTime = elapsedTime || 0;
     }
     
-    // Then toggle mute with a slight delay
-    setTimeout(() => {
-      // Toggle the mute state which will also update UI
-      toggleMuteSongPreview();
+    // Random button is now created at initialization, no need to create it here
+    constructStatsButton();
+
+    // Check if modal already exists
+    var existingModal = document.getElementById("gameCompleteModal");
+    if (existingModal) {
+      existingModal.remove();
+    }
+
+    // Create the modal element
+    var modal = document.createElement("div");
+    modal.classList.add("modal", "fade");
+    modal.id = "gameCompleteModal";
+    modal.tabIndex = "-1";
+    modal.setAttribute("aria-labelledby", "gameCompleteModalLabel");
+    modal.setAttribute("aria-hidden", "true");
+
+    // Create the modal dialog
+    var modalDialog = document.createElement("div");
+    modalDialog.classList.add("modal-dialog");
+    modal.appendChild(modalDialog);
+
+    // Create the modal content
+    var modalContent = document.createElement("div");
+    modalContent.classList.add("modal-content");
+    modalDialog.appendChild(modalContent);
+
+    // Create the modal header
+    var modalHeader = document.createElement("div");
+    modalHeader.classList.add("modal-header");
+    modalContent.appendChild(modalHeader);
+
+    // Create the modal title
+    var modalTitle = document.createElement("h1");
+    modalTitle.classList.add("modal-title", "fs-5");
+    modalTitle.id = "gameCompleteModalLabel";
+    modalTitle.innerText = "Game Complete";
+    modalHeader.appendChild(modalTitle);
+
+    // Create the close button
+    var closeButton = document.createElement("button");
+    closeButton.type = "button";
+    closeButton.classList.add("btn-close");
+    closeButton.setAttribute("data-bs-dismiss", "modal");
+    closeButton.setAttribute("aria-label", "Close");
+    modalHeader.appendChild(closeButton);
+
+    // Create the modal body
+    var modalBody = document.createElement("div");
+    modalBody.classList.add("modal-body");
+    modalContent.appendChild(modalBody);
+
+    // Create the modal body content
+    var modalBodyContent = document.createElement("table");
+    modalBodyContent.classList.add("table", "table-borderless"); // Add the "table-borderless" class to remove table row outlines
+
+    // Create the table body
+    var tableBody = document.createElement("tbody");
+
+    // Create the body header
+    var bodyHeaderRow = document.createElement("tr");
+    var bodyHeaderCell = document.createElement("td");
+    bodyHeaderCell.setAttribute("colspan", "2");
+    bodyHeaderCell.innerHTML = '<span class="fs-4 fw-bold">How\'d you do?</span>';
+    bodyHeaderRow.appendChild(bodyHeaderCell);
+    tableBody.appendChild(bodyHeaderRow);
+
+    // Get completion stats with safeguards
+    const stats = Stats.getCompletionStats(lifelines || 0, elapsedTime || 0);
+
+    // Create the rows and cells for each statistic
+    var percentageCorrectRow = document.createElement("tr");
+    var percentageCorrectCell1 = document.createElement("td");
+    percentageCorrectCell1.innerText = "Percentage Correct";
+    var percentageCorrectCell2 = document.createElement("td");
+    percentageCorrectCell2.innerText = `${stats.wordsCorrect} of ${stats.wordsToGuess} (${stats.percentageComplete}%)`;
+    percentageCorrectRow.appendChild(percentageCorrectCell1);
+    percentageCorrectRow.appendChild(percentageCorrectCell2);
+    tableBody.appendChild(percentageCorrectRow);
+
+    var lifelinesRemainingRow = document.createElement("tr");
+    var lifelinesRemainingCell1 = document.createElement("td");
+    lifelinesRemainingCell1.innerText = "Lifelines Remaining";
+    var lifelinesRemainingCell2 = document.createElement("td");
+    lifelinesRemainingCell2.innerText = (lifelines || 0) + " of 3";
+    lifelinesRemainingRow.appendChild(lifelinesRemainingCell1);
+    lifelinesRemainingRow.appendChild(lifelinesRemainingCell2);
+    tableBody.appendChild(lifelinesRemainingRow);
+
+    var totalTimeRow = document.createElement("tr");
+    var totalTimeCell1 = document.createElement("td");
+    totalTimeCell1.innerText = "Time to Completion";
+    var totalTimeCell2 = document.createElement("td");
+    // Format the elapsed time nicely
+    const minutes = Math.floor(stats.elapsedTime / 60);
+    const seconds = Math.floor(stats.elapsedTime % 60);
+    totalTimeCell2.innerText = `${minutes} minute${minutes !== 1 ? 's' : ''} and ${seconds} second${seconds !== 1 ? 's' : ''}`;
+    totalTimeRow.appendChild(totalTimeCell1);
+    totalTimeRow.appendChild(totalTimeCell2);
+    tableBody.appendChild(totalTimeRow);
+
+    var totalInputsRow = document.createElement("tr");
+    var totalInputsCell1 = document.createElement("td");
+    totalInputsCell1.innerText = "Total Inputs";
+    var totalInputsCell2 = document.createElement("td");
+    totalInputsCell2.innerText = stats.inputCounter;
+    totalInputsRow.appendChild(totalInputsCell1);
+    totalInputsRow.appendChild(totalInputsCell2);
+    tableBody.appendChild(totalInputsRow);
+
+    modalBodyContent.appendChild(tableBody);
+    modalBody.appendChild(modalBodyContent);
+
+    // Create the modal footer
+    var modalFooter = document.createElement("div");
+    modalFooter.classList.add("modal-footer", "d-flex", "justify-content-center");
+    modalContent.appendChild(modalFooter);
+
+    // Populate the modal footer with a mute button - reverted to simple icon style
+    var muteButton = document.createElement("button");
+    muteButton.type = "button";
+    muteButton.classList.add("btn", "btn-secondary", "lyricle-icon-button");
+    muteButton.id = "muteButton2";
+    muteButton.setAttribute("aria-label", "Toggle song preview");
+    muteButton.addEventListener("click", function(e) {
+      debugLog("Modal mute button clicked");
       
-      // No need to manually call playWithUserInteraction() - 
-      // toggleMuteSongPreview now handles playback directly when unmuting
-      debugLog("Modal: Mute state toggled, current state: " + (AudioController.isMuted() ? "muted" : "unmuted"));
-    }, 10);
+      // First ensure audio context is unlocked for iOS
+      if (AudioController.audio && !AudioController.audioContextUnlocked) {
+        debugLog("Modal: Attempting to unlock audio from modal mute button");
+        unlockAudio();
+      }
+      
+      // Then toggle mute with a slight delay
+      setTimeout(() => {
+        // Toggle the mute state which will also update UI
+        toggleMuteSongPreview();
+        
+        // No need to manually call playWithUserInteraction() - 
+        // toggleMuteSongPreview now handles playback directly when unmuting
+        debugLog("Modal: Mute state toggled, current state: " + (AudioController.isMuted() ? "muted" : "unmuted"));
+      }, 10);
+      
+      // Prevent event propagation
+      e.stopPropagation();
+    });
     
-    // Prevent event propagation
-    e.stopPropagation();
-  });
-  
-  var muteButtonIcon = document.createElement("i");
-  muteButtonIcon.id = "muteButtonIcon2";
-  var originalMuteButtonIcon = document.getElementById("muteButtonIcon"); // Get the original mute button icon element
-  muteButtonIcon.className = originalMuteButtonIcon.className; // Set the className to be the same as the original muteButton
-  muteButton.appendChild(muteButtonIcon);
-  modalFooter.appendChild(muteButton);
+    var muteButtonIcon = document.createElement("i");
+    muteButtonIcon.id = "muteButtonIcon2";
+    var originalMuteButtonIcon = document.getElementById("muteButtonIcon"); // Get the original mute button icon element
+    if (originalMuteButtonIcon) {
+      muteButtonIcon.className = originalMuteButtonIcon.className; // Set the className to be the same as the original muteButton
+    } else {
+      muteButtonIcon.className = "fas fa-volume-up"; // Fallback if original icon not found
+    }
+    muteButton.appendChild(muteButtonIcon);
+    modalFooter.appendChild(muteButton);
 
-  // Append the modal to the document body
-  document.body.appendChild(modal);
+    // Append the modal to the document body
+    document.body.appendChild(modal);
 
-  // Add text after the table
-  var thanksText = document.createElement("p");
-  thanksText.innerText = "Thanks for playing!";
-  thanksText.style.textAlign = "center"; // Center the text
-  modalBody.appendChild(thanksText);
-
-  // Display the modal
-  var modalElement = document.getElementById("gameCompleteModal");
-  var modalInstance = new bootstrap.Modal(modalElement);
-  modalInstance.show();
+    // Add text after the table
+    var thanksText = document.createElement("p");
+    thanksText.innerText = "Thanks for playing!";
+    thanksText.style.textAlign = "center"; // Center the text
+    modalBody.appendChild(thanksText);
+    
+    debugLog("Game complete modal constructed and added to DOM");
+    // Note: We no longer display the modal here - that's now handled in completeGame
+  } catch (error) {
+    debugLog("ERROR constructing game complete modal: " + error.message);
+  }
 }
 
 function calculateOptimizedLyricBoxWidth(lyricContent, customBuffer) {
@@ -306,6 +326,11 @@ function constructLyricInputBoxes(song, lyricsGridContainer) {
   lyricsGridContainer.style.width = "100%";
   lyricsGridContainer.style.maxWidth = "100%";
   lyricsGridContainer.style.margin = "0 auto";
+  
+  // Count words to guess and set the total in Stats
+  const wordsToGuess = song.lyrics.filter(lyric => lyric.toGuess).length;
+  Stats.setWordsToGuess(wordsToGuess);
+  debugLog(`GAME DEBUG: Set wordsToGuess to ${wordsToGuess}`);
   
   var lineIndex = 0;
   var lyricsToDisplay = song.lyrics.filter(lyric => lyric.lineIndex === lineIndex);
@@ -861,10 +886,20 @@ function checkCorrectness(lyricBox, song) {
       // We'll set a new active input in selectNextInput
     }
     
-    if (Stats.incrementWordsCorrect()) { // if all words are correct
-      completeGame(song); // call function that executes game completion code
+    // Increment words correct counter
+    const isComplete = Stats.incrementWordsCorrect();
+    debugLog(`GAME DEBUG: Correct word guessed. Words correct: ${Stats.wordsCorrect}/${Stats.wordsToGuess}`);
+    
+    // Check if all words are correct
+    if (isComplete) {
+      debugLog(`GAME DEBUG: All words guessed correctly. Triggering game completion!`);
+      setTimeout(() => {
+        completeGame(song);
+      }, 50);
+    } else {
+      // Select next input if not complete
+      selectNextInput(lyricBox, (lyricIndex));
     }
-    selectNextInput(lyricBox, (lyricIndex)); // call function that selects the next lyricBox box - updated parameter
   }
 }
 
@@ -1082,20 +1117,30 @@ function focusFirstUnfilledLyric() {
       debugLog("Cannot focus first unfilled lyric: No current song reference.");
       return;
   }
-  const lyrics = currentSong.lyrics;
-  for (let i = 0; i < lyrics.length; i++) {
-      if (lyrics[i].toGuess) {
-          const input = document.getElementById(`lyricInput${i}`);
-          // Check parent class as well for correctness
-          if (input && !input.parentElement.classList.contains("lyricle-lyrics-input-correct")) {
-              // Focus the input element directly
-              input.focus();
-              // Manually call the focus listener to update styling and KeyboardController state
-              lyricBoxFocusListener(input, currentSong);
-              debugLog(`Focused first unfilled lyric: lyricInput${i}`);
-              break;
-          }
-      }
+  
+  try {
+    const lyrics = currentSong.lyrics;
+    if (!Array.isArray(lyrics)) {
+      debugLog("Cannot focus first unfilled lyric: Invalid lyrics array.");
+      return;
+    }
+    
+    for (let i = 0; i < lyrics.length; i++) {
+        if (lyrics[i].toGuess) {
+            const input = document.getElementById(`lyricInput${i}`);
+            // Check parent class as well for correctness
+            if (input && !input.parentElement.classList.contains("lyricle-lyrics-input-correct")) {
+                // Focus the input element directly
+                input.focus();
+                // Manually call the focus listener to update styling and KeyboardController state
+                lyricBoxFocusListener(input, currentSong);
+                debugLog(`Focused first unfilled lyric: lyricInput${i}`);
+                break;
+            }
+        }
+    }
+  } catch (error) {
+    debugLog(`Error in focusFirstUnfilledLyric: ${error.message}`);
   }
 }
 
@@ -1218,7 +1263,6 @@ async function getAllSongData() {
       // Normalize preview URL (ensure preview field exists)
       if (!song.preview && song.preview_url) {
         song.preview = song.preview_url;
-        debugLog(`Normalized preview URL for song: ${song.title}`);
       }
       
       return song;
@@ -1341,10 +1385,11 @@ function startGame(songData) { // Loads main game with song lyrics to guess
     // Pass the initial number of lifelines for the display
     KeyboardController.construct(lifelines);
 
-    // Check one more time that song reference is set in KeyboardController
-    if (!KeyboardController._songRef) {
-      debugLog("WARNING: KeyboardController._songRef is still not set after construct. Setting it one more time.");
-      KeyboardController._songRef = song;
+    // Final check to ensure KeyboardController has the correct song reference
+    debugLog("Final check of KeyboardController._songRef");
+    if (KeyboardController._songRef !== window.currentSong) {
+      debugLog("WARNING: KeyboardController._songRef mismatch - fixing");
+      KeyboardController._songRef = window.currentSong;
     }
 
     Stopwatch.reset();
@@ -1356,68 +1401,95 @@ function startGame(songData) { // Loads main game with song lyrics to guess
     AudioController.setSource(previewUrl);
   } catch (error) {
     debugLog("GAME DEBUG: Critical error in startGame function: " + error.message);
-    // Failsafe - try to show game complete modal even if other parts fail
-    try {
-      completeGame(song);
-    } catch (modalError) {
-      debugLog("GAME DEBUG: Failed to show game complete modal: " + modalError.message);
-      alert("Game completed, but there was an error displaying the results.");
-    }
+    // Don't attempt to complete the game with a potentially undefined song reference
+    // Just log the error and don't show any alert to the user when the game is starting
   }
 }
 
 function completeGame(song) {
-  Stopwatch.stop();
-  const elapsedTime = (Stopwatch.endTime - Stopwatch.startTime) / 1000; // Use properties
-  debugLog(`GAME DEBUG: completeGame called. Elapsed time: ${elapsedTime.toFixed(2)}s`);
-
-  // Set game completion state
-  window.gameState.gameComplete = true;
-  debugLog("GAME DEBUG: Setting gameState.gameComplete to true");
-
-  // Try to play the audio automatically when game completes using AudioController
-  debugLog(`GAME DEBUG: Checking audio state before playing preview. AudioController.isMuted(): ${AudioController.isMuted()}`);
-  if (!AudioController.isMuted()) {
-    debugLog("GAME DEBUG: AudioController is NOT muted. Attempting to play preview.");
-    // Reset the autoplay attempted flag to ensure we can try again
-    AudioController.resetAutoplayAttempted();
-    // Small delay before playing to ensure other UI updates/state changes settle
-    setTimeout(() => {
-      debugLog("GAME DEBUG: Inside setTimeout for playPreview. Calling AudioController.playPreview().");
-      AudioController.playPreview();
-      debugLog("GAME DEBUG: After calling AudioController.playPreview().");
-    }, 100);
-  } else {
-    debugLog("GAME DEBUG: AudioController IS muted. Skipping playPreview.");
+  // Validate song parameter
+  if (!song || !Array.isArray(song.lyrics)) {
+    debugLog("GAME DEBUG: completeGame called with invalid song object");
+    return;
   }
 
-  // Disable the keyboard lifeline button via the controller
-  KeyboardController.disableLifelineButton();
+  try {
+    Stopwatch.stop();
+    const elapsedTime = (Stopwatch.endTime - Stopwatch.startTime) / 1000; // Use properties
+    debugLog(`GAME DEBUG: completeGame called. Elapsed time: ${elapsedTime.toFixed(2)}s`);
 
-  var allCorrect = Stats.wordsCorrect === Stats.wordsToGuess; // Use Stats properties
-  if (allCorrect) {
-    // Do Nothing
-  } else {
-    // populate every incorrect input box with the correct word
-    for (var i = 0; i < song.lyrics.length; i++) {
-      var input = document.getElementById("lyricInput" + i);
-      if (input && !input.classList.contains("lyricle-lyrics-input-correct")) { // Check parent too
-        input.innerHTML = song.lyrics[i].content;
-        input.parentElement.classList.add("lyricle-lyrics-input-noguess"); // Use noguess style for revealed
-        setLyricBoxBorderBottomStyle(input, {
-          width: 4,
-          color1: 255,
-          color2: 255,
-          color3: 255,
-          opacity: 0.001
-        });
-        input.disabled = true; // Disable revealed inputs
-        input.contentEditable = false;
+    // Set game completion state
+    window.gameState.gameComplete = true;
+    debugLog("GAME DEBUG: Setting gameState.gameComplete to true");
+
+    // Try to play the audio automatically when game completes using AudioController
+    debugLog(`GAME DEBUG: Checking audio state before playing preview. AudioController.isMuted(): ${AudioController.isMuted()}`);
+    if (!AudioController.isMuted()) {
+      debugLog("GAME DEBUG: AudioController is NOT muted. Attempting to play preview.");
+      // Reset the autoplay attempted flag to ensure we can try again
+      AudioController.resetAutoplayAttempted();
+      // Small delay before playing to ensure other UI updates/state changes settle
+      setTimeout(() => {
+        debugLog("GAME DEBUG: Inside setTimeout for playPreview. Calling AudioController.playPreview().");
+        AudioController.playPreview();
+        debugLog("GAME DEBUG: After calling AudioController.playPreview().");
+      }, 100);
+    } else {
+      debugLog("GAME DEBUG: AudioController IS muted. Skipping playPreview.");
+    }
+
+    // Disable the keyboard lifeline button via the controller
+    KeyboardController.disableLifelineButton();
+
+    var allCorrect = Stats.wordsCorrect === Stats.wordsToGuess;
+    debugLog(`GAME DEBUG: Game completion check - wordsCorrect: ${Stats.wordsCorrect}, wordsToGuess: ${Stats.wordsToGuess}, allCorrect: ${allCorrect}`);
+
+    if (!allCorrect) {
+      // populate every incorrect input box with the correct word
+      for (var i = 0; i < song.lyrics.length; i++) {
+        var input = document.getElementById("lyricInput" + i);
+        if (input && !input.classList.contains("lyricle-lyrics-input-correct") && 
+            !input.parentElement.classList.contains("lyricle-lyrics-input-correct")) {
+          input.innerHTML = song.lyrics[i].content;
+          input.parentElement.classList.add("lyricle-lyrics-input-noguess"); // Use noguess style for revealed
+          setLyricBoxBorderBottomStyle(input, {
+            width: 4,
+            color1: 255,
+            color2: 255,
+            color3: 255,
+            opacity: 0.001
+          });
+          input.disabled = true; // Disable revealed inputs
+          input.contentEditable = false;
+        }
       }
     }
-  }
 
-  constructGameCompleteModal(song, elapsedTime); // Pass elapsedTime
+    // Create and show the game completion modal
+    try {
+      debugLog("GAME DEBUG: Creating game complete modal");
+      constructGameCompleteModal(song, elapsedTime);
+      
+      // Small delay to ensure modal is constructed before showing
+      setTimeout(() => {
+        debugLog("GAME DEBUG: Attempting to display game complete modal");
+        const gameCompleteModal = document.getElementById("gameCompleteModal");
+        if (gameCompleteModal) {
+          const modalInstance = new bootstrap.Modal(gameCompleteModal);
+          modalInstance.show();
+          debugLog("GAME DEBUG: Game complete modal displayed");
+        } else {
+          debugLog("GAME DEBUG: ERROR - Game complete modal element not found after construction");
+        }
+      }, 100);
+    } catch (error) {
+      debugLog("GAME DEBUG: Error displaying game complete modal: " + error.message);
+      // Fallback alert if modal fails
+      alert("Game complete! Thanks for playing!");
+    }
+  } catch (error) {
+    debugLog("GAME DEBUG: Critical error in completeGame function: " + error.message);
+  }
 }
 
 function concede(song) {
@@ -1447,16 +1519,10 @@ function concede(song) {
           debugLog("GAME DEBUG: Error playing audio preview on concede: " + audioError.message);
         }
       }, 100);
-    } else {
-      debugLog("GAME DEBUG: AudioController IS muted on concede. Skipping playPreview.");
     }
-    
+
     // Disable the keyboard lifeline button via the controller
-    try {
-      KeyboardController.disableLifelineButton();
-    } catch (keyboardError) {
-      debugLog("GAME DEBUG: Error disabling keyboard lifeline button: " + keyboardError.message);
-    }
+    KeyboardController.disableLifelineButton();
 
     // Reveal all lyrics
     for (var i = 0; i < song.lyrics.length; i++) {
@@ -1481,16 +1547,47 @@ function concede(song) {
       }
     }
     
-    // Show the game complete modal
-    constructGameCompleteModal(song, elapsedTime); // Pass elapsedTime
+    // Create and show the game completion modal
+    try {
+      debugLog("GAME DEBUG: Creating game complete modal from concede");
+      constructGameCompleteModal(song, elapsedTime);
+      
+      // Small delay to ensure modal is constructed before showing
+      setTimeout(() => {
+        debugLog("GAME DEBUG: Attempting to display game complete modal from concede");
+        const gameCompleteModal = document.getElementById("gameCompleteModal");
+        if (gameCompleteModal) {
+          const modalInstance = new bootstrap.Modal(gameCompleteModal);
+          modalInstance.show();
+          debugLog("GAME DEBUG: Game complete modal displayed from concede");
+        } else {
+          debugLog("GAME DEBUG: ERROR - Game complete modal element not found after construction from concede");
+        }
+      }, 100);
+    } catch (error) {
+      debugLog("GAME DEBUG: Error displaying game complete modal from concede: " + error.message);
+      // Fallback alert if modal fails
+      alert("Game complete! Thanks for playing!");
+    }
   } catch (error) {
     debugLog("GAME DEBUG: Critical error in concede function: " + error.message);
-    // Failsafe - try to show game complete modal even if other parts fail
-    try {
-      constructGameCompleteModal(song, 0);
-    } catch (modalError) {
-      debugLog("GAME DEBUG: Failed to show game complete modal: " + modalError.message);
-      alert("Game completed, but there was an error displaying the results.");
+    // Only show an alert if explicitly called by the user, not during initialization
+    if (window.gameState && window.gameState.gameComplete) {
+      try {
+        constructGameCompleteModal(song, 0);
+        setTimeout(() => {
+          const gameCompleteModal = document.getElementById("gameCompleteModal");
+          if (gameCompleteModal) {
+            const modalInstance = new bootstrap.Modal(gameCompleteModal);
+            modalInstance.show();
+          } else {
+            throw new Error("Modal element not found");
+          }
+        }, 100);
+      } catch (modalError) {
+        debugLog("GAME DEBUG: Failed to show game complete modal: " + modalError.message);
+        alert("Game completed, but there was an error displaying the results.");
+      }
     }
   }
 }
