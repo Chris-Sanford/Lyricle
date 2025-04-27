@@ -15,10 +15,6 @@ import { useLifeline } from './lifelines.js';
 // Import the audio-unlock function
 import { unlockAudio } from './audio-unlock.js';
 
-// Initialize global game state to track game completion
-window.GAME_STATE = window.GAME_STATE || {
-  isCompleted: false
-};
 // **************** Global Variables ****************
 var lastLine = 0; // initialize lastLine to 0, make variable global so it can be accessed by all functions
 var startingLifelines = 3; // initialize starting lifelines to 3, make variable global so it can be accessed by all functions
@@ -1213,11 +1209,18 @@ async function getAllSongData() {
           // Import the constructLyricObjects function if needed
           // This assumes the Song module is already imported elsewhere
           song.lyrics = constructLyricObjects(song.chorus);
-          debugLog(`Converted chorus to lyrics for song: ${song.title}`);
+          // Don't log verbose message for each song
         } catch (error) {
           debugLog(`Failed to convert chorus to lyrics for song: ${song.title}. Error: ${error.message}`);
         }
       }
+      
+      // Normalize preview URL (ensure preview field exists)
+      if (!song.preview && song.preview_url) {
+        song.preview = song.preview_url;
+        debugLog(`Normalized preview URL for song: ${song.title}`);
+      }
+      
       return song;
     }).filter(song => {
       // Check for title and artist
@@ -1257,14 +1260,9 @@ function startGame(songData) { // Loads main game with song lyrics to guess
 
   debugLog("Starting game with song: " + songData.title);
 
-  // Ensure GAME_STATE exists and then reset game completion state
-  if (!window.GAME_STATE) {
-    window.GAME_STATE = { isCompleted: false };
-    debugLog("GAME DEBUG: GAME_STATE was not defined, creating it now");
-  } else {
-    window.GAME_STATE.isCompleted = false;
-    debugLog("GAME DEBUG: Resetting GAME_STATE.isCompleted to false");
-  }
+  // Reset game completion state
+  window.gameState.gameComplete = false;
+  debugLog("GAME DEBUG: Resetting gameState.gameComplete to false");
 
   try {
     // Create local copy of song to avoid reference issues
@@ -1287,8 +1285,6 @@ function startGame(songData) { // Loads main game with song lyrics to guess
     lyricsGridContainer.innerHTML = "";
     document.getElementById("songTitleName").innerHTML = "";
     document.getElementById("songTitleArtist").innerHTML = "";
-    // Don't clear oskbRow1Col1 here, KeyboardController manages it
-    // document.getElementById("oskbRow1Col1").innerHTML = "";
 
     // If statsButton exists, remove it
     var statsButton = document.getElementById("statsButton");
@@ -1354,7 +1350,10 @@ function startGame(songData) { // Loads main game with song lyrics to guess
     Stopwatch.reset();
 
     // Set the audio source using AudioController
-    AudioController.setSource(song.preview);
+    debugLog(`AudioController: Setting audio source for song: ${song.title}`);
+    // Use either preview or preview_url field from the song data
+    const previewUrl = song.preview || song.preview_url || null;
+    AudioController.setSource(previewUrl);
   } catch (error) {
     debugLog("GAME DEBUG: Critical error in startGame function: " + error.message);
     // Failsafe - try to show game complete modal even if other parts fail
@@ -1372,29 +1371,24 @@ function completeGame(song) {
   const elapsedTime = (Stopwatch.endTime - Stopwatch.startTime) / 1000; // Use properties
   debugLog(`GAME DEBUG: completeGame called. Elapsed time: ${elapsedTime.toFixed(2)}s`);
 
-  // Ensure GAME_STATE exists and then set game completion state
-  if (!window.GAME_STATE) {
-    window.GAME_STATE = { isCompleted: true };
-    debugLog("GAME DEBUG: GAME_STATE was not defined, creating it now with isCompleted=true");
-  } else {
-    window.GAME_STATE.isCompleted = true;
-    debugLog("GAME DEBUG: Setting GAME_STATE.isCompleted to true");
-  }
+  // Set game completion state
+  window.gameState.gameComplete = true;
+  debugLog("GAME DEBUG: Setting gameState.gameComplete to true");
 
   // Try to play the audio automatically when game completes using AudioController
   debugLog(`GAME DEBUG: Checking audio state before playing preview. AudioController.isMuted(): ${AudioController.isMuted()}`);
   if (!AudioController.isMuted()) {
-      debugLog("GAME DEBUG: AudioController is NOT muted. Attempting to play preview.");
-      // Reset the autoplay attempted flag to ensure we can try again
-      AudioController.resetAutoplayAttempted();
-      // Small delay before playing to ensure other UI updates/state changes settle
-      setTimeout(() => {
-          debugLog("GAME DEBUG: Inside setTimeout for playPreview. Calling AudioController.playPreview().");
-          AudioController.playPreview();
-          debugLog("GAME DEBUG: After calling AudioController.playPreview().");
-      }, 100);
+    debugLog("GAME DEBUG: AudioController is NOT muted. Attempting to play preview.");
+    // Reset the autoplay attempted flag to ensure we can try again
+    AudioController.resetAutoplayAttempted();
+    // Small delay before playing to ensure other UI updates/state changes settle
+    setTimeout(() => {
+      debugLog("GAME DEBUG: Inside setTimeout for playPreview. Calling AudioController.playPreview().");
+      AudioController.playPreview();
+      debugLog("GAME DEBUG: After calling AudioController.playPreview().");
+    }, 100);
   } else {
-      debugLog("GAME DEBUG: AudioController IS muted. Skipping playPreview.");
+    debugLog("GAME DEBUG: AudioController IS muted. Skipping playPreview.");
   }
 
   // Disable the keyboard lifeline button via the controller
@@ -1433,33 +1427,28 @@ function concede(song) {
     const elapsedTime = Stopwatch.endTime ? (Stopwatch.endTime - Stopwatch.startTime) / 1000 : 0; // Use properties
     debugLog(`GAME DEBUG: concede called. Elapsed time: ${elapsedTime.toFixed(2)}s`);
     
-    // Ensure GAME_STATE exists and then set game completion state
-    if (!window.GAME_STATE) {
-      window.GAME_STATE = { isCompleted: true };
-      debugLog("GAME DEBUG: GAME_STATE was not defined, creating it now with isCompleted=true");
-    } else {
-      window.GAME_STATE.isCompleted = true;
-      debugLog("GAME DEBUG: Setting GAME_STATE.isCompleted to true on concede");
-    }
+    // Set game completion state
+    window.gameState.gameComplete = true;
+    debugLog("GAME DEBUG: Setting gameState.gameComplete to true on concede");
     
     // Try to play the audio automatically, similar to completeGame, using AudioController
     debugLog(`GAME DEBUG: Checking audio state before playing preview on concede. AudioController.isMuted(): ${AudioController.isMuted()}`);
     if (!AudioController.isMuted()) {
-        debugLog("GAME DEBUG: AudioController is NOT muted on concede. Attempting to play preview.");
-        // Reset the autoplay attempted flag to ensure we can try again
-        AudioController.resetAutoplayAttempted();
-        // Small delay before playing
-        setTimeout(() => {
-          try {
-            debugLog("GAME DEBUG: Inside setTimeout for playPreview on concede. Calling AudioController.playPreview().");
-            AudioController.playPreview();
-            debugLog("GAME DEBUG: After calling AudioController.playPreview() on concede.");
-          } catch (audioError) {
-            debugLog("GAME DEBUG: Error playing audio preview on concede: " + audioError.message);
-          }
-        }, 100);
+      debugLog("GAME DEBUG: AudioController is NOT muted on concede. Attempting to play preview.");
+      // Reset the autoplay attempted flag to ensure we can try again
+      AudioController.resetAutoplayAttempted();
+      // Small delay before playing
+      setTimeout(() => {
+        try {
+          debugLog("GAME DEBUG: Inside setTimeout for playPreview on concede. Calling AudioController.playPreview().");
+          AudioController.playPreview();
+          debugLog("GAME DEBUG: After calling AudioController.playPreview() on concede.");
+        } catch (audioError) {
+          debugLog("GAME DEBUG: Error playing audio preview on concede: " + audioError.message);
+        }
+      }, 100);
     } else {
-        debugLog("GAME DEBUG: AudioController IS muted on concede. Skipping playPreview.");
+      debugLog("GAME DEBUG: AudioController IS muted on concede. Skipping playPreview.");
     }
     
     // Disable the keyboard lifeline button via the controller
@@ -1519,8 +1508,18 @@ function init() {
   const isMobile = isMobileDevice();
   debugLog("Device detection: " + (isMobile ? "Mobile device" : "Desktop device"));
   
+  // Initialize game state
+  window.gameState = {
+    gameComplete: false
+  };
+  
   // Initialize AudioController
   AudioController.init();
+  
+  // Override AudioController's _isGameComplete function to work with our game state
+  AudioController._isGameComplete = function() {
+    return window.gameState && window.gameState.gameComplete === true;
+  };
 
   // Make sure KeyboardController is accessible
   if (!KeyboardController) {
@@ -1557,7 +1556,7 @@ function init() {
       selectNextInput: selectNextInput,
       focusFirstUnfilledLyric: focusFirstUnfilledLyric,
       updateLifelineDisplay: updateLifelineDisplay,
-      isGameComplete: () => window.GAME_STATE && window.GAME_STATE.isCompleted === true
+      isGameComplete: () => window.gameState && window.gameState.gameComplete === true
   };
   
   // Initialize the KeyboardController
