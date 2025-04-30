@@ -27,6 +27,37 @@
   max-height: 600px;
 }
 
+/* Game completion ad styles */
+.lyricle-completion-ad {
+  width: 300px !important;
+  height: 250px !important;
+  overflow: visible;
+  margin: 10px auto;
+  text-align: center;
+  min-height: 250px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Adjust completion ad sizing in modal */
+.lyricle-completion-ad .adsbygoogle {
+  width: 300px !important;
+  height: 250px !important;
+  margin: 0 auto;
+  display: inline-block !important;
+}
+
+/* Add a subtle divider after the completion ad */
+.modal-body::after {
+  content: '';
+  display: block;
+  width: 80%;
+  height: 1px;
+  background-color: rgba(255, 255, 255, 0.1);
+  margin: 15px auto 5px;
+}
+
 /* Only show ads on screens wide enough to accommodate them */
 @media (min-width: 1200px) {
   .lyricle-ad-container {
@@ -53,5 +84,36 @@
   body {
     padding-left: 180px;
     padding-right: 180px;
+  }
+}
+
+/* Special handling for modal ads */
+.modal .lyricle-completion-ad {
+  min-height: 250px;
+  width: 300px !important;
+  height: 250px !important;
+  margin: 15px auto;
+  position: relative;
+  z-index: 10;
+}
+
+/* Special handling for modal ads on small screens */
+@media (max-width: 400px) {
+  .modal .lyricle-completion-ad,
+  .modal .lyricle-completion-ad .adsbygoogle {
+    width: 250px !important;
+    min-width: 250px;
+  }
+}
+
+/* Responsive styles for the completion ad */
+@media (max-width: 767px) {
+  .lyricle-completion-ad {
+    margin: 5px auto;
+  }
+  
+  .lyricle-completion-ad:after {
+    width: 90%;
+    margin: 10px auto 2px;
   }
 } 

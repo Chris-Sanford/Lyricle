@@ -274,6 +274,37 @@ function constructGameCompleteModal(song, elapsedTime) { // Add elapsedTime para
     thanksText.style.textAlign = "center"; // Center the text
     modalBody.appendChild(thanksText);
     
+    // Add the game completion ad below the "Thanks for playing!" text
+    var adContainer = document.createElement("div");
+    adContainer.id = "gameCompletionAd";
+    adContainer.classList.add("lyricle-completion-ad");
+    adContainer.style.display = "flex";
+    adContainer.style.justifyContent = "center";
+    adContainer.style.alignItems = "center";
+    adContainer.style.marginTop = "10px";
+    adContainer.style.marginBottom = "10px";
+    adContainer.style.width = "100%";
+    adContainer.style.minHeight = "250px"; // Ensure minimum height
+    
+    // Create ad element with fixed size
+    var adElement = document.createElement("ins");
+    adElement.className = "adsbygoogle";
+    adElement.style.display = "block";
+    adElement.style.width = "300px"; // Fixed standard width
+    adElement.style.height = "250px"; // Fixed standard height
+    adElement.setAttribute("data-ad-client", "ca-pub-8125725324445796");
+    adElement.setAttribute("data-ad-slot", "7055783344");
+    adElement.setAttribute("data-ad-format", "rectangle");
+    
+    // Add the ad element to the container
+    adContainer.appendChild(adElement);
+    
+    // Add ad container to modal body
+    modalBody.appendChild(adContainer);
+    
+    // Append the modal to the document body
+    document.body.appendChild(modal);
+    
     debugLog("Game complete modal constructed and added to DOM");
     // Note: We no longer display the modal here - that's now handled in completeGame
   } catch (error) {
@@ -979,6 +1010,25 @@ function selectNextInput(input, boxIndex) {
 function displayGameCompleteModal() {
   var modalElement = document.getElementById("gameCompleteModal");
   var modalInstance = new bootstrap.Modal(modalElement);
+  
+  // Add event listener for when modal is fully shown
+  modalElement.addEventListener('shown.bs.modal', function onModalShown() {
+    // Initialize the ad after the modal is fully visible
+    debugLog("Game complete modal fully shown, initializing ad");
+    var adContainer = document.getElementById("gameCompletionAd");
+    if (adContainer) {
+      var adScript = document.createElement("script");
+      adScript.textContent = "(adsbygoogle = window.adsbygoogle || []).push({});";
+      adContainer.appendChild(adScript);
+      debugLog("Ad initialization script added to container");
+    } else {
+      debugLog("Ad container not found in modal");
+    }
+    
+    // Remove the event listener after it fires once
+    modalElement.removeEventListener('shown.bs.modal', onModalShown);
+  });
+  
   modalInstance.show();
 }
 
@@ -1506,6 +1556,24 @@ function completeGame(song) {
         debugLog("GAME DEBUG: Attempting to display game complete modal");
         const gameCompleteModal = document.getElementById("gameCompleteModal");
         if (gameCompleteModal) {
+          // Add event listener for when modal is fully shown
+          gameCompleteModal.addEventListener('shown.bs.modal', function onModalShown() {
+            // Initialize the ad after the modal is fully visible
+            debugLog("Game complete modal fully shown, initializing ad");
+            var adContainer = document.getElementById("gameCompletionAd");
+            if (adContainer) {
+              var adScript = document.createElement("script");
+              adScript.textContent = "(adsbygoogle = window.adsbygoogle || []).push({});";
+              adContainer.appendChild(adScript);
+              debugLog("Ad initialization script added to container");
+            } else {
+              debugLog("Ad container not found in modal");
+            }
+            
+            // Remove the event listener after it fires once
+            gameCompleteModal.removeEventListener('shown.bs.modal', onModalShown);
+          });
+          
           const modalInstance = new bootstrap.Modal(gameCompleteModal);
           modalInstance.show();
           debugLog("GAME DEBUG: Game complete modal displayed");
@@ -1588,6 +1656,24 @@ function concede(song) {
         debugLog("GAME DEBUG: Attempting to display game complete modal from concede");
         const gameCompleteModal = document.getElementById("gameCompleteModal");
         if (gameCompleteModal) {
+          // Add event listener for when modal is fully shown
+          gameCompleteModal.addEventListener('shown.bs.modal', function onModalShown() {
+            // Initialize the ad after the modal is fully visible
+            debugLog("Game complete modal fully shown from concede, initializing ad");
+            var adContainer = document.getElementById("gameCompletionAd");
+            if (adContainer) {
+              var adScript = document.createElement("script");
+              adScript.textContent = "(adsbygoogle = window.adsbygoogle || []).push({});";
+              adContainer.appendChild(adScript);
+              debugLog("Ad initialization script added to container from concede");
+            } else {
+              debugLog("Ad container not found in modal from concede");
+            }
+            
+            // Remove the event listener after it fires once
+            gameCompleteModal.removeEventListener('shown.bs.modal', onModalShown);
+          });
+          
           const modalInstance = new bootstrap.Modal(gameCompleteModal);
           modalInstance.show();
           debugLog("GAME DEBUG: Game complete modal displayed from concede");
@@ -1609,6 +1695,24 @@ function concede(song) {
         setTimeout(() => {
           const gameCompleteModal = document.getElementById("gameCompleteModal");
           if (gameCompleteModal) {
+            // Add event listener for when modal is fully shown
+            gameCompleteModal.addEventListener('shown.bs.modal', function onModalShown() {
+              // Initialize the ad after the modal is fully visible
+              debugLog("Game complete modal fully shown, initializing ad");
+              var adContainer = document.getElementById("gameCompletionAd");
+              if (adContainer) {
+                var adScript = document.createElement("script");
+                adScript.textContent = "(adsbygoogle = window.adsbygoogle || []).push({});";
+                adContainer.appendChild(adScript);
+                debugLog("Ad initialization script added to container");
+              } else {
+                debugLog("Ad container not found in modal");
+              }
+              
+              // Remove the event listener after it fires once
+              gameCompleteModal.removeEventListener('shown.bs.modal', onModalShown);
+            });
+            
             const modalInstance = new bootstrap.Modal(gameCompleteModal);
             modalInstance.show();
           } else {
