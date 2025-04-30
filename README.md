@@ -1,6 +1,6 @@
 # Lyricle
 
-Lyricle is a lyric guessing game. Play the daily challenge at [lyricle.dev](https://lyricle.dev) and put your knowledge to the test!
+Lyricle is a lyric guessing game. Play the daily challenge at [lyricle.io](https://lyricle.io) and put your knowledge to the test!
 
 # Hosting
 
