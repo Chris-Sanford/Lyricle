@@ -3,9 +3,10 @@
   "version": "1.0.0",
   "scripts": {
     "build": "./build.sh",
-    "deploy": "wrangler pages deploy public"
+    "deploy": "wrangler pages publish public --project-name=lyricle"
   },
   "dependencies": {
+    "@cloudflare/kv-asset-handler": "^0.3.0",
     "dotenv": "^16.4.7",
     "spotify-preview-finder": "^1.1.1"
   },

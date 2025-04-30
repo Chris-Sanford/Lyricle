@@ -1,9 +1,6 @@
-[site]
-bucket = "./public"
-
-name = "lyricle" 
+name = "lyricle"
+main = ".cloudflare/workers-site/index.js"
 compatibility_date = "2025-04-30"
 
-[site.build]
-command = ""
-upload.format = "directory" 
+[site]
+bucket = "./public" 

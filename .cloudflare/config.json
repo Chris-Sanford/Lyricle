@@ -1,0 +1,5 @@
+{
+  "name": "lyricle",
+  "buildCommand": "true",
+  "outputDirectory": "public"
+} 
