@@ -36,6 +36,10 @@ integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEw
   <!-- Import Lyricle CSS after Bootstrap so our code takes precedent -->
   <link rel="stylesheet" href="./css/main.css">
 
+  <!-- Google AdSense -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8125725324445796"
+    crossorigin="anonymous"></script>
+
 </head>
 
 <body>
@@ -52,6 +56,35 @@ integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEw
   <script src="./js/stats.js" type="module"></script>
   <script src="./js/audio.js" type="module"></script>
   <script src="./js/game.js" type="module"></script>
+  <script src="./js/ads.js"></script>
+
+  <!-- Left Ad Container - Only shown on large screens -->
+  <div class="lyricle-ad-container lyricle-ad-left">
+    <!-- Lyricle Desktop Vertical Side Banner (Left) -->
+    <ins class="adsbygoogle"
+        style="display:block"
+        data-ad-client="ca-pub-8125725324445796"
+        data-ad-slot="5495515009"
+        data-ad-format="auto"
+        data-full-width-responsive="true"></ins>
+    <script>
+        (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+
+  <!-- Right Ad Container - Only shown on large screens -->
+  <div class="lyricle-ad-container lyricle-ad-right">
+    <!-- Lyricle Desktop Vertical Side Banner (Right) -->
+    <ins class="adsbygoogle"
+        style="display:block"
+        data-ad-client="ca-pub-8125725324445796"
+        data-ad-slot="5495515009"
+        data-ad-format="auto"
+        data-full-width-responsive="true"></ins>
+    <script>
+        (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
 
   <!-- How To Play Modal -->
   <div class="modal fade modal-lg" id="howToPlay">
