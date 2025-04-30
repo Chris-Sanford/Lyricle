@@ -1,0 +1,9 @@
+[site]
+bucket = "./public"
+
+name = "lyricle" 
+compatibility_date = "2025-04-30"
+
+[site.build]
+command = ""
+upload.format = "directory" 
