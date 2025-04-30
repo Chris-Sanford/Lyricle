@@ -3,7 +3,7 @@ import { debugLog } from './debug.js';
 import { AudioController } from './audio.js';
 
 // Silent MP3 URL - Cloudflare-hosted silent audio file
-const SILENT_AUDIO_URL = 'https://pub-9d70620f0c724e4595b80ff107d19f59.r2.dev/250-milliseconds-of-silence.mp3';
+const SILENT_AUDIO_URL = 'https://pub-80d8bcad9fb844fbbea8be958b02b606.r2.dev/250-milliseconds-of-silence.mp3';
 let iOSAudio = null;
 
 // Add a document-wide touch/click handler to help unlock audio on iOS

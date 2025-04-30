@@ -102,7 +102,7 @@ const AudioController = {
     if (!url) {
       debugLog("AudioController: No URL provided to setSource. Using fallback.");
       // Use a fallback silent audio file as a valid source
-      url = 'https://pub-9d70620f0c724e4595b80ff107d19f59.r2.dev/250-milliseconds-of-silence.mp3';
+      url = 'https://pub-80d8bcad9fb844fbbea8be958b02b606.r2.dev/250-milliseconds-of-silence.mp3';
     }
     
     debugLog("AudioController: Setting audio source: " + url);

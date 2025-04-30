@@ -1225,7 +1225,7 @@ async function getAllSongData() {
   // Code for Obtaining SongData via HTTP Request
   try {
     debugLog("Fetching song data from remote source...");
-    var jsonUrl = 'https://pub-9d70620f0c724e4595b80ff107d19f59.r2.dev/gameData.json';
+    var jsonUrl = 'https://pub-80d8bcad9fb844fbbea8be958b02b606.r2.dev/gameData.json';
     
     // Make up to 3 attempts to fetch the data
     let response = null;
