@@ -497,6 +497,26 @@ function constructLyricInputBoxes(song, lyricsGridContainer) {
     adjustLyricLineHeights();
     adjustLyricContentPosition();
   }, 100);
+
+  // After all lyric boxes are constructed and added to the DOM, signal that lyrics are loaded
+  signalLyricsLoaded();
+  
+  return true;
+}
+
+// Add this new function to signal that lyrics are loaded
+function signalLyricsLoaded() {
+  debugLog("Lyrics fully loaded, signaling game is ready for ads");
+  
+  // Check if ads loading function exists
+  if (typeof window.loadAdsWhenGameReady === 'function') {
+    // Short delay to ensure everything is fully rendered
+    setTimeout(() => {
+      window.loadAdsWhenGameReady();
+    }, 100);
+  } else {
+    debugLog("WARNING: loadAdsWhenGameReady function not found");
+  }
 }
 
 async function populateAlertsDiv() {
@@ -1057,6 +1077,15 @@ function displayHowToPlayModal() {
     if (AudioController.audio) {
         debugLog(`Audio state after modal close (Controller): muted=${AudioController.isMuted()}, paused=${AudioController.audio.paused}`);
     }
+    
+    // Signal that the How to Play modal has been dismissed, so ads can load
+    if (typeof window.loadAdsWhenHowToPlayDismissed === 'function') {
+      debugLog("Signaling How to Play modal dismissed for ads loading");
+      window.loadAdsWhenHowToPlayDismissed();
+    } else {
+      debugLog("WARNING: loadAdsWhenHowToPlayDismissed function not found");
+    }
+    
     // Focus first unfilled lyric after modal is hidden
     focusFirstUnfilledLyric();
   });
@@ -1485,6 +1514,20 @@ function startGame(songData) { // Loads main game with song lyrics to guess
     // Don't attempt to complete the game with a potentially undefined song reference
     // Just log the error and don't show any alert to the user when the game is starting
   }
+
+  // Existing code remains the same, just adding a comment to locate where to add code
+  // This is after constructLyricInputBoxes is called but before the end of startGame
+  
+  // Update KeyboardController
+  try {
+    // ... existing code ...
+  } catch (e) {
+    // ... existing code ...
+  }
+  
+  // Note: We don't need to add anything here as signalLyricsLoaded is called from within constructLyricInputBoxes
+  
+  return true;
 }
 
 function completeGame(song) {
