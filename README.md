@@ -130,3 +130,7 @@ Upload the `gameData.json` content to the CDN of your choice (with CORS configur
 If you experience any issues with the API scripts, try updating the Python packages and rotating your API keys.
 
 During development, you can open the web console and execute `getRandomSong()` to get a random song to test against rather than un-commenting the random button from the JavaScript code.
+
+# Disclaimer
+
+Lyricle uses music data, including song titles, artist names, audio snippets, and lyrics, provided by third-party sources. All copyrights in this content remain with their respective owners. Sanford Technologies LLC does not claim ownership of any third-party music content displayed or used in this application.
