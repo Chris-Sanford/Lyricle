@@ -29,6 +29,9 @@ body {
     width: 100%;
     height: 100%;
     max-width: 100vw; /* Prevent horizontal overflow */
+    /* Ensure no padding is applied now that ads are removed */
+    padding-left: 0;
+    padding-right: 0;
 }
 
 /* Apply to all classes containing the string container */

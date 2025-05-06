@@ -274,34 +274,6 @@ function constructGameCompleteModal(song, elapsedTime) { // Add elapsedTime para
     thanksText.style.textAlign = "center"; // Center the text
     modalBody.appendChild(thanksText);
     
-    // Add the game completion ad below the "Thanks for playing!" text
-    var adContainer = document.createElement("div");
-    adContainer.id = "gameCompletionAd";
-    adContainer.classList.add("lyricle-completion-ad");
-    adContainer.style.display = "flex";
-    adContainer.style.justifyContent = "center";
-    adContainer.style.alignItems = "center";
-    adContainer.style.marginTop = "10px";
-    adContainer.style.marginBottom = "10px";
-    adContainer.style.width = "100%";
-    adContainer.style.minHeight = "250px"; // Ensure minimum height
-    
-    // Create ad element with fixed size
-    var adElement = document.createElement("ins");
-    adElement.className = "adsbygoogle";
-    adElement.style.display = "block";
-    adElement.style.width = "300px"; // Fixed standard width
-    adElement.style.height = "250px"; // Fixed standard height
-    adElement.setAttribute("data-ad-client", "ca-pub-8125725324445796");
-    adElement.setAttribute("data-ad-slot", "7055783344");
-    adElement.setAttribute("data-ad-format", "rectangle");
-    
-    // Add the ad element to the container
-    adContainer.appendChild(adElement);
-    
-    // Add ad container to modal body
-    modalBody.appendChild(adContainer);
-    
     // Append the modal to the document body
     document.body.appendChild(modal);
     
@@ -506,17 +478,8 @@ function constructLyricInputBoxes(song, lyricsGridContainer) {
 
 // Add this new function to signal that lyrics are loaded
 function signalLyricsLoaded() {
-  debugLog("Lyrics fully loaded, signaling game is ready for ads");
-  
-  // Check if ads loading function exists
-  if (typeof window.loadAdsWhenGameReady === 'function') {
-    // Short delay to ensure everything is fully rendered
-    setTimeout(() => {
-      window.loadAdsWhenGameReady();
-    }, 100);
-  } else {
-    debugLog("WARNING: loadAdsWhenGameReady function not found");
-  }
+  debugLog("Lyrics fully loaded");
+  // Removed ad loading code
 }
 
 async function populateAlertsDiv() {
@@ -1031,23 +994,7 @@ function displayGameCompleteModal() {
   var modalElement = document.getElementById("gameCompleteModal");
   var modalInstance = new bootstrap.Modal(modalElement);
   
-  // Add event listener for when modal is fully shown
-  modalElement.addEventListener('shown.bs.modal', function onModalShown() {
-    // Initialize the ad after the modal is fully visible
-    debugLog("Game complete modal fully shown, initializing ad");
-    var adContainer = document.getElementById("gameCompletionAd");
-    if (adContainer) {
-      var adScript = document.createElement("script");
-      adScript.textContent = "(adsbygoogle = window.adsbygoogle || []).push({});";
-      adContainer.appendChild(adScript);
-      debugLog("Ad initialization script added to container");
-    } else {
-      debugLog("Ad container not found in modal");
-    }
-    
-    // Remove the event listener after it fires once
-    modalElement.removeEventListener('shown.bs.modal', onModalShown);
-  });
+  // Remove ad initialization code
   
   modalInstance.show();
 }
@@ -1078,13 +1025,7 @@ function displayHowToPlayModal() {
         debugLog(`Audio state after modal close (Controller): muted=${AudioController.isMuted()}, paused=${AudioController.audio.paused}`);
     }
     
-    // Signal that the How to Play modal has been dismissed, so ads can load
-    if (typeof window.loadAdsWhenHowToPlayDismissed === 'function') {
-      debugLog("Signaling How to Play modal dismissed for ads loading");
-      window.loadAdsWhenHowToPlayDismissed();
-    } else {
-      debugLog("WARNING: loadAdsWhenHowToPlayDismissed function not found");
-    }
+    // Removed ad loading code
     
     // Focus first unfilled lyric after modal is hidden
     focusFirstUnfilledLyric();
@@ -1599,23 +1540,7 @@ function completeGame(song) {
         debugLog("GAME DEBUG: Attempting to display game complete modal");
         const gameCompleteModal = document.getElementById("gameCompleteModal");
         if (gameCompleteModal) {
-          // Add event listener for when modal is fully shown
-          gameCompleteModal.addEventListener('shown.bs.modal', function onModalShown() {
-            // Initialize the ad after the modal is fully visible
-            debugLog("Game complete modal fully shown, initializing ad");
-            var adContainer = document.getElementById("gameCompletionAd");
-            if (adContainer) {
-              var adScript = document.createElement("script");
-              adScript.textContent = "(adsbygoogle = window.adsbygoogle || []).push({});";
-              adContainer.appendChild(adScript);
-              debugLog("Ad initialization script added to container");
-            } else {
-              debugLog("Ad container not found in modal");
-            }
-            
-            // Remove the event listener after it fires once
-            gameCompleteModal.removeEventListener('shown.bs.modal', onModalShown);
-          });
+          // Remove ad initialization code
           
           const modalInstance = new bootstrap.Modal(gameCompleteModal);
           modalInstance.show();
@@ -1699,23 +1624,7 @@ function concede(song) {
         debugLog("GAME DEBUG: Attempting to display game complete modal from concede");
         const gameCompleteModal = document.getElementById("gameCompleteModal");
         if (gameCompleteModal) {
-          // Add event listener for when modal is fully shown
-          gameCompleteModal.addEventListener('shown.bs.modal', function onModalShown() {
-            // Initialize the ad after the modal is fully visible
-            debugLog("Game complete modal fully shown from concede, initializing ad");
-            var adContainer = document.getElementById("gameCompletionAd");
-            if (adContainer) {
-              var adScript = document.createElement("script");
-              adScript.textContent = "(adsbygoogle = window.adsbygoogle || []).push({});";
-              adContainer.appendChild(adScript);
-              debugLog("Ad initialization script added to container from concede");
-            } else {
-              debugLog("Ad container not found in modal from concede");
-            }
-            
-            // Remove the event listener after it fires once
-            gameCompleteModal.removeEventListener('shown.bs.modal', onModalShown);
-          });
+          // Remove ad initialization code
           
           const modalInstance = new bootstrap.Modal(gameCompleteModal);
           modalInstance.show();
@@ -1738,23 +1647,7 @@ function concede(song) {
         setTimeout(() => {
           const gameCompleteModal = document.getElementById("gameCompleteModal");
           if (gameCompleteModal) {
-            // Add event listener for when modal is fully shown
-            gameCompleteModal.addEventListener('shown.bs.modal', function onModalShown() {
-              // Initialize the ad after the modal is fully visible
-              debugLog("Game complete modal fully shown, initializing ad");
-              var adContainer = document.getElementById("gameCompletionAd");
-              if (adContainer) {
-                var adScript = document.createElement("script");
-                adScript.textContent = "(adsbygoogle = window.adsbygoogle || []).push({});";
-                adContainer.appendChild(adScript);
-                debugLog("Ad initialization script added to container");
-              } else {
-                debugLog("Ad container not found in modal");
-              }
-              
-              // Remove the event listener after it fires once
-              gameCompleteModal.removeEventListener('shown.bs.modal', onModalShown);
-            });
+            // Remove ad initialization code
             
             const modalInstance = new bootstrap.Modal(gameCompleteModal);
             modalInstance.show();
