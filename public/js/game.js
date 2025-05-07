@@ -277,7 +277,14 @@ function constructGameCompleteModal(song, elapsedTime) { // Add elapsedTime para
     modalBody.appendChild(shareButtonsContainer);
 
     // Create share text with stats
-    const shareText = `I played Lyricle and got ${stats.wordsCorrect} of ${stats.wordsToGuess} lyrics correct in ${minutes} minute${minutes !== 1 ? 's' : ''} and ${seconds} second${seconds !== 1 ? 's' : ''}! Play at lyricle.io`;
+    const shareText = `I played Lyricle.io and got:
+
+✅ Percentage Correct: ${stats.wordsCorrect} of ${stats.wordsToGuess} (${stats.percentageComplete}%)
+❤️ Lifelines Remaining: ${lifelines || 0} of 3
+⏰ Time to Completion: ${minutes} minute${minutes !== 1 ? 's' : ''} and ${seconds} second${seconds !== 1 ? 's' : ''}
+⌨️ Total Inputs: ${stats.inputCounter}.
+
+Play at lyricle.io`;
 
     // Copy to Clipboard button
     var copyButton = document.createElement("button");
