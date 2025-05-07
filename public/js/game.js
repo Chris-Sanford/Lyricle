@@ -265,14 +265,67 @@ function constructGameCompleteModal(song, elapsedTime) { // Add elapsedTime para
     muteButton.appendChild(muteButtonIcon);
     modalFooter.appendChild(muteButton);
 
-    // Append the modal to the document body
-    document.body.appendChild(modal);
-
     // Add text after the table
     var thanksText = document.createElement("p");
     thanksText.innerText = "Thanks for playing!";
     thanksText.style.textAlign = "center"; // Center the text
     modalBody.appendChild(thanksText);
+
+    // Add social sharing buttons container
+    var shareButtonsContainer = document.createElement("div");
+    shareButtonsContainer.classList.add("d-flex", "justify-content-center", "gap-2", "mb-3");
+    modalBody.appendChild(shareButtonsContainer);
+
+    // Create share text with stats
+    const shareText = `I played Lyricle and got ${stats.wordsCorrect} of ${stats.wordsToGuess} lyrics correct in ${minutes} minute${minutes !== 1 ? 's' : ''} and ${seconds} second${seconds !== 1 ? 's' : ''}! Play at lyricle.io`;
+
+    // Copy to Clipboard button
+    var copyButton = document.createElement("button");
+    copyButton.type = "button";
+    copyButton.classList.add("btn", "btn-outline-secondary", "btn-sm");
+    copyButton.innerHTML = '<i class="fas fa-copy"></i> Copy';
+    copyButton.addEventListener("click", function() {
+      navigator.clipboard.writeText(shareText).then(() => {
+        copyButton.innerHTML = '<i class="fas fa-check"></i> Copied!';
+        setTimeout(() => {
+          copyButton.innerHTML = '<i class="fas fa-copy"></i> Copy';
+        }, 2000);
+      });
+    });
+    shareButtonsContainer.appendChild(copyButton);
+
+    // X (Twitter) button
+    var twitterButton = document.createElement("button");
+    twitterButton.type = "button";
+    twitterButton.classList.add("btn", "btn-outline-secondary", "btn-sm");
+    twitterButton.innerHTML = '<i class="fab fa-x-twitter"></i> X';
+    twitterButton.addEventListener("click", function() {
+      const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`;
+      window.open(twitterUrl, '_blank');
+    });
+    shareButtonsContainer.appendChild(twitterButton);
+
+    // Facebook button
+    var facebookButton = document.createElement("button");
+    facebookButton.type = "button";
+    facebookButton.classList.add("btn", "btn-outline-secondary", "btn-sm");
+    facebookButton.innerHTML = '<i class="fab fa-facebook"></i> Facebook';
+    facebookButton.addEventListener("click", function() {
+      const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent('https://lyricle.io')}&quote=${encodeURIComponent(shareText)}`;
+      window.open(facebookUrl, '_blank');
+    });
+    shareButtonsContainer.appendChild(facebookButton);
+
+    // WhatsApp button
+    var whatsappButton = document.createElement("button");
+    whatsappButton.type = "button";
+    whatsappButton.classList.add("btn", "btn-outline-secondary", "btn-sm");
+    whatsappButton.innerHTML = '<i class="fab fa-whatsapp"></i> WhatsApp';
+    whatsappButton.addEventListener("click", function() {
+      const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
+      window.open(whatsappUrl, '_blank');
+    });
+    shareButtonsContainer.appendChild(whatsappButton);
     
     // Append the modal to the document body
     document.body.appendChild(modal);
