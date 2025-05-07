@@ -180,7 +180,7 @@ function constructGameCompleteModal(song, elapsedTime) { // Add elapsedTime para
     // Create the rows and cells for each statistic
     var percentageCorrectRow = document.createElement("tr");
     var percentageCorrectCell1 = document.createElement("td");
-    percentageCorrectCell1.innerText = "Percentage Correct";
+    percentageCorrectCell1.innerText = "✅ Percentage Correct";
     var percentageCorrectCell2 = document.createElement("td");
     percentageCorrectCell2.innerText = `${stats.wordsCorrect} of ${stats.wordsToGuess} (${stats.percentageComplete}%)`;
     percentageCorrectRow.appendChild(percentageCorrectCell1);
@@ -189,7 +189,7 @@ function constructGameCompleteModal(song, elapsedTime) { // Add elapsedTime para
 
     var lifelinesRemainingRow = document.createElement("tr");
     var lifelinesRemainingCell1 = document.createElement("td");
-    lifelinesRemainingCell1.innerText = "Lifelines Remaining";
+    lifelinesRemainingCell1.innerText = "❤️ Lifelines Remaining";
     var lifelinesRemainingCell2 = document.createElement("td");
     lifelinesRemainingCell2.innerText = (lifelines || 0) + " of 3";
     lifelinesRemainingRow.appendChild(lifelinesRemainingCell1);
@@ -198,7 +198,7 @@ function constructGameCompleteModal(song, elapsedTime) { // Add elapsedTime para
 
     var totalTimeRow = document.createElement("tr");
     var totalTimeCell1 = document.createElement("td");
-    totalTimeCell1.innerText = "Time to Completion";
+    totalTimeCell1.innerText = "⏰ Time to Completion";
     var totalTimeCell2 = document.createElement("td");
     // Format the elapsed time nicely
     const minutes = Math.floor(stats.elapsedTime / 60);
@@ -210,7 +210,7 @@ function constructGameCompleteModal(song, elapsedTime) { // Add elapsedTime para
 
     var totalInputsRow = document.createElement("tr");
     var totalInputsCell1 = document.createElement("td");
-    totalInputsCell1.innerText = "Total Inputs";
+    totalInputsCell1.innerText = "⌨️ Total Inputs";
     var totalInputsCell2 = document.createElement("td");
     totalInputsCell2.innerText = stats.inputCounter;
     totalInputsRow.appendChild(totalInputsCell1);
