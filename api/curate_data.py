@@ -420,7 +420,7 @@ def fetch_spotify_songs(client_id, client_secret):
         scope='playlist-read-private'))
 
     # ID of the public playlist of Spotify's most streamed songs
-    playlist_id = '2YRe7HRKNRvXdJBp9nXFza'
+    playlist_id = '58zw0vG0X5GdT82of2G22L'
 
     # Initialize an empty list to store all tracks
     all_tracks = []
