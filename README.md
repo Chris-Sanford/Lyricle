@@ -113,7 +113,7 @@ Note that the Genius API actually denies connections made from known cloud publi
 
 #### Filter Out Profanity
 
-We do our own bad world / profanity filtering and censorship using a Base64-encoded banned list and a dedicated script.
+We do our own bad world / profanity filtering and censorship using a Base64-encoded (UTF-8 input, RFC4648) banned list and a dedicated script.
 
 ```sh
 python api/censor_lyrics.py
@@ -121,33 +121,13 @@ python api/censor_lyrics.py
 python3 api/censor_lyrics.py
 ```
 
-What I typically like to do in addition to this is run the gameData.json through the [`Neutrino API Bad Word Filter`](https://www.neutrinoapi.com/account/tools/?api=bad-word-filter) in `Strict` mode. This would help detect any words to censor that aren't already included in the bannedWords.json list, and we can update 
+What I typically like to do in addition to this is run the gameData.json through the [`Neutrino API Bad Word Filter`](https://www.neutrinoapi.com/account/tools/?api=bad-word-filter) in `Strict` mode. This would help detect any words to censor that aren't already included in the bannedWords.json list, and we can update if anything new comes up.
 
 The [`Neutrino API Bad Word Filter`](https://www.neutrinoapi.com/account/tools/?api=bad-word-filter) seems to be the best API on the market for filtering out profanity. Utilizing an API helps us censor profanity without needing to store the profanity ourselves, and take advantage of the advanced detection and filtering capabilities of the API. Since censoring the lyrics is something that only needs to happen once, it isn't entirely necessary to automate.
 
 To perform the data censoring manually, you can access the [`Neutrino API Bad Word Filter`](https://www.neutrinoapi.com/account/tools/?api=bad-word-filter) web interface. Paste in the uncensored lyric data into the content input field with the `strict` filter on. Submit this filter request, and it will return the detected bad words. You can then use this list of detected profanity for a `Find and Replace` operation in an IDE.
 
-In theory, instead of leveraging an API and doing the above manual process, you can prompt an AI model to do the profanity filtering for you. However, finding a model that won't give you a hard time about the profanity is a challenge.
-
-`bannedWords.json` contains Base64 encoded data (UTF-8 input, RFC4648) of each word in our banned list. We decode this and use the data to censor the song lyrics.
-
-#### Using the Censor Script
-
-Alternatively, you can use the included `censor_lyrics.py` script to automatically censor profanity in the song lyrics:
-
-```sh
-python api/censor_lyrics.py
-# or
-python3 api/censor_lyrics.py
-```
-
-The script will:
-1. Read the banned words from `api/bannedWords.json` (with words encoded in Base64)
-2. Load the uncensored song data from `data/uncensoredGameData.json`
-3. Replace all instances of banned words with asterisks (one asterisk per character)
-4. Save the censored data to `data/gameData.json`
-
-This approach is more privacy-friendly as it doesn't require sending your content to a third-party API and ensures consistent censoring across all instances of banned words.
+In theory, instead of leveraging an API and doing the above manual process, you can prompt an AI model to do the profanity filtering for you. However, finding a model that won't give you a hard time about the profanity is a challenge. Currently, it does seem that Claude 3.7 Sonnet doesn't seem to complain about it.
 
 #### Update CDN with New Data
 
