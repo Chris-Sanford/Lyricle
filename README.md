@@ -115,7 +115,7 @@ Note that the Genius API actually denies connections made from known cloud publi
 
 The [`Neutrino API Bad Word Filter`](https://www.neutrinoapi.com/account/tools/?api=bad-word-filter) seems to be the best API on the market for filtering out profanity. Utilizing an API helps us censor profanity without needing to store the profanity ourselves, and take advantage of the advanced detection and filtering capabilities of the API. Since censoring the lyrics is something that only needs to happen once, it isn't entirely necessary to automate.
 
-To perform the data censoring manually, you can access the [`Neutrino API Bad Word Filter`](https://www.neutrinoapi.com/account/tools/?api=bad-word-filter) web interface. Paste in the uncensored lyric data into the content input field with the `obscene` filter on. Submit this filter request, and it will return the detected bad words. You can then use this list of detected profanity for a `Find and Replace` operation in an IDE.
+To perform the data censoring manually, you can access the [`Neutrino API Bad Word Filter`](https://www.neutrinoapi.com/account/tools/?api=bad-word-filter) web interface. Paste in the uncensored lyric data into the content input field with the `strict` filter on. Submit this filter request, and it will return the detected bad words. You can then use this list of detected profanity for a `Find and Replace` operation in an IDE.
 
 In theory, instead of leveraging an API and doing the above manual process, you can prompt an AI model to do the profanity filtering for you. However, finding a model that won't give you a hard time about the profanity is a challenge.
 
