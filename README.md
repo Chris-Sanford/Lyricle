@@ -119,6 +119,8 @@ To perform the data censoring manually, you can access the [`Neutrino API Bad Wo
 
 In theory, instead of leveraging an API and doing the above manual process, you can prompt an AI model to do the profanity filtering for you. However, finding a model that won't give you a hard time about the profanity is a challenge.
 
+`bannedWords.json` contains Base64 encoded data (UTF-8 input, RFC4648) of each word in our banned list. We decode this and use the data to censor the song lyrics.
+
 #### Update CDN with New Data
 
 Upload the `gameData.json` content to the CDN of your choice (with CORS configured as needed for your domain). Then, update the `jsonUrl` value in the `getAllSongData()` function within `game.js`.
