@@ -35,6 +35,8 @@ brew install python
 Install Required Python Packages
 ```sh
 pip install -r api/requirements.txt
+// or
+pip3 install -r api/requirements.txt
 ```
 
 #### Set API Keys for Spotify
@@ -88,13 +90,15 @@ The spotify-preview-finder npm package is used to fetch preview URLs for songs f
 npm install -g spotify-preview-finder
 ```
 
-#### Get Song Data from Spotify with Preview URLs
+#### Curate Song and Lyric Data
 
 Run the following from the root directory of the repository:
 
 ```sh
 pip install -r api/requirements.txt
-python api/spotify.py
+// or
+pip3 install -r api/requirements.txt
+python api/curate_data.py
 ```
 
 The script will:
@@ -102,14 +106,8 @@ The script will:
 2. Fetch top songs from Spotify
 3. Use spotify-preview-finder to get preview URLs for each song
 4. Create a file named `topSongs.json` in the `data` directory
-
-#### Get Lyric Data from Genius
-
-```sh
-python api/genius.py
-```
-
-The script will create a file named `uncensoredGameData.json` in the `data` directory.
+5. Obtain lyric data from Genius API
+6. Create a file named `uncensoredGameData.json` in the `data` directory.
 
 Note that the Genius API actually denies connections made from known cloud public IP addresses, so this script tends to only work when running off your local machine.
 
